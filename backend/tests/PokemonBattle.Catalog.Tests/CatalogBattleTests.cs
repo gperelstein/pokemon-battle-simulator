@@ -120,6 +120,14 @@ public class CatalogBattleTests
         Assert.True(Move("fissure").Ohko);
         Assert.True(Move("sheercold").Ohko);
         Assert.False(Move("earthquake").Ohko);
+
+        Assert.Equal(Weather.Sun, Move("sunnyday").SetsWeather);
+        Assert.Equal(Weather.Rain, Move("raindance").SetsWeather);
+        Assert.Equal(Weather.Sandstorm, Move("sandstorm").SetsWeather);
+        Assert.Equal(Weather.Hail, Move("hail").SetsWeather);
+        Assert.Null(Move("tackle").SetsWeather);
+        Assert.Equal(new HealFraction(1, 2), Move("recover").Heal);
+        Assert.Null(Move("tackle").Heal);
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using PokemonBattle.Engine.Battles;
 using System.Text.Json.Serialization;
 using PokemonBattle.Engine.Moves;
 using PokemonBattle.Engine.Pokemon;
@@ -115,6 +116,12 @@ public sealed record MoveData
     [JsonIgnore]
     public bool Ohko => OhkoValue is { ValueKind: JsonValueKind.True or JsonValueKind.String };
 
+    /// <summary>Weather set by the move, as a Showdown id in mixed case (sunnyday, RainDance...).</summary>
+    public string? Weather { get; init; }
+
+    /// <summary>Fraction of max HP healed, as [numerator, denominator].</summary>
+    public IReadOnlyList<int>? Heal { get; init; }
+
     /// <summary>Remaining declarative mechanics (status, drain, recoil...) kept raw.</summary>
     [JsonExtensionData]
     public Dictionary<string, JsonElement> Effects { get; init; } = [];
@@ -153,7 +160,19 @@ public sealed record MoveData
         Flags.Contains("defrost"),
         ThawsTarget,
         SleepUsable,
-        Ohko);
+        Ohko,
+        ToWeather(Weather),
+        Heal is [var numerator, var denominator] ? new HealFraction(numerator, denominator) : null);
+
+    private static Weather? ToWeather(string? id) => id?.ToLowerInvariant() switch
+    {
+        null => null,
+        "sunnyday" => Engine.Battles.Weather.Sun,
+        "raindance" => Engine.Battles.Weather.Rain,
+        "sandstorm" => Engine.Battles.Weather.Sandstorm,
+        "hail" => Engine.Battles.Weather.Hail,
+        _ => throw new InvalidOperationException($"Unknown weather '{id}'."),
+    };
 
     private static MajorStatus? ToMajorStatus(string? id) => id switch
     {
