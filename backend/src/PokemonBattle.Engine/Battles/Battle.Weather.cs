@@ -10,6 +10,7 @@ namespace PokemonBattle.Engine.Battles;
 public sealed partial class Battle
 {
     private const int WeatherDuration = 5;
+    private const int ExtendedWeatherDuration = 8;
     private int _weatherTurnsLeft;
 
     /// <summary>Current weather, or null for clear skies.</summary>
@@ -28,8 +29,12 @@ public sealed partial class Battle
     private bool CloudNineActive() =>
         _sides.Values.Any(side => side.LiveSlots.Any(slot => side.Active[slot]!.Ability == "cloudnine"));
 
-    /// <summary>Starts a weather. Returns false when that weather is already active.</summary>
-    private bool SetWeather(Weather weather)
+    /// <summary>
+    /// Starts a weather. Returns false when that weather is already active. It lasts 8 turns when
+    /// <paramref name="source"/> (the move user or the ability holder) holds the matching rock (Heat
+    /// Rock, Damp Rock, Smooth Rock, Icy Rock: the weathers' durationCallback in data/conditions.ts).
+    /// </summary>
+    private bool SetWeather(Weather weather, BattlePokemon source)
     {
         if (Weather == weather)
         {
@@ -37,7 +42,7 @@ public sealed partial class Battle
         }
 
         Weather = weather;
-        _weatherTurnsLeft = WeatherDuration;
+        _weatherTurnsLeft = HeldItems.ExtendsWeather(source.Item, weather) ? ExtendedWeatherDuration : WeatherDuration;
         _events.Add(new WeatherStarted(weather));
         return true;
     }
@@ -104,7 +109,7 @@ public sealed partial class Battle
 
     /// <summary>
     /// End-of-turn weather damage to one Pokémon: 1/16 from sandstorm or hail unless its type, its
-    /// ability (Sand Veil, Sand Rush, Sand Force, Overcoat; Snow Cloak, Overcoat) or Dig/Dive shelters
+    /// ability (Sand Veil, Sand Rush, Sand Force, Overcoat; Snow Cloak, Overcoat), Safety Goggles or Dig/Dive shelters
     /// it, and 1/8 in sun for Solar Power and Dry Skin holders. Magic Guard blocks all of it.
     /// </summary>
     private int WeatherDamageTo(BattlePokemon pokemon, Weather weather)
@@ -123,12 +128,12 @@ public sealed partial class Battle
 
             case Battles.Weather.Sandstorm:
                 var sandImmune = _typeChart.IsImmune(pokemon.Set.Types, TypeCondition.Sandstorm) ||
-                    ability is "sandveil" or "sandrush" or "sandforce" or "overcoat";
+                    ability is "sandveil" or "sandrush" or "sandforce" or "overcoat" || pokemon.Item == HeldItems.SafetyGoggles;
                 return sandImmune || IsShelteredFromWeather(pokemon) ? 0 : Math.Max(1, maxHp / 16);
 
             case Battles.Weather.Hail:
                 var hailImmune = _typeChart.IsImmune(pokemon.Set.Types, TypeCondition.Hail) ||
-                    ability is "snowcloak" or "overcoat" or "icebody";
+                    ability is "snowcloak" or "overcoat" or "icebody" || pokemon.Item == HeldItems.SafetyGoggles;
                 return hailImmune || IsShelteredFromWeather(pokemon) ? 0 : Math.Max(1, maxHp / 16);
 
             default:

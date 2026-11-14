@@ -17,7 +17,13 @@ public sealed partial class Battle
     /// <summary>Targets the current move damaged (DamagingHit abilities).</summary>
     private readonly HashSet<BattlePokemon> _damagedTargets = [];
 
-    private void AfterDamagingHit(BattlePokemon attacker, BattlePokemon target, MoveDefinition move)
+    /// <summary>
+    /// The DamagingHit handlers without an order, in Showdown's collection order: the target's
+    /// ability, its item (see <see cref="ItemReactionToDamagingHit"/>), then the attacker's Poison
+    /// Touch. Aftermath (order 1) and Rocky Helmet (order 2) run before, for every target.
+    /// </summary>
+    /// <param name="moveType">The move's type as used (Aerilate, Weather Ball), which the items read.</param>
+    private void AfterDamagingHit(BattlePokemon attacker, BattlePokemon target, MoveDefinition move, PokemonType moveType)
     {
         var contact = move.Flags.HasFlag(MoveFlags.Contact);
         var ability = AbilityOf(target);
@@ -34,10 +40,11 @@ public sealed partial class Battle
                 SetStatus(attacker, status, target, primary: null, viaAbility: (target, ability));
                 break;
 
-            // Effect Spore spares powder-immune attackers (Grass types, Overcoat): 11% sleep, 10%
-            // paralysis, 9% poison.
+            // Effect Spore spares powder-immune attackers (Grass types, Overcoat, Safety Goggles'
+            // onImmunity): 11% sleep, 10% paralysis, 9% poison.
             case "effectspore" when contact && !attacker.IsFainted &&
-                !_typeChart.IsImmune(attacker.Set.Types, TypeCondition.Powder) && attacker.Ability != "overcoat":
+                !_typeChart.IsImmune(attacker.Set.Types, TypeCondition.Powder) && attacker.Ability != "overcoat" &&
+                attacker.Item != HeldItems.SafetyGoggles:
                 var roll = _random.Next(0, 100);
                 MajorStatus? spore = roll < 11 ? MajorStatus.Sleep
                     : roll < 21 ? MajorStatus.Paralysis
@@ -48,10 +55,6 @@ public sealed partial class Battle
                     SetStatus(attacker, sporeStatus, target, primary: null, viaAbility: (target, "effectspore"));
                 }
 
-                break;
-
-            case "aftermath" when contact && target.IsFainted:
-                Aftermath(attacker, target);
                 break;
 
             case "justified" when move.Type == PokemonType.Dark:
@@ -70,11 +73,22 @@ public sealed partial class Battle
                 break;
         }
 
+        ItemReactionToDamagingHit(target, moveType);
+
         // Poison Touch: the attacker's contact moves poison 3 times in 10, except through Shield Dust.
         if (attacker.Ability == "poisontouch" && contact && AbilityOf(target) != "shielddust" &&
             !target.IsFainted && _random.Next(0, 10) < 3)
         {
             SetStatus(target, MajorStatus.Poison, attacker, primary: null, viaAbility: (attacker, "poisontouch"));
+        }
+    }
+
+    /// <summary>Aftermath (DamagingHit order 1) when a contact move knocked its holder out.</summary>
+    private void AftermathOnDamagingHit(BattlePokemon attacker, BattlePokemon target, MoveDefinition move)
+    {
+        if (AbilityOf(target) == "aftermath" && move.Flags.HasFlag(MoveFlags.Contact) && target.IsFainted)
+        {
+            Aftermath(attacker, target);
         }
     }
 

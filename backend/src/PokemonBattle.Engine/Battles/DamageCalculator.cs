@@ -153,12 +153,14 @@ public sealed class DamageCalculator(ITypeChart typeChart)
 
     /// <summary>
     /// Scrappy lets Normal and Fighting moves ignore Ghost immunity (neutral against it); an Iron Ball
-    /// holder's Flying type does not count against Ground moves.
+    /// holder's Flying type does not count against Ground moves; a Ring Target holder's immune types
+    /// count as neutral (its onNegateImmunity, with runEffectiveness summing the other types).
     /// </summary>
     private double Effectiveness(Combatant attacker, Combatant defender, MoveDefinition move)
     {
         var types = HeldItems.DefendingTypes(defender.Set, move.Type);
-        if (attacker.Ability == "scrappy" && move.Type is PokemonType.Normal or PokemonType.Fighting)
+        if ((attacker.Ability == "scrappy" && move.Type is PokemonType.Normal or PokemonType.Fighting) ||
+            HeldItems.IgnoresTypeImmunities(defender.Set))
         {
             return types
                 .Select(type => typeChart.Effectiveness(move.Type, [type]))

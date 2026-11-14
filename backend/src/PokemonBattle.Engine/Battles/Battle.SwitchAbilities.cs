@@ -33,7 +33,10 @@ public sealed partial class Battle
         return foes.LiveSlots.Select(slot => foes.Active[slot]!);
     }
 
-    /// <summary>Runs the switch-in abilities of Pokémon that just entered, fastest first.</summary>
+    /// <summary>
+    /// Runs the switch-in abilities and then the items (Showdown's sub-orders 7 and 8) of Pokémon
+    /// that just entered, fastest first; then White Herb (onAnySwitchIn, priority -2) and the Update.
+    /// </summary>
     private void RunSwitchInAbilities(IEnumerable<BattlePokemon> switchedIn)
     {
         foreach (var pokemon in switchedIn.OrderByDescending(p => p.Speed).ToArray())
@@ -41,9 +44,11 @@ public sealed partial class Battle
             if (!pokemon.IsFainted && Locate(pokemon).Slot >= 0)
             {
                 StartAbility(pokemon);
+                StartItem(pokemon);
             }
         }
 
+        RestoreLoweredStagesOfActivePokemon();
         UpdateAbilities();
     }
 
@@ -69,7 +74,7 @@ public sealed partial class Battle
 
             case "drought" when Weather != Battles.Weather.Sun:
                 AbilityActivation(pokemon, "drought");
-                SetWeather(Battles.Weather.Sun);
+                SetWeather(Battles.Weather.Sun, pokemon);
                 return;
 
             case "download":
@@ -183,9 +188,15 @@ public sealed partial class Battle
     /// <summary>
     /// Showdown's Update event, run after every action: a Pokémon whose ability blocks its current
     /// status cures it (for example after being put to sleep through Mold Breaker), and Trace keeps
-    /// looking for an ability to copy.
+    /// looking for an ability to copy. The items' Update handlers (Berry Juice) follow.
     /// </summary>
     private void UpdateAbilities()
+    {
+        UpdateAbilityStates();
+        UpdateItems();
+    }
+
+    private void UpdateAbilityStates()
     {
         foreach (var pokemon in ActivePokemon().ToArray())
         {
@@ -232,7 +243,8 @@ public sealed partial class Battle
     /// <summary>
     /// End-of-turn abilities at residual order 5 (after weather, before poison and burn), by speed:
     /// Hydration cures in rain, Shed Skin cures one time in three (33%), Healer cures each statused
-    /// ally three times in ten.
+    /// ally three times in ten. Each Pokémon's Leftovers / Black Sludge (sub-order 4) follow its own
+    /// ability (sub-order 3), since Showdown sorts residual handlers by speed before sub-order.
     /// </summary>
     private void ApplyAbilityResiduals()
     {
@@ -264,6 +276,8 @@ public sealed partial class Battle
 
                     break;
             }
+
+            ApplyHealingItemResidual(pokemon);
         }
     }
 }

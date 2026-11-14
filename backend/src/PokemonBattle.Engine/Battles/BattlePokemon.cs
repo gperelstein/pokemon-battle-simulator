@@ -40,12 +40,27 @@ public sealed class BattlePokemon
     private void RestoreAbility() => ChangeAbility(Set.Ability, Set.AbilityBreakable, Set.AbilityTraceable);
 
     /// <summary>
-    /// Held item right now: the set's until it is used up (Normal Gem). A consumed item stays gone
-    /// after switching out, as in Showdown.
+    /// Held item right now: the set's until it is used up (Normal Gem, Focus Sash...) or passed on
+    /// (Sticky Barb). A consumed item stays gone after switching out, as in Showdown.
     /// </summary>
     public string? Item { get; private set; }
 
     internal void ConsumeItem() => Item = null;
+
+    /// <summary>Receives an item (a Sticky Barb passed on by contact).</summary>
+    internal void SetItem(string item) => Item = item;
+
+    /// <summary>Whether any stat stage is below 0 (White Herb's trigger).</summary>
+    internal bool HasNegativeStages => _stages.Any(stage => stage < 0);
+
+    /// <summary>Resets every lowered stage to 0 and keeps the raised ones (White Herb).</summary>
+    internal void ClearNegativeStages()
+    {
+        for (var i = 0; i < _stages.Length; i++)
+        {
+            _stages[i] = Math.Max(0, _stages[i]);
+        }
+    }
 
     public SideId Side { get; }
     public int TeamIndex { get; }

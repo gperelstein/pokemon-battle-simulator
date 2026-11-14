@@ -28,10 +28,8 @@ public sealed partial class Battle
             return;
         }
 
-        user.ConsumeItem();
+        ItemConsumption(user, HeldItems.NormalGem);
         _gemUser = user;
-        var (side, slot) = Locate(user);
-        _events.Add(new ItemConsumed(side.Id, slot, user.Set.Species, HeldItems.NormalGem));
     }
 
     /// <summary>
@@ -77,14 +75,7 @@ public sealed partial class Battle
             return;
         }
 
-        var (side, slot) = Locate(user);
-        var dealt = user.TakeDamage(Math.Max(1, user.Set.Stats.Hp / 10));
-        user.HurtThisTurn = true;
-        _events.Add(new ItemDamage(side.Id, slot, user.Set.Species, HeldItems.LifeOrb, dealt, user.CurrentHp));
-        if (user.IsFainted)
-        {
-            _events.Add(new Fainted(side.Id, slot, user.Set.Species));
-        }
+        HurtByItem(user, HeldItems.LifeOrb, user.Set.Stats.Hp / 10);
     }
 
     /// <summary>

@@ -17,6 +17,46 @@ internal static class HeldItems
     public const string NormalGem = "normalgem";
     public const string Metronome = "metronome";
     public const string QuickClaw = "quickclaw";
+    public const string Leftovers = "leftovers";
+    public const string BlackSludge = "blacksludge";
+    public const string StickyBarb = "stickybarb";
+    public const string ToxicOrb = "toxicorb";
+    public const string FlameOrb = "flameorb";
+    public const string FocusSash = "focussash";
+    public const string FocusBand = "focusband";
+    public const string ShellBell = "shellbell";
+    public const string AirBalloon = "airballoon";
+    public const string RockyHelmet = "rockyhelmet";
+    public const string WeaknessPolicy = "weaknesspolicy";
+    public const string WhiteHerb = "whiteherb";
+    public const string PowerHerb = "powerherb";
+    public const string BerryJuice = "berryjuice";
+    public const string SafetyGoggles = "safetygoggles";
+    public const string RingTarget = "ringtarget";
+
+    /// <summary>
+    /// Single-use items that raise a stat by 1 when a damaging move of their type hits the holder
+    /// (onDamagingHit, then useItem with the item's boosts).
+    /// </summary>
+    private static readonly Dictionary<string, (PokemonType Type, BoostStat Stat)> TypeReactions = new()
+    {
+        ["absorbbulb"] = (PokemonType.Water, BoostStat.SpecialAttack),
+        ["cellbattery"] = (PokemonType.Electric, BoostStat.Attack),
+        ["luminousmoss"] = (PokemonType.Water, BoostStat.SpecialDefense),
+        ["snowball"] = (PokemonType.Ice, BoostStat.Attack),
+    };
+
+    /// <summary>
+    /// Rocks that make the weather their holder starts last 8 turns instead of 5 (each weather's
+    /// durationCallback reads the source's item, whether a move or an ability started it).
+    /// </summary>
+    private static readonly Dictionary<string, Weather> WeatherRocks = new()
+    {
+        ["heatrock"] = Weather.Sun,
+        ["damprock"] = Weather.Rain,
+        ["smoothrock"] = Weather.Sandstorm,
+        ["icyrock"] = Weather.Hail,
+    };
 
     /// <summary>Type-boosting items without catalog type data (onBasePower, priority 15, x4915/4096).</summary>
     private static readonly Dictionary<string, PokemonType> TypeBoosters = new()
@@ -172,6 +212,22 @@ internal static class HeldItems
         defender.Item == IronBall && moveType == PokemonType.Ground && defender.Types.Contains(PokemonType.Flying)
             ? []
             : defender.Types;
+
+    /// <summary>
+    /// Ring Target (onNegateImmunity: false): the holder loses the immunities its types give against
+    /// moves; an immune type then counts as neutral (Showdown keeps the other types' effectiveness).
+    /// </summary>
+    public static bool IgnoresTypeImmunities(PokemonSet defender) => defender.Item == RingTarget;
+
+    /// <summary>The stat a type-reaction item raises when its holder is damaged by a move of <paramref name="moveType"/>.</summary>
+    public static BoostStat? TypeReaction(string? item, PokemonType moveType) =>
+        item is not null && TypeReactions.TryGetValue(item, out var reaction) && reaction.Type == moveType
+            ? reaction.Stat
+            : null;
+
+    /// <summary>Whether a weather started by the holder of <paramref name="item"/> lasts 8 turns.</summary>
+    public static bool ExtendsWeather(string? item, Weather weather) =>
+        item is not null && WeatherRocks.TryGetValue(item, out var extended) && extended == weather;
 
     /// <summary>Showdown's toID: lowercase letters and digits only (Farfetch’d -> farfetchd).</summary>
     private static string ToId(string name) =>

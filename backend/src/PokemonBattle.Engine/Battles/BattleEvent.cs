@@ -101,12 +101,25 @@ public sealed record ForewarnAlert(SideId Side, int Slot, string Species, string
 public sealed record AbilityDamage(SideId Side, int Slot, string Species, string Ability, int Amount, int RemainingHp)
     : BattleEvent;
 
-/// <summary>The held item took effect (Quick Claw letting its holder move first).</summary>
+/// <summary>
+/// The held item took effect without being used up (Quick Claw letting its holder move first, Focus
+/// Band, Safety Goggles, an Air Balloon announced on switch-in), or is the source of the heal or
+/// status that follows (Leftovers, Shell Bell, Toxic Orb: Showdown's "[from] item: ...").
+/// </summary>
 public sealed record ItemActivated(SideId Side, int Slot, string Species, string Item) : BattleEvent;
 
-/// <summary>The held item was used up (a Gem strengthening its holder's move).</summary>
+/// <summary>
+/// The held item was used up or lost (a Gem, Focus Sash, Weakness Policy, a popped Air Balloon...):
+/// Showdown's "-enditem".
+/// </summary>
 public sealed record ItemConsumed(SideId Side, int Slot, string Species, string Item) : BattleEvent;
 
-/// <summary>Damage dealt by the Pokémon's own held item (Life Orb) to the Pokémon in this slot.</summary>
+/// <summary>
+/// Damage dealt by a held item to the Pokémon in this slot: its own (Life Orb, Black Sludge, Sticky
+/// Barb) or the Rocky Helmet of the Pokémon it made contact with.
+/// </summary>
 public sealed record ItemDamage(SideId Side, int Slot, string Species, string Item, int Amount, int RemainingHp)
     : BattleEvent;
+
+/// <summary>White Herb reset the Pokémon's lowered stat stages to 0 (Showdown's "-clearnegativeboost").</summary>
+public sealed record NegativeStagesCleared(SideId Side, int Slot, string Species) : BattleEvent;

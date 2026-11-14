@@ -28,9 +28,10 @@ public sealed partial class Battle
 
     /// <summary>
     /// On the ground: holding an Iron Ball (checked first, as in Showdown's isGrounded), or neither a
-    /// Flying type nor a Levitate holder.
+    /// Flying type, a Levitate holder nor an Air Balloon holder.
     /// </summary>
     private static bool IsGrounded(BattlePokemon pokemon) =>
         pokemon.Item == HeldItems.IronBall ||
-        (!pokemon.Set.Types.Contains(PokemonType.Flying) && pokemon.Ability != "levitate");
+        (!pokemon.Set.Types.Contains(PokemonType.Flying) && pokemon.Ability != "levitate" &&
+            pokemon.Item != HeldItems.AirBalloon);
 }

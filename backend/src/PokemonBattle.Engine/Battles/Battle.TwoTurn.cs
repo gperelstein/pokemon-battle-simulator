@@ -16,7 +16,8 @@ public sealed partial class Battle
 
     /// <summary>
     /// Starts charging unless the move fires at once (Solar Beam in sun). Returns true when the
-    /// move charged, so the attack waits for the next turn.
+    /// move charged, so the attack waits for the next turn. A Power Herb (onChargeMove) is used up
+    /// after the charge message and Skull Bash's boost, and the move attacks this turn instead.
     /// </summary>
     private bool TryStartCharging(MoveAction action, MoveDefinition move)
     {
@@ -30,6 +31,12 @@ public sealed partial class Battle
         if (move.Id == "skullbash")
         {
             ChangeStages(user, [new StatChange(BoostStat.Defense, 1)], announceLimit: true);
+        }
+
+        if (user.Item == HeldItems.PowerHerb)
+        {
+            ItemConsumption(user, HeldItems.PowerHerb);
+            return false;
         }
 
         user.StartCharging(move.Id, action.Choice);

@@ -82,6 +82,7 @@ internal static class Fixtures
         ItemActivated i => $"{i.Side}.{i.Slot} {i.Species} {i.Item} activates",
         ItemConsumed i => $"{i.Side}.{i.Slot} {i.Species} {i.Item} consumed",
         ItemDamage d => $"{d.Side}.{d.Slot} {d.Species} hurt by {d.Item} {d.Amount}",
+        NegativeStagesCleared n => $"{n.Side}.{n.Slot} {n.Species} negative stages cleared",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,

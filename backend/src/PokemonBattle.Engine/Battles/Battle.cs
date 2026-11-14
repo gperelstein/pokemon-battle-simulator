@@ -304,6 +304,9 @@ public sealed partial class Battle
         {
             _moldBreakerUser = null;
         }
+
+        // White Herb's onAnyAfterMove: any holder whose stats the move lowered restores them now.
+        RestoreLoweredStagesOfActivePokemon();
     }
 
     private void RunMove(MoveAction action, MoveDefinition move, bool releasingCharge)
@@ -311,6 +314,8 @@ public sealed partial class Battle
         var user = action.Actor;
         _criticalTargets.Clear();
         _damagedTargets.Clear();
+        _superEffectiveTargets.Clear();
+        _moveDamageDealt = 0;
         _gemUser = null;
         var (rolled, magnitude, heals, typeBoosted) = ModifyMove(move, user);
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
@@ -383,7 +388,7 @@ public sealed partial class Battle
         // Moves without Pokémon targets: weather is supported; other field and side effects are not yet.
         if (targets is null)
         {
-            if (move.SetsWeather is { } weather && !SetWeather(weather))
+            if (move.SetsWeather is { } weather && !SetWeather(weather, user))
             {
                 _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "That weather is already active."));
                 return;
@@ -440,6 +445,12 @@ public sealed partial class Battle
             }
         }
 
+        // Sticky Barb's onHit (after the primary effects), including from a holder just knocked out.
+        foreach (var target in hit)
+        {
+            PassStickyBarb(user, target, move);
+        }
+
         // Sheer Force drops the secondary effects (and the user's own changes) of moves that have
         // any; Serene Grace doubles their chances.
         var sheerForce = user.Ability == "sheerforce" && move.HasAnySecondary;
@@ -473,14 +484,34 @@ public sealed partial class Battle
             }
         }
 
-        // DamagingHit: abilities that react to being damaged, then the attacker's Poison Touch.
-        foreach (var target in hit.Where(_damagedTargets.Contains))
+        // DamagingHit, in Showdown's left-to-right order: Aftermath (order 1) and Rocky Helmet (order
+        // 2) for every damaged target, then each target's other ability and item reactions and the
+        // attacker's Poison Touch.
+        var damaged = hit.Where(_damagedTargets.Contains).ToArray();
+        foreach (var target in damaged)
         {
-            AfterDamagingHit(user, target, move);
+            AftermathOnDamagingHit(user, target, move);
         }
 
-        // Life Orb (AfterMoveSecondarySelf) runs before the faints are processed (Moxie).
+        foreach (var target in damaged)
+        {
+            RockyHelmetOnDamagingHit(user, target, move);
+        }
+
+        foreach (var target in damaged)
+        {
+            AfterDamagingHit(user, target, move, rolled.Type);
+        }
+
+        // The Update event after a move that hit something (Berry Juice).
+        if (hit.Length > 0)
+        {
+            UpdateItems();
+        }
+
+        // Life Orb and Shell Bell (AfterMoveSecondarySelf) run before the faints are processed (Moxie).
         ApplyLifeOrbRecoil(user, move, hit.Length > 0, sheerForce);
+        ApplyShellBell(user, sheerForce);
 
         // Moxie: one Attack stage per Pokémon this move knocked out, once the faints are processed.
         if (user.Ability == "moxie" && !user.IsFainted)
@@ -600,7 +631,8 @@ public sealed partial class Battle
         // move's own immunities, all before accuracy.
         var damaging = move.Category != MoveCategory.Status;
         var scrappy = user.Ability == "scrappy" && move.Type is PokemonType.Normal or PokemonType.Fighting;
-        var typeImmune = !move.IgnoresTypeImmunity && !scrappy &&
+        // Ring Target negates the immunities the holder's types give (onNegateImmunity).
+        var typeImmune = !move.IgnoresTypeImmunity && !scrappy && !HeldItems.IgnoresTypeImmunities(CombatSet(target)) &&
             _typeChart.Effectiveness(move.Type, HeldItems.DefendingTypes(CombatSet(target), move.Type)) == 0;
         if (typeImmune)
         {
@@ -616,7 +648,14 @@ public sealed partial class Battle
             return false;
         }
 
-        if (AbsorbedByAbility(user, target, move))
+        // isGrounded checks Air Balloon last, after Levitate.
+        if (FloatsOnAirBalloon(target, move))
+        {
+            _events.Add(new Immune(side.Id, slot, target.Set.Species));
+            return false;
+        }
+
+        if (AbsorbedByAbility(user, target, move) || BlockedBySafetyGoggles(user, target, move))
         {
             return false;
         }
@@ -684,8 +723,15 @@ public sealed partial class Battle
             _criticalTargets.Add(target);
         }
 
-        var dealt = target.TakeDamage(EnduredBySturdy(target, result.Damage));
+        // Damage event handlers: Sturdy (priority -30), then Focus Sash / Focus Band (-40).
+        var dealt = target.TakeDamage(EnduredByItem(target, EnduredBySturdy(target, result.Damage)));
         _damagedTargets.Add(target);
+        _moveDamageDealt += dealt;
+        if (result.Effectiveness > 1)
+        {
+            _superEffectiveTargets.Add(target);
+        }
+
         _events.Add(new DamageDealt(side.Id, slot, target.Set.Species, dealt, target.CurrentHp));
         var (userSide, userSlot) = Locate(user);
         target.HitsTakenThisTurn.Add(new HitTaken(user, userSide.Id, userSlot, dealt, move.Category));
@@ -792,12 +838,14 @@ public sealed partial class Battle
     /// ability (Static...) announces that ability first. Synchronize then passes burn, paralysis and
     /// poison back to the Pokémon that caused them.
     /// </summary>
+    /// <param name="viaItem">The target's own item causing the status (Toxic Orb), announced before it.</param>
     private bool SetStatus(
         BattlePokemon target,
         MajorStatus status,
         BattlePokemon? source,
         (MoveAction Action, MoveDefinition Move)? primary,
-        (BattlePokemon Holder, string Ability)? viaAbility)
+        (BattlePokemon Holder, string Ability)? viaAbility,
+        string? viaItem = null)
     {
         if (target.IsFainted)
         {
@@ -844,6 +892,11 @@ public sealed partial class Battle
             AbilityActivation(holder, holderAbility);
         }
 
+        if (viaItem is not null)
+        {
+            ItemActivation(target, viaItem);
+        }
+
         target.SetStatus(status);
         if (status == MajorStatus.Sleep)
         {
@@ -880,11 +933,14 @@ public sealed partial class Battle
     }
 
     /// <summary>
-    /// End-of-turn damage: weather first (residual order 1), then poison (order 9) before burn
-    /// (order 10), each by descending speed. Gen 6 burn deals 1/8 of max HP.
+    /// End of the turn, in Showdown's residual order: weather (order 1), abilities and Leftovers /
+    /// Black Sludge (order 5), poison (order 9) before burn (order 10), each by descending speed,
+    /// then Sticky Barb and the status Orbs (order 28) and White Herb (order 29), and the Update
+    /// event that follows the residual action (Berry Juice). Gen 6 burn deals 1/8 of max HP.
     /// </summary>
     private void ApplyResidualDamage()
     {
+        var bySpeed = ActivePokemon().OrderByDescending(p => p.Speed).ToArray();
         ApplyWeatherResidual();
         ApplyAbilityResiduals();
         var hurt = _sides.Values
@@ -924,6 +980,9 @@ public sealed partial class Battle
                 _events.Add(new Fainted(side.Id, slot, pokemon.Set.Species));
             }
         }
+
+        ApplyLateItemResiduals(bySpeed);
+        UpdateItems();
     }
 
     private (Side Side, int Slot) Locate(BattlePokemon pokemon)
