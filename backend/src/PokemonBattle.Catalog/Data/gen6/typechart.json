@@ -380,5 +380,38 @@
       "Steel": 0.5,
       "Water": 0.5
     }
+  },
+  "conditionImmunities": {
+    "Electric": [
+      "par"
+    ],
+    "Fire": [
+      "brn"
+    ],
+    "Ghost": [
+      "trapped"
+    ],
+    "Grass": [
+      "powder"
+    ],
+    "Ground": [
+      "sandstorm"
+    ],
+    "Ice": [
+      "frz",
+      "hail"
+    ],
+    "Poison": [
+      "psn",
+      "tox"
+    ],
+    "Rock": [
+      "sandstorm"
+    ],
+    "Steel": [
+      "psn",
+      "tox",
+      "sandstorm"
+    ]
   }
 }

@@ -111,6 +111,21 @@ function exportNatures() {
     .map(n => pick(n, ['id', 'name', 'plus', 'minus']));
 }
 
+// Type immunities to conditions (status, powder, weather, trapping). @pkmn drops these lowercase
+// damageTaken entries, so they are copied from Showdown's data/typechart.ts. Gen 6 keeps them all
+// except Dark's Prankster immunity, which data/mods/gen6/typechart.ts removes.
+const CONDITION_IMMUNITIES = {
+  Electric: ['par'],
+  Fire: ['brn'],
+  Ghost: ['trapped'],
+  Grass: ['powder'],
+  Ground: ['sandstorm'],
+  Ice: ['frz', 'hail'],
+  Poison: ['psn', 'tox'],
+  Rock: ['sandstorm'],
+  Steel: ['psn', 'tox', 'sandstorm'],
+};
+
 /** Converts Showdown's damageTaken codes (0 normal, 1 weak, 2 resist, 3 immune) to multipliers. */
 function exportTypeChart() {
   const multiplier = {0: 1, 1: 2, 2: 0.5, 3: 0};
@@ -120,7 +135,7 @@ function exportTypeChart() {
     const damageTaken = gen.types.get(defending).damageTaken;
     chart[defending] = Object.fromEntries(types.map(attacking => [attacking, multiplier[damageTaken[attacking]]]));
   }
-  return {types, damageTaken: chart};
+  return {types, damageTaken: chart, conditionImmunities: CONDITION_IMMUNITIES};
 }
 
 function write(name, data) {

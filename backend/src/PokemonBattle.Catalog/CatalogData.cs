@@ -96,13 +96,22 @@ public sealed record MoveData
     public bool IgnoreEvasion { get; init; }
     public bool IgnoreDefensive { get; init; }
 
+    /// <summary>Major status inflicted on the target: brn, par, psn, tox, slp or frz.</summary>
+    public string? Status { get; init; }
+
+    /// <summary>Whether type immunities are ignored (status moves default to true, Thunder Wave is false).</summary>
+    public bool? IgnoreImmunity { get; init; }
+
+    public bool ThawsTarget { get; init; }
+    public bool SleepUsable { get; init; }
+
     /// <summary>Remaining declarative mechanics (status, drain, recoil...) kept raw.</summary>
     [JsonExtensionData]
     public Dictionary<string, JsonElement> Effects { get; init; } = [];
 
     /// <summary>
-    /// Engine view of the move. Stat changes are mapped; secondary effects that only inflict a
-    /// status or volatile condition are left out until those mechanics exist.
+    /// Engine view of the move. Stat changes and major statuses are mapped; secondary effects that
+    /// only inflict a volatile condition (flinch, confusion...) are left out until those exist.
     /// </summary>
     public MoveDefinition ToDefinition() => new(
         Id,
@@ -122,11 +131,30 @@ public sealed record MoveData
         ToStatChanges(Self?.Boosts),
         Self?.Boosts is null ? null : Self.Chance,
         Secondaries?
-            .Select(s => new SecondaryEffect(s.Chance ?? 100, ToStatChanges(s.Boosts), ToStatChanges(s.Self?.Boosts)))
-            .Where(s => s.TargetBoosts.Count > 0 || s.SelfBoosts.Count > 0)
+            .Select(s => new SecondaryEffect(
+                s.Chance ?? 100, ToStatChanges(s.Boosts), ToStatChanges(s.Self?.Boosts), ToMajorStatus(s.Status)))
+            .Where(s => s.TargetBoosts.Count > 0 || s.SelfBoosts.Count > 0 || s.Status is not null)
             .ToArray(),
         IgnoreEvasion,
-        IgnoreDefensive);
+        IgnoreDefensive,
+        ToMajorStatus(Status),
+        IgnoreImmunity,
+        Flags.Contains("powder"),
+        Flags.Contains("defrost"),
+        ThawsTarget,
+        SleepUsable);
+
+    private static MajorStatus? ToMajorStatus(string? id) => id switch
+    {
+        null => null,
+        "brn" => MajorStatus.Burn,
+        "par" => MajorStatus.Paralysis,
+        "psn" => MajorStatus.Poison,
+        "tox" => MajorStatus.Toxic,
+        "slp" => MajorStatus.Sleep,
+        "frz" => MajorStatus.Freeze,
+        _ => throw new InvalidOperationException($"Unknown status '{id}'."),
+    };
 
     private static StatChange[] ToStatChanges(IReadOnlyDictionary<string, int>? boosts) =>
         boosts?.Select(entry => new StatChange(ToBoostStat(entry.Key), entry.Value)).ToArray() ?? [];
@@ -162,6 +190,7 @@ public sealed record MoveSecondaryData
 
     public IReadOnlyDictionary<string, int>? Boosts { get; init; }
     public MoveSelfData? Self { get; init; }
+    public string? Status { get; init; }
 
     [JsonExtensionData]
     public Dictionary<string, JsonElement> Effects { get; init; } = [];

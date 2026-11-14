@@ -19,4 +19,23 @@ public class TypeChartTests
     {
         Assert.Equal(expected, Chart.Effectiveness(attacking, defending));
     }
+
+    [Theory]
+    [InlineData(PokemonType.Electric, TypeCondition.Paralysis, true)] // Gen 6+ only
+    [InlineData(PokemonType.Fire, TypeCondition.Burn, true)]
+    [InlineData(PokemonType.Ice, TypeCondition.Freeze, true)]
+    [InlineData(PokemonType.Poison, TypeCondition.Poison, true)]
+    [InlineData(PokemonType.Steel, TypeCondition.Poison, true)]
+    [InlineData(PokemonType.Grass, TypeCondition.Powder, true)] // Gen 6+ only
+    [InlineData(PokemonType.Ground, TypeCondition.Sandstorm, true)]
+    [InlineData(PokemonType.Ice, TypeCondition.Hail, true)]
+    [InlineData(PokemonType.Ghost, TypeCondition.Trapped, true)]
+    [InlineData(PokemonType.Normal, TypeCondition.Paralysis, false)]
+    [InlineData(PokemonType.Ground, TypeCondition.Paralysis, false)]
+    [InlineData(PokemonType.Water, TypeCondition.Freeze, false)]
+    public void Uses_gen_6_condition_immunities(PokemonType type, TypeCondition condition, bool immune)
+    {
+        Assert.Equal(immune, Chart.IsImmune([type], condition));
+        Assert.Equal(immune, Chart.IsImmune([PokemonType.Normal, type], condition));
+    }
 }

@@ -87,6 +87,9 @@ public sealed class Gen6Catalog
             entry => (IReadOnlyDictionary<PokemonType, double>)entry.Value.ToDictionary(
                 inner => Enum.Parse<PokemonType>(inner.Key),
                 inner => inner.Value));
+        var conditionImmunities = chart.ConditionImmunities.ToDictionary(
+            entry => Enum.Parse<PokemonType>(entry.Key),
+            entry => (IReadOnlySet<TypeCondition>)entry.Value.Select(TypeChart.ToCondition).ToHashSet());
 
         return new Gen6Catalog(
             Read<List<SpeciesData>>("species"),
@@ -95,7 +98,7 @@ public sealed class Gen6Catalog
             Read<List<ItemData>>("items"),
             Read<List<NatureData>>("natures"),
             Read<Dictionary<string, List<string>>>("learnsets").ToDictionary(e => e.Key, e => e.Value.ToHashSet()),
-            new TypeChart(damageTaken));
+            new TypeChart(damageTaken, conditionImmunities));
     }
 
     private static T Read<T>(string name)
@@ -107,5 +110,7 @@ public sealed class Gen6Catalog
             ?? throw new InvalidOperationException($"Catalog resource '{resource}' is empty.");
     }
 
-    private sealed record TypeChartFile(Dictionary<string, Dictionary<string, double>> DamageTaken);
+    private sealed record TypeChartFile(
+        Dictionary<string, Dictionary<string, double>> DamageTaken,
+        Dictionary<string, List<string>> ConditionImmunities);
 }

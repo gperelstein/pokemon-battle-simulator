@@ -89,6 +89,49 @@ public class CatalogBattleTests
     }
 
     [Fact]
+    public void Moves_map_status_effects_from_gen_6_data()
+    {
+        MoveDefinition Move(string id) => Catalog.FindMove(id)!.ToDefinition();
+
+        var thunderWave = Move("thunderwave");
+        Assert.Equal(MajorStatus.Paralysis, thunderWave.Status);
+        Assert.False(thunderWave.IgnoresTypeImmunity);
+        Assert.True(Move("glare").IgnoresTypeImmunity);
+        Assert.False(Move("tackle").IgnoresTypeImmunity);
+
+        Assert.Equal(MajorStatus.Toxic, Move("toxic").Status);
+        Assert.Equal(MajorStatus.Sleep, Move("spore").Status);
+        Assert.True(Move("spore").Powder);
+        Assert.Equal(MajorStatus.Burn, Move("willowisp").Status);
+
+        var thunderbolt = Assert.Single(Move("thunderbolt").Secondaries);
+        Assert.Equal(10, thunderbolt.Chance);
+        Assert.Equal(MajorStatus.Paralysis, thunderbolt.Status);
+
+        // Fire Fang's flinch secondary waits for volatile conditions; the burn is kept.
+        var fireFang = Assert.Single(Move("firefang").Secondaries);
+        Assert.Equal(MajorStatus.Burn, fireFang.Status);
+
+        Assert.True(Move("flamewheel").Defrost);
+        Assert.True(Move("scald").ThawsTarget);
+        Assert.True(Move("snore").SleepUsable);
+    }
+
+    [Fact]
+    public void Thunder_wave_from_the_catalog_cannot_paralyze_electric_or_ground_types()
+    {
+        var vsRaichu = PlayFirstTurn(
+            new PokemonSetSpec("Jolteon", ["Thunder Wave"], "Volt Absorb"),
+            new PokemonSetSpec("Raichu", ["Thunderbolt"], "Static"));
+        var vsGolem = PlayFirstTurn(
+            new PokemonSetSpec("Jolteon", ["Thunder Wave"], "Volt Absorb"),
+            new PokemonSetSpec("Golem", ["Earthquake"], "Sturdy"));
+
+        Assert.Contains(new Immune(SideId.P2, 0, "Raichu"), vsRaichu);
+        Assert.Contains(new Immune(SideId.P2, 0, "Golem"), vsGolem);
+    }
+
+    [Fact]
     public void Swords_dance_from_the_catalog_raises_attack()
     {
         var events = PlayFirstTurn(
