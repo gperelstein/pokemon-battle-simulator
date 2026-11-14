@@ -115,6 +115,11 @@ public class CatalogBattleTests
         Assert.True(Move("flamewheel").Defrost);
         Assert.True(Move("scald").ThawsTarget);
         Assert.True(Move("snore").SleepUsable);
+
+        // Gen 6: every OHKO move (Sheer Cold included) is a plain OHKO; Ice immunity arrives in Gen 7.
+        Assert.True(Move("fissure").Ohko);
+        Assert.True(Move("sheercold").Ohko);
+        Assert.False(Move("earthquake").Ohko);
     }
 
     [Fact]

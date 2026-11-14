@@ -135,4 +135,29 @@ public class TeamBuilderTests
             ["Slot 1: IVs must be between 0 and 31."],
             ErrorsFor(Mewtwo() with { Ivs = new StatSpread(31, 31, 31, 32, 31, 31) }));
     }
+
+    [Fact]
+    public void Builds_weight_in_hectograms_and_happiness_defaulting_to_255()
+    {
+        var team = Builder.Build(
+        [
+            new PokemonSetSpec("Snorlax", ["Body Slam"], "Thick Fat"),
+            new PokemonSetSpec("Charizard", ["Flare Blitz"], "Blaze", Happiness: 0),
+        ]).Team;
+
+        Assert.Equal(4600, team[0].WeightHg);
+        Assert.Equal(255, team[0].Happiness);
+        Assert.Equal(905, team[1].WeightHg);
+        Assert.Equal(0, team[1].Happiness);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(256)]
+    public void Rejects_happiness_outside_zero_to_255(int happiness)
+    {
+        Assert.Equal(
+            ["Slot 1: happiness must be between 0 and 255."],
+            ErrorsFor(Mewtwo() with { Happiness = happiness }));
+    }
 }

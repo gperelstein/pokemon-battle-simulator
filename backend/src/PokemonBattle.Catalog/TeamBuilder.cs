@@ -12,7 +12,8 @@ public sealed record PokemonSetSpec(
     string Nature = "Serious",
     int Level = 100,
     StatSpread? Evs = null,
-    StatSpread? Ivs = null);
+    StatSpread? Ivs = null,
+    int Happiness = 255);
 
 /// <param name="Team">Engine-ready sets; empty when <paramref name="Errors"/> is not empty.</param>
 public sealed record TeamBuildResult(IReadOnlyList<PokemonSet> Team, IReadOnlyList<string> Errors);
@@ -28,6 +29,7 @@ public sealed class TeamBuilder(Gen6Catalog catalog)
     public const int MaxEvPerStat = 252;
     public const int MaxEvTotal = 510;
     public const int MaxIv = 31;
+    public const int MaxHappiness = 255;
 
     public TeamBuildResult Build(IReadOnlyList<PokemonSetSpec> team)
     {
@@ -104,6 +106,11 @@ public sealed class TeamBuilder(Gen6Catalog catalog)
             errors.Add($"{label}: IVs must be between 0 and {MaxIv}.");
         }
 
+        if (spec.Happiness is < 0 or > MaxHappiness)
+        {
+            errors.Add($"{label}: happiness must be between 0 and {MaxHappiness}.");
+        }
+
         if (errors.Count > firstError)
         {
             return null;
@@ -116,7 +123,9 @@ public sealed class TeamBuilder(Gen6Catalog catalog)
             StatCalculator.Calculate(species.BaseStats, spec.Level, ivs, evs, nature!),
             moves.Select(m => m.ToDefinition()).ToArray(),
             ability!.Id,
-            item?.Id);
+            item?.Id,
+            (int)Math.Round(species.Weightkg * 10),
+            spec.Happiness);
     }
 
     private List<MoveData> ValidateMoves(PokemonSetSpec spec, SpeciesData species, string label, List<string> errors)

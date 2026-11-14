@@ -105,6 +105,16 @@ public sealed record MoveData
     public bool ThawsTarget { get; init; }
     public bool SleepUsable { get; init; }
 
+    /// <summary>
+    /// One-hit KO marker: true, or a type whose members are immune (Gen 7+ Sheer Cold). Gen 6 treats
+    /// every OHKO move the same, so any value means a plain OHKO.
+    /// </summary>
+    [JsonPropertyName("ohko")]
+    public JsonElement? OhkoValue { get; init; }
+
+    [JsonIgnore]
+    public bool Ohko => OhkoValue is { ValueKind: JsonValueKind.True or JsonValueKind.String };
+
     /// <summary>Remaining declarative mechanics (status, drain, recoil...) kept raw.</summary>
     [JsonExtensionData]
     public Dictionary<string, JsonElement> Effects { get; init; } = [];
@@ -142,7 +152,8 @@ public sealed record MoveData
         Flags.Contains("powder"),
         Flags.Contains("defrost"),
         ThawsTarget,
-        SleepUsable);
+        SleepUsable,
+        Ohko);
 
     private static MajorStatus? ToMajorStatus(string? id) => id switch
     {
