@@ -125,6 +125,10 @@ public sealed record MoveData
     /// <summary>Fraction of the damage dealt that the user takes as recoil, as [numerator, denominator].</summary>
     public IReadOnlyList<int>? Recoil { get; init; }
 
+    /// <summary>Makes the user faint: "always" (Explosion) or "ifHit" (Final Gambit, Memento).</summary>
+    [JsonPropertyName("selfdestruct")]
+    public string? SelfDestructValue { get; init; }
+
     /// <summary>The user is hurt when the move misses (Jump Kick, High Jump Kick).</summary>
     public bool HasCrashDamage { get; init; }
 
@@ -172,7 +176,14 @@ public sealed record MoveData
         Flags.Contains("charge"),
         Self?.VolatileStatus == "mustrecharge",
         ToMoveFlags(Flags),
-        Recoil is not null || HasCrashDamage);
+        Recoil is not null || HasCrashDamage,
+        SelfDestructValue switch
+        {
+            null => null,
+            "always" => SelfDestruct.Always,
+            "ifHit" => SelfDestruct.IfHit,
+            _ => throw new InvalidOperationException($"Unknown selfdestruct '{SelfDestructValue}'."),
+        });
 
     private static MoveFlags ToMoveFlags(IReadOnlyList<string> flags) => flags.Aggregate(MoveFlags.None, (all, flag) => all | flag switch
     {

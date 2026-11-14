@@ -125,7 +125,8 @@ public sealed class TeamBuilder(Gen6Catalog catalog)
             ability!.Id,
             item?.Id,
             (int)Math.Round(species.Weightkg * 10),
-            spec.Happiness);
+            spec.Happiness,
+            ability.Flags.Contains("breakable"));
     }
 
     private List<MoveData> ValidateMoves(PokemonSetSpec spec, SpeciesData species, string label, List<string> errors)

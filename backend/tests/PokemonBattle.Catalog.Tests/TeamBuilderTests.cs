@@ -137,6 +137,19 @@ public class TeamBuilderTests
     }
 
     [Fact]
+    public void Marks_abilities_that_mold_breaker_can_ignore()
+    {
+        var team = Builder.Build(
+        [
+            new PokemonSetSpec("Gengar", ["Shadow Ball"], "Levitate"),
+            new PokemonSetSpec("Clefable", ["Moonblast"], "Magic Guard"),
+            new PokemonSetSpec("Pinsir", ["X-Scissor"], "Mold Breaker"),
+        ]).Team;
+
+        Assert.Equal([true, false, false], team.Select(set => set.AbilityBreakable));
+    }
+
+    [Fact]
     public void Builds_weight_in_hectograms_and_happiness_defaulting_to_255()
     {
         var team = Builder.Build(

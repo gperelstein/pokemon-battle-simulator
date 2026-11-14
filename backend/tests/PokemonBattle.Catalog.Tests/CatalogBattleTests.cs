@@ -143,6 +143,12 @@ public class CatalogBattleTests
         Assert.True(Move("doubleedge").HasRecoil);
         Assert.True(Move("highjumpkick").HasRecoil); // crash damage counts for Reckless
         Assert.False(Move("tackle").HasRecoil);
+
+        Assert.Equal(SelfDestruct.Always, Move("explosion").SelfDestruct);
+        Assert.Equal(SelfDestruct.Always, Move("selfdestruct").SelfDestruct);
+        Assert.Equal(SelfDestruct.IfHit, Move("finalgambit").SelfDestruct);
+        Assert.Equal(SelfDestruct.IfHit, Move("memento").SelfDestruct);
+        Assert.Null(Move("tackle").SelfDestruct);
     }
 
     [Fact]
