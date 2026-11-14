@@ -236,28 +236,27 @@ public sealed class Battle
         var move = user.Set.Moves[action.Choice.MoveIndex];
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
 
-        var foes = _sides[action.Side.Id.Opponent()];
-        var targets = ResolveTargets(move, action.Choice.TargetSlot, foes);
-        if (targets.Count == 0)
+        var targets = ResolveTargets(move, action);
+        if (targets is { Count: 0 })
         {
             _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "No target."));
             return;
         }
 
-        foreach (var targetSlot in targets)
+        foreach (var (side, slot) in targets ?? [])
         {
-            var target = foes.Active[targetSlot]!;
-            var damage = CalculateDamage(user, target, move, spread: targets.Count > 1);
+            var target = side.Active[slot]!;
+            var damage = CalculateDamage(user, target, move, spread: targets!.Count > 1);
             if (damage == 0)
             {
                 continue;
             }
 
             var dealt = target.TakeDamage(damage);
-            _events.Add(new DamageDealt(foes.Id, targetSlot, target.Set.Species, dealt, target.CurrentHp));
+            _events.Add(new DamageDealt(side.Id, slot, target.Set.Species, dealt, target.CurrentHp));
             if (target.IsFainted)
             {
-                _events.Add(new Fainted(foes.Id, targetSlot, target.Set.Species));
+                _events.Add(new Fainted(side.Id, slot, target.Set.Species));
             }
         }
 
@@ -267,15 +266,27 @@ public sealed class Battle
         }
     }
 
-    private static IReadOnlyList<int> ResolveTargets(MoveDefinition move, int chosenSlot, Side foes)
+    /// <summary>
+    /// Pokémon hit by the move, or null when the move does not target Pokémon on the field
+    /// (self, ally side, field effects...).
+    /// </summary>
+    private IReadOnlyList<(Side Side, int Slot)>? ResolveTargets(MoveDefinition move, MoveAction action)
     {
-        var live = foes.LiveSlots.ToArray();
+        var foes = _sides[action.Side.Id.Opponent()];
+        var liveFoes = foes.LiveSlots.Select(slot => (foes, slot)).ToArray();
+        var chosen = action.Choice.TargetSlot;
+
         return move.Target switch
         {
-            MoveTarget.AllAdjacentFoes => live,
+            MoveTarget.AllAdjacentFoes => liveFoes,
+            MoveTarget.AllAdjacent => liveFoes
+                .Concat(action.Side.LiveSlots.Where(slot => slot != action.Slot).Select(slot => (action.Side, slot)))
+                .ToArray(),
+            MoveTarget.RandomNormal => liveFoes.Length == 0 ? [] : [liveFoes[_random.Next(0, liveFoes.Length)]],
             // A single-target move retargets to another foe when its chosen target is gone.
-            _ when live.Contains(chosenSlot) => [chosenSlot],
-            _ => live.Take(1).ToArray(),
+            MoveTarget.AdjacentFoe or MoveTarget.Normal or MoveTarget.Any or MoveTarget.Scripted =>
+                liveFoes.Any(t => t.slot == chosen) ? [(foes, chosen)] : liveFoes.Take(1).ToArray(),
+            _ => null,
         };
     }
 

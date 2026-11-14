@@ -9,6 +9,7 @@ public enum MoveCategory
     Status,
 }
 
+/// <summary>Gen 6 move target kinds (mirrors Pokémon Showdown's targets).</summary>
 public enum MoveTarget
 {
     /// <summary>One adjacent opposing Pokémon chosen by the player.</summary>
@@ -16,6 +17,33 @@ public enum MoveTarget
 
     /// <summary>Every adjacent opposing Pokémon (spread move).</summary>
     AllAdjacentFoes,
+
+    /// <summary>
+    /// One adjacent Pokémon chosen by the player. Choosing an ally is not supported yet, so it
+    /// currently behaves like <see cref="AdjacentFoe"/>.
+    /// </summary>
+    Normal,
+
+    /// <summary>Any Pokémon chosen by the player (relevant from Triples). Behaves like <see cref="Normal"/>.</summary>
+    Any,
+
+    /// <summary>Every adjacent Pokémon, allies included (Earthquake, Surf).</summary>
+    AllAdjacent,
+
+    /// <summary>A random adjacent foe (Outrage, Thrash...).</summary>
+    RandomNormal,
+
+    /// <summary>Target decided by the move itself (Counter, Mirror Coat...). Treated as <see cref="AdjacentFoe"/>.</summary>
+    Scripted,
+
+    Self,
+    AdjacentAlly,
+    AdjacentAllyOrSelf,
+    Allies,
+    AllySide,
+    AllyTeam,
+    FoeSide,
+    All,
 }
 
 /// <summary>
