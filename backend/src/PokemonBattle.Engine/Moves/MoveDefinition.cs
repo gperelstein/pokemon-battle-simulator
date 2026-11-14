@@ -74,6 +74,8 @@ public enum MoveTarget
 /// <param name="Ohko">One-hit KO move (Fissure, Guillotine, Horn Drill, Sheer Cold).</param>
 /// <param name="SetsWeather">Weather started by the move (Sunny Day, Rain Dance, Sandstorm, Hail).</param>
 /// <param name="Heal">Fraction of max HP restored to each target (Recover, Soft-Boiled...).</param>
+/// <param name="Charge">Two-turn move: charges on the first turn and attacks on the next (Solar Beam, Fly, Dig...).</param>
+/// <param name="Recharge">The user must spend the next turn recharging after a hit (Hyper Beam, Giga Impact...).</param>
 public sealed record MoveDefinition(
     string Id,
     string Name,
@@ -102,7 +104,9 @@ public sealed record MoveDefinition(
     bool SleepUsable = false,
     bool Ohko = false,
     Weather? SetsWeather = null,
-    HealFraction? Heal = null)
+    HealFraction? Heal = null,
+    bool Charge = false,
+    bool Recharge = false)
 {
     /// <summary>Whether a target the move's type cannot affect is still hit.</summary>
     public bool IgnoresTypeImmunity => IgnoreImmunity ?? Category == MoveCategory.Status;

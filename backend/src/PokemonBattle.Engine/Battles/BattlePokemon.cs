@@ -58,6 +58,38 @@ public sealed class BattlePokemon
     /// <summary>Entered the field this turn (Payback is not boosted against it).</summary>
     internal bool NewlySwitched { get; set; }
 
+    /// <summary>Two-turn move being charged (Solar Beam, Fly...), or null.</summary>
+    internal string? ChargingMoveId { get; private set; }
+
+    /// <summary>Choice repeated automatically on the turn after charging.</summary>
+    internal MoveChoice? ChargedChoice { get; private set; }
+
+    /// <summary>Must spend its next turn recharging (Hyper Beam...).</summary>
+    internal bool MustRecharge { get; set; }
+
+    /// <summary>Its next action is fixed, so its player is not asked for a decision.</summary>
+    internal bool IsLocked => ChargedChoice is not null || MustRecharge;
+
+    internal void StartCharging(string moveId, MoveChoice choice)
+    {
+        ChargingMoveId = moveId;
+        ChargedChoice = choice;
+    }
+
+    internal void StopCharging()
+    {
+        ChargingMoveId = null;
+        ChargedChoice = null;
+    }
+
+    /// <summary>Volatile state is lost when the Pokémon leaves the field.</summary>
+    internal void LeaveField()
+    {
+        Array.Clear(_stages);
+        StopCharging();
+        MustRecharge = false;
+    }
+
     internal void ResetTurnState()
     {
         HitsTakenThisTurn.Clear();
@@ -98,9 +130,6 @@ public sealed class BattlePokemon
         _stages[(int)stat] = next;
         return next - current;
     }
-
-    /// <summary>Stages are volatile: they are lost when the Pokémon leaves the field.</summary>
-    internal void ClearStages() => Array.Clear(_stages);
 }
 
 /// <param name="Slot">Slot the attacker occupied when it hit (Counter aims back at it).</param>

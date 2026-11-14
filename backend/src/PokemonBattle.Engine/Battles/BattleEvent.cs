@@ -73,3 +73,9 @@ public sealed record WeatherEnded(Weather Weather) : BattleEvent;
 /// <summary>End-of-turn damage from sandstorm or hail.</summary>
 public sealed record WeatherDamage(SideId Side, int Slot, string Species, Weather Weather, int Amount, int RemainingHp)
     : BattleEvent;
+
+/// <summary>First turn of a two-turn move: the user prepares and will attack next turn.</summary>
+public sealed record MoveCharging(SideId Side, int Slot, string Species, string MoveId) : BattleEvent;
+
+/// <summary>The Pokémon spends its turn recharging after Hyper Beam or a similar move.</summary>
+public sealed record Recharging(SideId Side, int Slot, string Species) : BattleEvent;

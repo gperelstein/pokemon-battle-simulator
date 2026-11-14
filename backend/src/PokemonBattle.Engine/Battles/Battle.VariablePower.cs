@@ -166,6 +166,8 @@ public sealed partial class Battle
                 move.BasePower * 2,
             "payback" when !target.NewlySwitched && !WillMove(target) => move.BasePower * 2,
             "assurance" when target.HurtThisTurn => move.BasePower * 2,
+            // Bounce doubles the base power of Gust and Twister (onSourceBasePower).
+            "gust" or "twister" when target.ChargingMoveId == "bounce" => move.BasePower * 2,
             _ => move.BasePower,
         };
         power = Math.Max(1, power);

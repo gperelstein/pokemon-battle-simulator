@@ -57,7 +57,7 @@ public sealed partial class Battle
 
         var hurt = _sides.Values
             .SelectMany(side => side.LiveSlots.Select(slot => side.Active[slot]!))
-            .Where(p => !_typeChart.IsImmune(p.Set.Types, condition.Value))
+            .Where(p => !_typeChart.IsImmune(p.Set.Types, condition.Value) && !IsShelteredFromWeather(p))
             .OrderByDescending(p => p.Speed)
             .ToArray();
 

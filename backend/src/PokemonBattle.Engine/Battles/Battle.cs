@@ -173,13 +173,20 @@ public sealed partial class Battle
     {
         Turn++;
         _events.Add(new TurnStarted(Turn));
+        // Slots locked into their next action (second turn of a charge move, recharging) are not
+        // asked for a decision; when nobody has a choice to make, the turn runs on its own.
         foreach (var side in _sides.Values)
         {
-            var slots = side.LiveSlots.ToArray();
+            var slots = side.LiveSlots.Where(slot => !side.Active[slot]!.IsLocked).ToArray();
             if (slots.Length > 0)
             {
                 Request(new DecisionRequest(side.Id, DecisionKind.Turn, slots));
             }
+        }
+
+        if (_pending.Count == 0)
+        {
+            BuildTurnQueue();
         }
     }
 
@@ -191,23 +198,27 @@ public sealed partial class Battle
             pokemon.ResetTurnState();
         }
 
+        var chosen = _turnDecisions.SelectMany(entry => entry.Value.Choices.Select(choice => (Side: _sides[entry.Key], Choice: choice)));
+        var locked = _sides.Values.SelectMany(side => side.LiveSlots
+            .Select(slot => side.Active[slot]!)
+            .Where(actor => actor.IsLocked)
+            .Select(actor => (Side: side, Choice: LockedChoice(side, actor))));
+
         var actions = new List<(BattleAction Action, int Bracket, int Priority, int Speed, int TieBreak)>();
-        foreach (var (sideId, decision) in _turnDecisions)
+        foreach (var (side, choice) in chosen.Concat(locked))
         {
-            var side = _sides[sideId];
-            foreach (var choice in decision.Choices)
+            var actor = side.Active[choice.Slot]!;
+            var speed = actor.Speed;
+            var tieBreak = _random.Next(0, int.MaxValue);
+            actions.Add(choice switch
             {
-                var actor = side.Active[choice.Slot]!;
-                var speed = actor.Speed;
-                var tieBreak = _random.Next(0, int.MaxValue);
-                actions.Add(choice switch
-                {
-                    SwitchChoice s => (new SwitchAction(side, s.Slot, actor, s.TeamIndex), 1, 0, speed, tieBreak),
-                    MoveChoice m => (new MoveAction(side, m.Slot, actor, m), 0,
-                        actor.Set.Moves[m.MoveIndex].Priority, speed, tieBreak),
-                    _ => throw new InvalidOperationException($"Unknown choice {choice}."),
-                });
-            }
+                SwitchChoice s => (new SwitchAction(side, s.Slot, actor, s.TeamIndex), 1, 0, speed, tieBreak),
+                // Recharging is a move-bracket action with priority 0, like Showdown's "recharge".
+                RechargeChoice r => (new RechargeAction(side, r.Slot, actor), 0, 0, speed, tieBreak),
+                MoveChoice m => (new MoveAction(side, m.Slot, actor, m), 0,
+                    actor.Set.Moves[m.MoveIndex].Priority, speed, tieBreak),
+                _ => throw new InvalidOperationException($"Unknown choice {choice}."),
+            });
         }
 
         // Switches always go first; then priority bracket, then speed, then a random tie-break.
@@ -245,6 +256,11 @@ public sealed partial class Battle
             case MoveAction m:
                 UseMove(m);
                 break;
+
+            case RechargeAction r:
+                r.Actor.MustRecharge = false;
+                _events.Add(new Recharging(r.Side.Id, r.Slot, r.Actor.Set.Species));
+                break;
         }
     }
 
@@ -252,7 +268,16 @@ public sealed partial class Battle
     {
         var user = action.Actor;
         var move = user.Set.Moves[action.Choice.MoveIndex];
-        if (!CanMove(action, move))
+        // Second turn of a two-turn move: the charge ends whether or not the attack happens (an
+        // aborted attack, e.g. by full paralysis, cancels it as in Showdown's onMoveAborted).
+        var releasingCharge = user.ChargingMoveId == move.Id;
+        var canMove = CanMove(action, move);
+        if (releasingCharge)
+        {
+            user.StopCharging();
+        }
+
+        if (!canMove)
         {
             return;
         }
@@ -267,6 +292,11 @@ public sealed partial class Battle
         if (!IsSupported(move))
         {
             _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "Variable base power is not supported yet."));
+            return;
+        }
+
+        if (move.Charge && !releasingCharge && TryStartCharging(action, move))
+        {
             return;
         }
 
@@ -365,6 +395,12 @@ public sealed partial class Battle
             }
         }
 
+        // Hyper Beam and similar moves need a recharge turn whenever they hit, even on a KO (Gen 2+).
+        if (move.Recharge && hit.Length > 0 && !user.IsFainted)
+        {
+            user.MustRecharge = true;
+        }
+
         // A self-switch move that did not hit anything (immune targets, misses) does not switch out.
         if (hit.Length > 0)
         {
@@ -455,6 +491,13 @@ public sealed partial class Battle
         BattlePokemon user, Side side, int slot, MoveDefinition move, bool spread, bool heals, int? retaliation)
     {
         var target = side.Active[slot]!;
+        // Semi-invulnerable targets (Fly, Dig...) are checked first: unreachable moves miss without a roll.
+        if (target != user && IsOutOfReach(target, move))
+        {
+            _events.Add(new Missed(side.Id, slot, target.Set.Species));
+            return false;
+        }
+
         var damaging = move.Category != MoveCategory.Status;
         var typeImmune = !move.IgnoresTypeImmunity && _typeChart.Effectiveness(move.Type, target.Set.Types) == 0;
         var powderImmune = move.Powder && target != user && _typeChart.IsImmune(target.Set.Types, TypeCondition.Powder);
@@ -494,7 +537,8 @@ public sealed partial class Battle
                     user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
                     target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense),
                     attackerBurned: user.Status == MajorStatus.Burn,
-                    weather: Weather);
+                    weather: Weather,
+                    finalMultiplier: SemiInvulnerableDamageMultiplier(target, move));
 
         if (result.Effectiveness != 1)
         {
@@ -740,8 +784,8 @@ public sealed partial class Battle
             _events.Add(new SwitchedOut(side.Id, slot, current.TeamIndex, current.Set.Species));
         }
 
-        // Stat stages are lost on leaving the field (fainted Pokémon included).
-        current?.ClearStages();
+        // Stat stages and other volatile state are lost on leaving the field (fainted Pokémon included).
+        current?.LeaveField();
         incoming.ToxicStage = 0;
         incoming.NewlySwitched = true;
         side.Place(slot, incoming);
@@ -835,4 +879,16 @@ public sealed partial class Battle
 
     private sealed record MoveAction(Side Side, int Slot, BattlePokemon Actor, MoveChoice Choice)
         : BattleAction(Side, Slot, Actor);
+
+    private sealed record RechargeAction(Side Side, int Slot, BattlePokemon Actor) : BattleAction(Side, Slot, Actor);
+
+    /// <summary>Engine-made choice for a Pokémon that must recharge; players never send it.</summary>
+    private sealed record RechargeChoice(int Slot) : SlotChoice(Slot);
+
+    /// <summary>The action a locked Pokémon takes without asking its player.</summary>
+    private static SlotChoice LockedChoice(Side side, BattlePokemon actor)
+    {
+        var slot = side.Active.ToList().IndexOf(actor);
+        return actor.MustRecharge ? new RechargeChoice(slot) : actor.ChargedChoice! with { Slot = slot };
+    }
 }

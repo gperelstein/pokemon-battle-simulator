@@ -64,6 +64,8 @@ internal static class Fixtures
         WeatherContinues w => $"weather {w.Weather} continues",
         WeatherEnded w => $"weather {w.Weather} ends",
         WeatherDamage d => $"{d.Side}.{d.Slot} {d.Species} hurt by {d.Weather} {d.Amount}",
+        MoveCharging c => $"{c.Side}.{c.Slot} {c.Species} charges {c.MoveId}",
+        Recharging r => $"{r.Side}.{r.Slot} {r.Species} must recharge",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,

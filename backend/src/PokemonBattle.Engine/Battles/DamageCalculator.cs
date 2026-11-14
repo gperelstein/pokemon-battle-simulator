@@ -31,7 +31,8 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         int attackStage = 0,
         int defenseStage = 0,
         bool attackerBurned = false,
-        Weather? weather = null)
+        Weather? weather = null,
+        int finalMultiplier = 1)
     {
         var effectiveness = typeChart.Effectiveness(move.Type, defender.Types);
         if (effectiveness == 0)
@@ -112,6 +113,9 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         {
             damage = Modify(damage, 1, 2);
         }
+
+        // Final damage modifiers (Showdown's ModifyDamage), e.g. Earthquake against a digging target.
+        damage *= finalMultiplier;
 
         return new DamageResult(Math.Max(1, damage), effectiveness, critical);
     }
