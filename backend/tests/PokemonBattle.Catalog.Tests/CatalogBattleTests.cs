@@ -64,9 +64,15 @@ public class CatalogBattleTests
         Assert.Equal([new StatChange(BoostStat.Defense, -1), new StatChange(BoostStat.SpecialDefense, -1)], closeCombat.SelfBoosts);
         Assert.Null(closeCombat.SelfBoostChance);
 
+        // Gen 6 (Showdown data/mods/gen6): a 50% secondary +1 Defense, not Gen 7's 50% self +2.
         var diamondStorm = Move("diamondstorm");
-        Assert.Equal([new StatChange(BoostStat.Defense, 2)], diamondStorm.SelfBoosts);
-        Assert.Equal(50, diamondStorm.SelfBoostChance);
+        Assert.Empty(diamondStorm.SelfBoosts);
+        var diamondStormBoost = Assert.Single(diamondStorm.Secondaries);
+        Assert.Equal(50, diamondStormBoost.Chance);
+        Assert.Equal([new StatChange(BoostStat.Defense, 1)], diamondStormBoost.SelfBoosts);
+
+        // Gen 6 (Showdown data/mods/gen7): Rapid Spin does not raise Speed until Gen 8.
+        Assert.Empty(Move("rapidspin").Secondaries);
 
         var psychic = Assert.Single(Move("psychic").Secondaries);
         Assert.Equal(10, psychic.Chance);

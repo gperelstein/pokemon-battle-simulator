@@ -5793,24 +5793,6 @@
     "priority": 0,
     "target": "normal",
     "critRatio": 1,
-    "secondary": {
-      "chance": 100,
-      "self": {
-        "boosts": {
-          "spe": 1
-        }
-      }
-    },
-    "secondaries": [
-      {
-        "chance": 100,
-        "self": {
-          "boosts": {
-            "spe": 1
-          }
-        }
-      }
-    ],
     "ignoreAbility": false,
     "ignoreImmunity": false,
     "shortDesc": "Frees user from hazards, binding, Leech Seed.",
@@ -15416,12 +15398,6 @@
     "priority": 0,
     "target": "allAdjacentFoes",
     "critRatio": 1,
-    "self": {
-      "chance": 50,
-      "boosts": {
-        "def": 2
-      }
-    },
     "secondary": {
       "chance": 50,
       "self": {

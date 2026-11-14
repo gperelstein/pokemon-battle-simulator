@@ -67,8 +67,21 @@ const MOVE_KEYS = [
   'multiaccuracy', 'struggleRecoil', 'shortDesc',
 ];
 
+// Showdown's Gen 6/7 mods remove some inherited fields with `field: undefined // no inherit`, which
+// @pkmn's data cannot express, so the later-generation value leaks into Gen 6. Sources:
+// data/mods/gen6/moves.ts (diamondstorm.self) and data/mods/gen7/moves.ts (rapidspin.secondary).
+const NOT_INHERITED_IN_GEN6 = {
+  diamondstorm: ['self'],
+  rapidspin: ['secondary', 'secondaries'],
+};
+
+function withoutNotInherited(id, move) {
+  for (const key of NOT_INHERITED_IN_GEN6[id] ?? []) delete move[key];
+  return move;
+}
+
 function exportMoves() {
-  return [...gen.moves].sort(byNumThenId).map(m => ({
+  return [...gen.moves].sort(byNumThenId).map(m => withoutNotInherited(m.id, {
     ...pick(m, MOVE_KEYS),
     // The 17 Hidden Power variants share the id "hiddenpower"; derive a unique id from the name.
     id: m.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
