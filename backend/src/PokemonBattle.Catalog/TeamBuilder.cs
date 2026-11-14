@@ -114,7 +114,7 @@ public sealed class TeamBuilder(Gen6Catalog catalog)
             species.Types,
             spec.Level,
             StatCalculator.Calculate(species.BaseStats, spec.Level, ivs, evs, nature!),
-            moves.Select(ToEngineMove).ToArray(),
+            moves.Select(m => m.ToDefinition()).ToArray(),
             ability!.Id,
             item?.Id);
     }
@@ -151,18 +151,4 @@ public sealed class TeamBuilder(Gen6Catalog catalog)
 
         return moves;
     }
-
-    private static MoveDefinition ToEngineMove(MoveData move) => new(
-        move.Id,
-        move.Name,
-        move.Type,
-        move.Category,
-        move.BasePower,
-        move.Priority,
-        Enum.Parse<MoveTarget>(move.Target, ignoreCase: true),
-        move.SelfSwitchKind != SelfSwitchKind.None,
-        move.CritRatio,
-        move.WillCrit,
-        move.FixedDamage,
-        move.LevelDamage);
 }

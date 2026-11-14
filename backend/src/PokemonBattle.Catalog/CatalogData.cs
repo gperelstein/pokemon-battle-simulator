@@ -85,7 +85,84 @@ public sealed record MoveData
         _ => SelfSwitchKind.None,
     };
 
-    /// <summary>Remaining declarative mechanics (secondary effects, boosts, drain...) kept raw.</summary>
+    /// <summary>Stage changes applied to the target (keys: atk, def, spa, spd, spe, accuracy, evasion).</summary>
+    public IReadOnlyDictionary<string, int>? Boosts { get; init; }
+
+    /// <summary>Effect on the user after hitting (Close Combat's drops, Diamond Storm's 50% boost...).</summary>
+    public MoveSelfData? Self { get; init; }
+
+    public IReadOnlyList<MoveSecondaryData>? Secondaries { get; init; }
+
+    public bool IgnoreEvasion { get; init; }
+    public bool IgnoreDefensive { get; init; }
+
+    /// <summary>Remaining declarative mechanics (status, drain, recoil...) kept raw.</summary>
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement> Effects { get; init; } = [];
+
+    /// <summary>
+    /// Engine view of the move. Stat changes are mapped; secondary effects that only inflict a
+    /// status or volatile condition are left out until those mechanics exist.
+    /// </summary>
+    public MoveDefinition ToDefinition() => new(
+        Id,
+        Name,
+        Type,
+        Category,
+        BasePower,
+        Priority,
+        Enum.Parse<MoveTarget>(Target, ignoreCase: true),
+        SelfSwitchKind != SelfSwitchKind.None,
+        CritRatio,
+        WillCrit,
+        FixedDamage,
+        LevelDamage,
+        Accuracy,
+        ToStatChanges(Boosts),
+        ToStatChanges(Self?.Boosts),
+        Self?.Boosts is null ? null : Self.Chance,
+        Secondaries?
+            .Select(s => new SecondaryEffect(s.Chance ?? 100, ToStatChanges(s.Boosts), ToStatChanges(s.Self?.Boosts)))
+            .Where(s => s.TargetBoosts.Count > 0 || s.SelfBoosts.Count > 0)
+            .ToArray(),
+        IgnoreEvasion,
+        IgnoreDefensive);
+
+    private static StatChange[] ToStatChanges(IReadOnlyDictionary<string, int>? boosts) =>
+        boosts?.Select(entry => new StatChange(ToBoostStat(entry.Key), entry.Value)).ToArray() ?? [];
+
+    private static BoostStat ToBoostStat(string key) => key switch
+    {
+        "atk" => BoostStat.Attack,
+        "def" => BoostStat.Defense,
+        "spa" => BoostStat.SpecialAttack,
+        "spd" => BoostStat.SpecialDefense,
+        "spe" => BoostStat.Speed,
+        "accuracy" => BoostStat.Accuracy,
+        "evasion" => BoostStat.Evasion,
+        _ => throw new InvalidOperationException($"Unknown boost stat '{key}'."),
+    };
+}
+
+public sealed record MoveSelfData
+{
+    public IReadOnlyDictionary<string, int>? Boosts { get; init; }
+
+    /// <summary>Percentage chance; null means always.</summary>
+    public int? Chance { get; init; }
+
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement> Effects { get; init; } = [];
+}
+
+public sealed record MoveSecondaryData
+{
+    /// <summary>Percentage chance; null means always.</summary>
+    public int? Chance { get; init; }
+
+    public IReadOnlyDictionary<string, int>? Boosts { get; init; }
+    public MoveSelfData? Self { get; init; }
+
     [JsonExtensionData]
     public Dictionary<string, JsonElement> Effects { get; init; } = [];
 }
