@@ -8,7 +8,9 @@ public sealed record PokemonSet(
     IReadOnlyList<PokemonType> Types,
     int Level,
     Stats Stats,
-    IReadOnlyList<MoveDefinition> Moves)
+    IReadOnlyList<MoveDefinition> Moves,
+    string? Ability = null,
+    string? Item = null)
 {
     public const int MaxMoves = 4;
 }

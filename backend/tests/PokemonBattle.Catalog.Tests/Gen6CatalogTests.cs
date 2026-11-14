@@ -53,6 +53,16 @@ public class Gen6CatalogTests
     }
 
     [Fact]
+    public void Every_move_target_is_understood_by_the_engine()
+    {
+        var unknown = Catalog.Moves.Values
+            .Where(m => !Enum.TryParse<PokemonBattle.Engine.Moves.MoveTarget>(m.Target, ignoreCase: true, out _))
+            .Select(m => $"{m.Id}:{m.Target}");
+
+        Assert.Empty(unknown);
+    }
+
+    [Fact]
     public void Moves_that_never_miss_have_no_accuracy()
     {
         Assert.Null(Catalog.FindMove("Aerial Ace")!.Accuracy);
