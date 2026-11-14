@@ -35,6 +35,7 @@ public sealed partial class Battle
         _random = random;
         _typeChart = typeChart;
         _field = field;
+        _field.WeatherSuppressed = CloudNineActive;
         _damage = new DamageCalculator(typeChart);
     }
 
@@ -75,10 +76,12 @@ public sealed partial class Battle
         {
             for (var slot = 0; slot < side.Active.Count; slot++)
             {
-                SwitchIn(side, slot, side.Team[slot]);
+                SwitchIn(side, slot, side.Team[slot], runAbilities: false);
             }
         }
 
+        // Every lead is on the field before their abilities activate, fastest first.
+        RunSwitchInAbilities(_sides.Values.SelectMany(side => side.Active).OfType<BattlePokemon>());
         Continue();
         return _events;
     }
@@ -151,6 +154,7 @@ public sealed partial class Battle
             if (_queue.Count > 0)
             {
                 Execute(_queue.Dequeue());
+                UpdateAbilities();
                 CheckForWinner();
                 continue;
             }
@@ -286,7 +290,7 @@ public sealed partial class Battle
         }
 
         // Mold Breaker sets ignoreAbility while its move runs (Showdown's onModifyMove).
-        _moldBreakerUser = user.Set.Ability == "moldbreaker" ? user : null;
+        _moldBreakerUser = user.Ability == "moldbreaker" ? user : null;
         try
         {
             RunMove(action, move, releasingCharge);
@@ -501,7 +505,9 @@ public sealed partial class Battle
         switch (user.Status)
         {
             case MajorStatus.Sleep:
-                if (--user.SleepTurns <= 0)
+                // Early Bird makes the sleep counter drop twice as fast.
+                user.SleepTurns -= user.Ability == "earlybird" ? 2 : 1;
+                if (user.SleepTurns <= 0)
                 {
                     Cure(user);
                     return true;
@@ -550,7 +556,7 @@ public sealed partial class Battle
         // Gen 6 order: type immunity (Levitate included), the target's TryHit abilities, then the
         // move's own immunities, all before accuracy.
         var damaging = move.Category != MoveCategory.Status;
-        var scrappy = user.Set.Ability == "scrappy" && move.Type is PokemonType.Normal or PokemonType.Fighting;
+        var scrappy = user.Ability == "scrappy" && move.Type is PokemonType.Normal or PokemonType.Fighting;
         var typeImmune = !move.IgnoresTypeImmunity && !scrappy &&
             _typeChart.Effectiveness(move.Type, target.Set.Types) == 0;
         if (typeImmune)
@@ -604,16 +610,16 @@ public sealed partial class Battle
                 ? new DamageResult(fixedDamage, 1, false)
                 : _damage.Calculate(
                     new DamageInput(
-                        new Combatant(user.Set, user.CurrentHp, user.Status,
+                        new Combatant(CombatSet(user), user.CurrentHp, user.Status,
                             AttackStage: user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
                             FlashFire: user.FlashFireActive && AbilityOf(user) == "flashfire"),
-                        new Combatant(target.Set, target.CurrentHp, target.Status,
+                        new Combatant(CombatSet(target), target.CurrentHp, target.Status,
                             DefenseStage: target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense),
                             AbilitySuppressed: AbilityOf(target) is null),
                         move with { BasePower = BasePower(move, user, target, use.TypeBoosted) })
                     {
                         Spread = spread,
-                        Weather = Weather,
+                        Weather = EffectiveWeather,
                         FinalModifiers = BattleDamageModifiers(target, move),
                     },
                     _random);
@@ -692,30 +698,30 @@ public sealed partial class Battle
         }
 
         var chain = new ModifierChain();
-        if ((targetAbility == "sandveil" && Weather == Battles.Weather.Sandstorm) ||
-            (targetAbility == "snowcloak" && Weather == Battles.Weather.Hail))
+        if ((targetAbility == "sandveil" && EffectiveWeather == Battles.Weather.Sandstorm) ||
+            (targetAbility == "snowcloak" && EffectiveWeather == Battles.Weather.Hail))
         {
             chain = chain.Chain(3277, 4096);
         }
 
-        if (user.Set.Ability == "compoundeyes")
+        if (user.Ability == "compoundeyes")
         {
             chain = chain.Chain(5325, 4096);
         }
-        else if (user.Set.Ability == "hustle" && move.Category == MoveCategory.Physical)
+        else if (user.Ability == "hustle" && move.Category == MoveCategory.Physical)
         {
             chain = chain.Chain(3277, 4096);
         }
 
         // Stages: Unaware ignores the other side's; Keen Eye ignores the target's evasion.
         var accuracyStage = targetAbility == "unaware" ? 0 : user.GetStage(BoostStat.Accuracy);
-        var ignoresEvasion = move.IgnoreEvasion || user.Set.Ability is "keeneye" or "unaware";
+        var ignoresEvasion = move.IgnoreEvasion || user.Ability is "keeneye" or "unaware";
         var evasion = ignoresEvasion ? 0 : target.GetStage(BoostStat.Evasion);
         return RollChance(StatStages.ApplyToAccuracy(chain.Apply(accuracy), accuracyStage, evasion));
     }
 
     private static bool HasNoGuard(BattlePokemon user, BattlePokemon target) =>
-        user.Set.Ability == "noguard" || target.Set.Ability == "noguard";
+        user.Ability == "noguard" || target.Ability == "noguard";
 
     /// <summary>
     /// Inflicts a major status unless the target already has one or its type is immune. Only a
@@ -740,7 +746,7 @@ public sealed partial class Battle
 
         var (side, slot) = Locate(target);
         // Sunny Day grants immunity to freezing (Showdown's sunnyday onImmunity).
-        var sunBlocksFreeze = status == MajorStatus.Freeze && Weather == Battles.Weather.Sun;
+        var sunBlocksFreeze = status == MajorStatus.Freeze && EffectiveWeather == Battles.Weather.Sun;
         if (sunBlocksFreeze ||
             (ImmunityTo(status) is { } condition && _typeChart.IsImmune(target.Set.Types, condition)))
         {
@@ -796,6 +802,7 @@ public sealed partial class Battle
     private void ApplyResidualDamage()
     {
         ApplyWeatherResidual();
+        ApplyAbilityResiduals();
         var hurt = _sides.Values
             .SelectMany(side => side.LiveSlots.Select(slot => side.Active[slot]!))
             .Where(p => p.Status is MajorStatus.Burn or MajorStatus.Poison or MajorStatus.Toxic)
@@ -901,18 +908,24 @@ public sealed partial class Battle
 
         foreach (var (side, slot, incoming) in switches)
         {
-            SwitchIn(side, slot, incoming);
+            SwitchIn(side, slot, incoming, runAbilities: false);
         }
 
+        RunSwitchInAbilities(switches.Select(s => s.Incoming));
         _replacements.Clear();
     }
 
-    private void SwitchIn(Side side, int slot, BattlePokemon incoming)
+    /// <param name="runAbilities">
+    /// Run the newcomer's switch-in ability right away; false when several Pokémon enter together and
+    /// their abilities run afterwards in speed order.
+    /// </param>
+    private void SwitchIn(Side side, int slot, BattlePokemon incoming, bool runAbilities = true)
     {
         var current = side.Active[slot];
         if (current is { IsFainted: false })
         {
             _events.Add(new SwitchedOut(side.Id, slot, current.TeamIndex, current.Set.Species));
+            RunSwitchOutAbilities(current);
         }
 
         // Stat stages and other volatile state are lost on leaving the field (fainted Pokémon included).
@@ -921,6 +934,10 @@ public sealed partial class Battle
         incoming.NewlySwitched = true;
         side.Place(slot, incoming);
         _events.Add(new SwitchedIn(side.Id, slot, incoming.TeamIndex, incoming.Set.Species));
+        if (runAbilities)
+        {
+            RunSwitchInAbilities([incoming]);
+        }
     }
 
     private void Request(DecisionRequest request)

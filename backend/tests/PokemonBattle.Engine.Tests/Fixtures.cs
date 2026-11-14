@@ -28,6 +28,9 @@ internal static class Fixtures
     public static Battle Doubles(PokemonSet[] p1, PokemonSet[] p2) =>
         Battle.Create(BattleFormat.Doubles, p1, p2, TestTypeChart.Gen6Sample, new MaxRandom());
 
+    public static Battle Doubles(PokemonSet[] p1, PokemonSet[] p2, IBattleRandom random) =>
+        Battle.Create(BattleFormat.Doubles, p1, p2, TestTypeChart.Gen6Sample, random);
+
     public static Battle Singles(PokemonSet[] p1, PokemonSet[] p2, IBattleRandom random) =>
         Battle.Create(BattleFormat.Singles, p1, p2, TestTypeChart.Gen6Sample, random);
 
@@ -73,6 +76,8 @@ internal static class Fixtures
         AbilityImmune a => $"{a.Side}.{a.Slot} {a.Species} immune ({a.Ability})",
         AbilityActivated a => $"{a.Side}.{a.Slot} {a.Species} {a.Ability} activates",
         StatDropPrevented p => $"{p.Side}.{p.Slot} {p.Species} {p.Ability} prevents stat drop",
+        AbilityTraced t => $"{t.Side}.{t.Slot} {t.Species} traced {t.Ability} from {t.FoeSide}.{t.FoeSlot}",
+        ForewarnAlert f => $"{f.Side}.{f.Slot} {f.Species} forewarns {f.MoveId} of {f.FoeSide}.{f.FoeSlot}",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,

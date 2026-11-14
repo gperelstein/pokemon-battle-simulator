@@ -19,6 +19,15 @@ public sealed partial class Battle
         private set => _field.Weather = value;
     }
 
+    /// <summary>
+    /// Weather as its effects see it: null while an active Cloud Nine holder suppresses it. The
+    /// weather itself (and its countdown) carries on underneath.
+    /// </summary>
+    private Weather? EffectiveWeather => _field.EffectiveWeather;
+
+    private bool CloudNineActive() =>
+        _sides.Values.Any(side => side.LiveSlots.Any(slot => side.Active[slot]!.Ability == "cloudnine"));
+
     /// <summary>Starts a weather. Returns false when that weather is already active.</summary>
     private bool SetWeather(Weather weather)
     {
@@ -49,6 +58,12 @@ public sealed partial class Battle
 
         _events.Add(new WeatherContinues(weather));
 
+        // Cloud Nine: the countdown and the reminder go on, but the weather has no effect.
+        if (EffectiveWeather is null)
+        {
+            return;
+        }
+
         // Each active Pokémon's weather effect, by speed (Showdown's eachEvent('Weather')).
         var active = _sides.Values
             .SelectMany(side => side.LiveSlots.Select(slot => side.Active[slot]!))
@@ -57,10 +72,16 @@ public sealed partial class Battle
 
         foreach (var pokemon in active)
         {
-            // Dry Skin recovers 1/8 in rain (nothing at full HP).
-            if (weather == Battles.Weather.Rain && pokemon.Set.Ability == "dryskin")
+            // Dry Skin recovers 1/8 in rain; Rain Dish 1/16 in rain; Ice Body 1/16 in hail.
+            var heal = (weather, pokemon.Ability) switch
             {
-                HealByAbility(pokemon, "dryskin", pokemon.Set.Stats.Hp / 8);
+                (Battles.Weather.Rain, "dryskin") => pokemon.Set.Stats.Hp / 8,
+                (Battles.Weather.Rain, "raindish") or (Battles.Weather.Hail, "icebody") => pokemon.Set.Stats.Hp / 16,
+                _ => (int?)null,
+            };
+            if (heal is { } amount)
+            {
+                HealByAbility(pokemon, pokemon.Ability!, amount);
                 continue;
             }
 
@@ -89,7 +110,7 @@ public sealed partial class Battle
     private int WeatherDamageTo(BattlePokemon pokemon, Weather weather)
     {
         var maxHp = pokemon.Set.Stats.Hp;
-        var ability = pokemon.Set.Ability;
+        var ability = pokemon.Ability;
         if (IgnoresIndirectDamage(pokemon))
         {
             return 0;
@@ -107,7 +128,7 @@ public sealed partial class Battle
 
             case Battles.Weather.Hail:
                 var hailImmune = _typeChart.IsImmune(pokemon.Set.Types, TypeCondition.Hail) ||
-                    ability is "snowcloak" or "overcoat";
+                    ability is "snowcloak" or "overcoat" or "icebody";
                 return hailImmune || IsShelteredFromWeather(pokemon) ? 0 : Math.Max(1, maxHp / 16);
 
             default:

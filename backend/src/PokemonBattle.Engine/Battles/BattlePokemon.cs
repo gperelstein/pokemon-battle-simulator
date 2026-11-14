@@ -17,7 +17,26 @@ public sealed class BattlePokemon
         Set = set;
         CurrentHp = set.Stats.Hp;
         _field = field;
+        RestoreAbility();
     }
+
+    /// <summary>Current ability: the set's, unless Trace replaced it while on the field.</summary>
+    public string? Ability { get; private set; }
+
+    internal bool AbilityBreakable { get; private set; }
+    internal bool AbilityTraceable { get; private set; }
+
+    /// <summary>Trace keeps looking for an ability to copy while no foe has a copyable one.</summary>
+    internal bool TraceSeeking { get; set; }
+
+    internal void ChangeAbility(string? ability, bool breakable, bool traceable)
+    {
+        Ability = ability;
+        AbilityBreakable = breakable;
+        AbilityTraceable = traceable;
+    }
+
+    private void RestoreAbility() => ChangeAbility(Set.Ability, Set.AbilityBreakable, Set.AbilityTraceable);
 
     public SideId Side { get; }
     public int TeamIndex { get; }
@@ -44,9 +63,9 @@ public sealed class BattlePokemon
         get
         {
             var speed = StatStages.ApplyToStat(Set.Stats.Speed, GetStage(BoostStat.Speed));
-            var weather = _field.Weather;
+            var weather = _field.EffectiveWeather;
             var chain = new ModifierChain();
-            switch (Set.Ability)
+            switch (Ability)
             {
                 case "chlorophyll" when weather == Weather.Sun:
                 case "swiftswim" when weather == Weather.Rain:
@@ -59,7 +78,7 @@ public sealed class BattlePokemon
             }
 
             speed = chain.Apply(speed);
-            return Status == MajorStatus.Paralysis && Set.Ability != "quickfeet" ? speed * 25 / 100 : speed;
+            return Status == MajorStatus.Paralysis && Ability != "quickfeet" ? speed * 25 / 100 : speed;
         }
     }
 
@@ -112,6 +131,8 @@ public sealed class BattlePokemon
         StopCharging();
         MustRecharge = false;
         FlashFireActive = false;
+        TraceSeeking = false;
+        RestoreAbility();
     }
 
     internal void ResetTurnState()

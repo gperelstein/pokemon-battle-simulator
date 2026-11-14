@@ -20,7 +20,7 @@ public sealed partial class Battle
     /// </summary>
     private bool TryStartCharging(MoveAction action, MoveDefinition move)
     {
-        if (move.Id == "solarbeam" && Weather == Battles.Weather.Sun)
+        if (move.Id == "solarbeam" && EffectiveWeather == Battles.Weather.Sun)
         {
             return false;
         }

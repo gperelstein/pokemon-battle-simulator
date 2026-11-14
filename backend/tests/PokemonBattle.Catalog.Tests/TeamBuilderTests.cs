@@ -150,6 +150,19 @@ public class TeamBuilderTests
     }
 
     [Fact]
+    public void Marks_abilities_that_trace_cannot_copy()
+    {
+        var team = Builder.Build(
+        [
+            new PokemonSetSpec("Porygon", ["Tackle"], "Trace"),
+            new PokemonSetSpec("Ditto", ["Transform"], "Imposter"),
+            new PokemonSetSpec("Gyarados", ["Waterfall"], "Intimidate"),
+        ]).Team;
+
+        Assert.Equal([false, false, true], team.Select(set => set.AbilityTraceable));
+    }
+
+    [Fact]
     public void Builds_weight_in_hectograms_and_happiness_defaulting_to_255()
     {
         var team = Builder.Build(

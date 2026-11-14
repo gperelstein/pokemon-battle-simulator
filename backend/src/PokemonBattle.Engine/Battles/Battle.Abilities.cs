@@ -17,7 +17,7 @@ public sealed partial class Battle
 
     /// <summary>Effective ability: null while a Mold Breaker move ignores it.</summary>
     private string? AbilityOf(BattlePokemon pokemon) =>
-        _moldBreakerUser is not null && pokemon.Set.AbilityBreakable ? null : pokemon.Set.Ability;
+        _moldBreakerUser is not null && pokemon.AbilityBreakable ? null : pokemon.Ability;
 
     private void AbilityImmunity(BattlePokemon pokemon, string ability)
     {
@@ -130,7 +130,7 @@ public sealed partial class Battle
             ("insomnia" or "vitalspirit", MajorStatus.Sleep) => AbilityOf(target),
             ("limber", MajorStatus.Paralysis) => "limber",
             ("waterveil", MajorStatus.Burn) => "waterveil",
-            ("leafguard", _) when Weather == Battles.Weather.Sun => "leafguard",
+            ("leafguard", _) when EffectiveWeather == Battles.Weather.Sun => "leafguard",
             _ => null,
         };
 
@@ -238,5 +238,5 @@ public sealed partial class Battle
     }
 
     /// <summary>Magic Guard: only direct attacks can damage its holder (not weather or status).</summary>
-    private static bool IgnoresIndirectDamage(BattlePokemon pokemon) => pokemon.Set.Ability == "magicguard";
+    private static bool IgnoresIndirectDamage(BattlePokemon pokemon) => pokemon.Ability == "magicguard";
 }

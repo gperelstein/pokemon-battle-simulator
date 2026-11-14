@@ -33,7 +33,7 @@ public sealed partial class Battle
         MoveDefinition move, BattlePokemon user)
     {
         var (modified, magnitude, heals) = ModifyMoveItself(move);
-        if (user.Set.Ability == "aerilate" && modified.Type == PokemonType.Normal && !TypeLockedMoves.Contains(move.Id))
+        if (user.Ability == "aerilate" && modified.Type == PokemonType.Normal && !TypeLockedMoves.Contains(move.Id))
         {
             return (modified with { Type = PokemonType.Flying }, magnitude, heals, true);
         }
@@ -49,7 +49,7 @@ public sealed partial class Battle
     {
         switch (move.Id)
         {
-            case "weatherball" when Weather is { } weather:
+            case "weatherball" when EffectiveWeather is { } weather:
                 var type = weather switch
                 {
                     Battles.Weather.Sun => PokemonType.Fire,
@@ -60,14 +60,14 @@ public sealed partial class Battle
                 return (move with { Type = type, BasePower = move.BasePower * 2 }, null, false);
 
             // Null accuracy never misses.
-            case "thunder" or "hurricane" when Weather == Battles.Weather.Rain:
-            case "blizzard" when Weather == Battles.Weather.Hail:
+            case "thunder" or "hurricane" when EffectiveWeather == Battles.Weather.Rain:
+            case "blizzard" when EffectiveWeather == Battles.Weather.Hail:
                 return (move with { Accuracy = null }, null, false);
 
-            case "thunder" or "hurricane" when Weather == Battles.Weather.Sun:
+            case "thunder" or "hurricane" when EffectiveWeather == Battles.Weather.Sun:
                 return (move with { Accuracy = 50 }, null, false);
 
-            case "growth" when Weather == Battles.Weather.Sun:
+            case "growth" when EffectiveWeather == Battles.Weather.Sun:
                 return (move with { Boosts = [new(BoostStat.Attack, 2), new(BoostStat.SpecialAttack, 2)] }, null, false);
 
             case "magnitude":
@@ -195,25 +195,25 @@ public sealed partial class Battle
 
         // BasePower event, highest priority first, as one chain: the user's ability (23, 21, 19)...
         var chain = new ModifierChain();
-        var boostedByAbility = user.Set.Ability switch
+        var boostedByAbility = user.Ability switch
         {
             "aerilate" => typeBoosted,
             "ironfist" => move.Flags.HasFlag(MoveFlags.Punch),
             "reckless" => move.HasRecoil,
             "analytic" => IsLastToMove(user),
             "toughclaws" => move.Flags.HasFlag(MoveFlags.Contact),
-            "sandforce" => Weather == Battles.Weather.Sandstorm &&
+            "sandforce" => EffectiveWeather == Battles.Weather.Sandstorm &&
                 move.Type is PokemonType.Rock or PokemonType.Ground or PokemonType.Steel,
             _ => false,
         };
         if (boostedByAbility)
         {
-            chain = user.Set.Ability is "ironfist" or "reckless" ? chain.Chain(4915, 4096) : chain.Chain(5325, 4096);
+            chain = user.Ability is "ironfist" or "reckless" ? chain.Chain(4915, 4096) : chain.Chain(5325, 4096);
         }
 
         // Technician (19) checks the power with the modifiers chained so far (Gen 6 priority).
-        if ((user.Set.Ability == "technician" && chain.Apply(power) <= 60) ||
-            (user.Set.Ability == "megalauncher" && move.Flags.HasFlag(MoveFlags.Pulse)))
+        if ((user.Ability == "technician" && chain.Apply(power) <= 60) ||
+            (user.Ability == "megalauncher" && move.Flags.HasFlag(MoveFlags.Pulse)))
         {
             chain = chain.Chain(3, 2);
         }
@@ -231,7 +231,7 @@ public sealed partial class Battle
             "brine" when target.CurrentHp * 2 <= target.Set.Stats.Hp => (2, 1),
             "venoshock" when target.Status is MajorStatus.Poison or MajorStatus.Toxic => (2, 1),
             // Solar Beam is weakened by any weather but sun.
-            "solarbeam" when Weather is { } weather && weather != Battles.Weather.Sun => (1, 2),
+            "solarbeam" when EffectiveWeather is { } weather && weather != Battles.Weather.Sun => (1, 2),
             // Bounce doubles the base power of Gust and Twister (onSourceBasePower).
             "gust" or "twister" when target.ChargingMoveId == "bounce" => (2, 1),
             _ => (1, 1),
@@ -269,7 +269,7 @@ public sealed partial class Battle
         var maxHp = target.Set.Stats.Hp;
         if (move.Id is "moonlight" or "synthesis" or "morningsun")
         {
-            var modifier = Weather switch
+            var modifier = EffectiveWeather switch
             {
                 null => 2048,
                 Battles.Weather.Sun => 2732,

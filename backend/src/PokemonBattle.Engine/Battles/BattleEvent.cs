@@ -88,3 +88,11 @@ public sealed record AbilityActivated(SideId Side, int Slot, string Species, str
 
 /// <summary>The Pokémon's ability stopped another Pokémon from lowering its stats (Clear Body...).</summary>
 public sealed record StatDropPrevented(SideId Side, int Slot, string Species, string Ability) : BattleEvent;
+
+/// <summary>Trace copied the ability of the foe in (<paramref name="FoeSide"/>, <paramref name="FoeSlot"/>).</summary>
+public sealed record AbilityTraced(SideId Side, int Slot, string Species, string Ability, SideId FoeSide, int FoeSlot)
+    : BattleEvent;
+
+/// <summary>Forewarn revealed the foe's most powerful move.</summary>
+public sealed record ForewarnAlert(SideId Side, int Slot, string Species, string MoveId, SideId FoeSide, int FoeSlot)
+    : BattleEvent;
