@@ -212,27 +212,31 @@ public sealed partial class Battle
             .Where(actor => actor.IsLocked)
             .Select(actor => (Side: side, Choice: LockedChoice(side, actor))));
 
-        var actions = new List<(BattleAction Action, int Bracket, int Priority, int Speed, int TieBreak)>();
+        var actions = new List<(BattleAction Action, int Bracket, int Priority, int Fraction, int Speed, int TieBreak)>();
         foreach (var (side, choice) in chosen.Concat(locked))
         {
             var actor = side.Active[choice.Slot]!;
             var speed = actor.Speed;
+            // Move actions (recharging included) get their item's fractional priority (Quick Claw...).
+            var fraction = choice is SwitchChoice ? 0 : FractionalPriority(side, choice.Slot, actor);
             var tieBreak = _random.Next(0, int.MaxValue);
             actions.Add(choice switch
             {
-                SwitchChoice s => (new SwitchAction(side, s.Slot, actor, s.TeamIndex), 1, 0, speed, tieBreak),
+                SwitchChoice s => (new SwitchAction(side, s.Slot, actor, s.TeamIndex), 1, 0, 0, speed, tieBreak),
                 // Recharging is a move-bracket action with priority 0, like Showdown's "recharge".
-                RechargeChoice r => (new RechargeAction(side, r.Slot, actor), 0, 0, speed, tieBreak),
+                RechargeChoice r => (new RechargeAction(side, r.Slot, actor), 0, 0, fraction, speed, tieBreak),
                 MoveChoice m => (new MoveAction(side, m.Slot, actor, m), 0,
-                    actor.Set.Moves[m.MoveIndex].Priority, speed, tieBreak),
+                    actor.Set.Moves[m.MoveIndex].Priority, fraction, speed, tieBreak),
                 _ => throw new InvalidOperationException($"Unknown choice {choice}."),
             });
         }
 
-        // Switches always go first; then priority bracket, then speed, then a random tie-break.
+        // Switches always go first; then priority bracket, fractional priority (items), speed and a
+        // random tie-break.
         foreach (var entry in actions
                      .OrderByDescending(a => a.Bracket)
                      .ThenByDescending(a => a.Priority)
+                     .ThenByDescending(a => a.Fraction)
                      .ThenByDescending(a => a.Speed)
                      .ThenByDescending(a => a.TieBreak))
         {
@@ -307,6 +311,7 @@ public sealed partial class Battle
         var user = action.Actor;
         _criticalTargets.Clear();
         _damagedTargets.Clear();
+        _gemUser = null;
         var (rolled, magnitude, heals, typeBoosted) = ModifyMove(move, user);
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
         if (magnitude is { } strength)
@@ -329,6 +334,8 @@ public sealed partial class Battle
         {
             return;
         }
+
+        CountMetronomeUse(user, move, releasingCharge);
 
         // Explosion and Self-Destruct: the user faints before hitting, even if the move then misses.
         // Its faint is reported once the move has been resolved, like Showdown's faint queue.
@@ -382,6 +389,7 @@ public sealed partial class Battle
                 return;
             }
 
+            user.MoveSucceededThisTurn = true;
             RequestSelfSwitch(action, move);
             return;
         }
@@ -390,6 +398,7 @@ public sealed partial class Battle
             .Where(t => Hit(user, t.Side, t.Slot, new MoveUse(rolled, targets.Count > 1, heals, retaliation, typeBoosted)))
             .Select(t => t.Side.Active[t.Slot]!)
             .ToArray();
+        user.MoveSucceededThisTurn = hit.Length > 0;
 
         // Final Gambit and Memento: the user faints once the move has hit.
         if (move.SelfDestruct == SelfDestruct.IfHit && hit.Length > 0 && !user.IsFainted)
@@ -469,6 +478,9 @@ public sealed partial class Battle
         {
             AfterDamagingHit(user, target, move);
         }
+
+        // Life Orb (AfterMoveSecondarySelf) runs before the faints are processed (Moxie).
+        ApplyLifeOrbRecoil(user, move, hit.Length > 0, sheerForce);
 
         // Moxie: one Attack stage per Pokémon this move knocked out, once the faints are processed.
         if (user.Ability == "moxie" && !user.IsFainted)
@@ -589,14 +601,16 @@ public sealed partial class Battle
         var damaging = move.Category != MoveCategory.Status;
         var scrappy = user.Ability == "scrappy" && move.Type is PokemonType.Normal or PokemonType.Fighting;
         var typeImmune = !move.IgnoresTypeImmunity && !scrappy &&
-            _typeChart.Effectiveness(move.Type, target.Set.Types) == 0;
+            _typeChart.Effectiveness(move.Type, HeldItems.DefendingTypes(CombatSet(target), move.Type)) == 0;
         if (typeImmune)
         {
             _events.Add(new Immune(side.Id, slot, target.Set.Species));
             return false;
         }
 
-        if (!move.IgnoresTypeImmunity && move.Type == PokemonType.Ground && AbilityOf(target) == "levitate")
+        // An Iron Ball grounds its holder before Levitate is checked (isGrounded).
+        if (!move.IgnoresTypeImmunity && move.Type == PokemonType.Ground && AbilityOf(target) == "levitate" &&
+            target.Item != HeldItems.IronBall)
         {
             AbilityImmunity(target, "levitate");
             return false;
@@ -628,6 +642,9 @@ public sealed partial class Battle
             return true;
         }
 
+        // TryPrimaryHit: a Gem is used up just before the move deals its damage (or heals).
+        TryUseGem(user, target, move);
+
         if (heals)
         {
             // Present: Math.round(maxHp / 4).
@@ -643,7 +660,8 @@ public sealed partial class Battle
                     new DamageInput(
                         new Combatant(CombatSet(user), user.CurrentHp, user.Status,
                             AttackStage: user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
-                            FlashFire: user.FlashFireActive && AbilityOf(user) == "flashfire"),
+                            FlashFire: user.FlashFireActive && AbilityOf(user) == "flashfire",
+                            ConsecutiveUses: user.MetronomeCount),
                         new Combatant(CombatSet(target), target.CurrentHp, target.Status,
                             DefenseStage: target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense),
                             AbilitySuppressed: AbilityOf(target) is null),
@@ -723,7 +741,8 @@ public sealed partial class Battle
         }
 
         // ModifyAccuracy: Wonder Skin (priority 10) replaces a status move's accuracy with 50, then
-        // the chained modifiers of the target (Sand Veil, Snow Cloak) and the user (Compound Eyes, Hustle).
+        // the chained modifiers of the target (Sand Veil, Snow Cloak) and the user (Compound Eyes,
+        // Hustle) at priority -1, then the items at -2.
         var targetAbility = AbilityOf(target);
         if (targetAbility == "wonderskin" && move.Category == MoveCategory.Status)
         {
@@ -745,6 +764,10 @@ public sealed partial class Battle
         {
             chain = chain.Chain(3277, 4096);
         }
+
+        // Then the items (priority -2): Wide Lens, Zoom Lens (the target has already moved), Bright
+        // Powder, Lax Incense.
+        chain = ChainItemAccuracy(chain, user, target, targetMoved: !WillMove(target));
 
         // Stages: Unaware ignores the other side's; Keen Eye ignores the target's evasion.
         var accuracyStage = targetAbility == "unaware" ? 0 : user.GetStage(BoostStat.Accuracy);

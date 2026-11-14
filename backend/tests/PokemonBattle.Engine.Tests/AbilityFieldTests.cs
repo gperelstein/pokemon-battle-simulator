@@ -87,7 +87,7 @@ public class AbilityFieldTests
         Assert.Equal(
             ["P1.0 out Lead", "P1.0 in Gyarados", "P1.0 Gyarados intimidate activates", "P2.0 Foe Attack -1 = -1"],
             switching.Take(4));
-        Assert.Empty(events.Where(e => e.Contains("intimidate")));
+        Assert.DoesNotContain(events, e => e.Contains("intimidate"));
     }
 
     [Fact]

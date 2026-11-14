@@ -139,8 +139,9 @@ public sealed partial class Battle
     /// <summary>
     /// Base power as Showdown computes it: the move's callback (floored, at least 1), then one
     /// BasePower chain in handler priority order: the user's ability (Aerilate, Iron Fist, Reckless
-    /// 23; Analytic, Tough Claws, Sand Force 21; Technician, Mega Launcher 19), then the move's own
-    /// modifiers (Facade, Brine, Venoshock, Solar Beam) and Bounce's condition (0).
+    /// 23; Analytic, Tough Claws, Sand Force 21; Technician, Mega Launcher 19), the target's Dry Skin
+    /// (17), the user's item (Muscle Band, Wise Glasses 16; type boosters, Plates 15) and Gem (14),
+    /// then the move's own modifiers (Facade, Brine, Venoshock, Solar Beam) and Bounce's condition (0).
     /// </summary>
     /// <param name="typeBoosted">Aerilate changed the move's type, so it gets its power boost.</param>
     private int BasePower(MoveDefinition move, BattlePokemon user, BattlePokemon target, bool typeBoosted = false)
@@ -223,6 +224,14 @@ public sealed partial class Battle
         if (AbilityOf(target) == "dryskin" && move.Type == PokemonType.Fire)
         {
             chain = chain.Chain(5120, 4096);
+        }
+
+        // The user's item: Muscle Band / Wise Glasses (16), type boosters and Plates (15), then a Gem
+        // used up by this move (14).
+        chain = HeldItems.ChainBasePower(chain, CombatSet(user), move);
+        if (_gemUser == user)
+        {
+            chain = chain.Chain(5325, 4096);
         }
 
         // ...then the move's own modifiers and the target's conditions (priority 0).

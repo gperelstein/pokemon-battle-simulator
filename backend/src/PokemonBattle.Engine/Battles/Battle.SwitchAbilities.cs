@@ -12,11 +12,17 @@ public sealed partial class Battle
 {
     private static readonly HashSet<string> RetaliationMoves = ["counter", "metalburst", "mirrorcoat"];
 
-    /// <summary>The set as the damage formula must see it: with the current (possibly traced) ability.</summary>
+    /// <summary>
+    /// The set as the damage formula must see it: with the current (possibly traced) ability and the
+    /// current held item (none once used up).
+    /// </summary>
     private static PokemonSet CombatSet(BattlePokemon pokemon) =>
-        pokemon.Ability == pokemon.Set.Ability
+        pokemon.Ability == pokemon.Set.Ability && pokemon.Item == pokemon.Set.Item
             ? pokemon.Set
-            : pokemon.Set with { Ability = pokemon.Ability, AbilityBreakable = pokemon.AbilityBreakable };
+            : pokemon.Set with
+            {
+                Ability = pokemon.Ability, AbilityBreakable = pokemon.AbilityBreakable, Item = pokemon.Item,
+            };
 
     private IEnumerable<BattlePokemon> ActivePokemon() =>
         _sides.Values.SelectMany(side => side.LiveSlots.Select(slot => side.Active[slot]!));

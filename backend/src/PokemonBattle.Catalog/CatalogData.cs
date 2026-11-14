@@ -26,6 +26,9 @@ public sealed record SpeciesData
 
     /// <summary>For Mega Evolutions, the stone that triggers them.</summary>
     public string? RequiredItem { get; init; }
+
+    /// <summary>Species it can evolve into in Gen 6; not empty means Showdown's "nfe" (Eviolite).</summary>
+    public IReadOnlyList<string> Evos { get; init; } = [];
 }
 
 public enum SelfSwitchKind
@@ -283,6 +286,9 @@ public sealed record ItemData
 
     public bool IsBerry { get; init; }
     public bool IsChoice { get; init; }
+
+    /// <summary>For Plates, the type they boost (Showdown's "onPlate").</summary>
+    public PokemonType? OnPlate { get; init; }
 
     [JsonExtensionData]
     public Dictionary<string, JsonElement> Effects { get; init; } = [];

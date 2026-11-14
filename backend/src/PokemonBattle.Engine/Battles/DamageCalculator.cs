@@ -12,6 +12,7 @@ public sealed record DamageResult(int Damage, double Effectiveness, bool Critica
 /// <param name="DefenseStage">Stage of the defensive stat the move uses (Defense or Special Defense).</param>
 /// <param name="AbilitySuppressed">Its ability is ignored (for instance by Mold Breaker).</param>
 /// <param name="FlashFire">Flash Fire has been activated: its Fire moves use x1.5 Attack or Special Attack.</param>
+/// <param name="ConsecutiveUses">Consecutive uses counted by a held Metronome (x1.2 per use, up to x2).</param>
 public sealed record Combatant(
     PokemonSet Set,
     int? CurrentHp = null,
@@ -19,7 +20,8 @@ public sealed record Combatant(
     int AttackStage = 0,
     int DefenseStage = 0,
     bool AbilitySuppressed = false,
-    bool FlashFire = false)
+    bool FlashFire = false,
+    int ConsecutiveUses = 0)
 {
     public int Hp => CurrentHp ?? Set.Stats.Hp;
     public string? Ability => AbilitySuppressed ? null : Set.Ability;
@@ -46,7 +48,8 @@ public sealed record DamageInput(Combatant Attacker, Combatant Defender, MoveDef
 /// Marvel Scale, sandstorm Rock Special Defense...), base damage, spread (x0.75), weather, critical
 /// hit (x1.5), random roll (85-100%), STAB (x1.5, x2 with Adaptability), type effectiveness, burn
 /// (x0.5, not for Guts or Facade), final modifiers (Tinted Lens, Sniper, Filter, Multiscale...)
-/// and a minimum of 1. Modifiers on the same stat are chained like Showdown's chainModify.
+/// and a minimum of 1. Modifiers on the same stat are chained like Showdown's chainModify. Held
+/// items (<see cref="HeldItems"/>) add their stat, critical hit and final damage modifiers.
 /// </summary>
 public sealed class DamageCalculator(ITypeChart typeChart)
 {
@@ -92,7 +95,7 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         }
 
         // The roll happens even against Battle Armor / Shell Armor, which then cancel the crit.
-        var critical = IsCritical(move, random) && defender.Ability is not ("battlearmor" or "shellarmor");
+        var critical = IsCritical(move, attacker.Set, random) && defender.Ability is not ("battlearmor" or "shellarmor");
         var physical = move.Category == MoveCategory.Physical;
 
         var attack = AttackStat(input, critical, physical);
@@ -148,17 +151,21 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         return new DamageResult(Math.Max(1, damage), effectiveness, critical);
     }
 
-    /// <summary>Scrappy lets Normal and Fighting moves ignore Ghost immunity (neutral against it).</summary>
+    /// <summary>
+    /// Scrappy lets Normal and Fighting moves ignore Ghost immunity (neutral against it); an Iron Ball
+    /// holder's Flying type does not count against Ground moves.
+    /// </summary>
     private double Effectiveness(Combatant attacker, Combatant defender, MoveDefinition move)
     {
+        var types = HeldItems.DefendingTypes(defender.Set, move.Type);
         if (attacker.Ability == "scrappy" && move.Type is PokemonType.Normal or PokemonType.Fighting)
         {
-            return defender.Set.Types
+            return types
                 .Select(type => typeChart.Effectiveness(move.Type, [type]))
                 .Aggregate(1.0, (total, multiplier) => total * (multiplier == 0 ? 1 : multiplier));
         }
 
-        return typeChart.Effectiveness(move.Type, defender.Set.Types);
+        return typeChart.Effectiveness(move.Type, types);
     }
 
     private static int AttackStat(DamageInput input, bool critical, bool physical)
@@ -201,7 +208,8 @@ public sealed class DamageCalculator(ITypeChart typeChart)
             chain = chain.Chain(3, 2);
         }
 
-        return chain.Apply(attack);
+        // ...then the attacker's item (priority 1).
+        return HeldItems.ChainAttack(chain, attacker.Set, physical).Apply(attack);
     }
 
     private static int DefenseStat(DamageInput input, bool critical, bool physical)
@@ -222,18 +230,23 @@ public sealed class DamageCalculator(ITypeChart typeChart)
             defense = Modify(defense, 3, 2);
         }
 
+        // ModifyDef/ModifySpD chain: Marvel Scale (priority 6), then the defender's item (2, 1).
+        var chain = new ModifierChain();
         if (physical && defender.Ability == "marvelscale" && defender.Status is not null)
         {
-            defense = new ModifierChain().Chain(3, 2).Apply(defense);
+            chain = chain.Chain(3, 2);
         }
 
-        return Math.Max(1, defense);
+        return Math.Max(1, HeldItems.ChainDefense(chain, defender.Set, physical).Apply(defense));
     }
 
-    /// <summary>Showdown's ModifyDamage handlers: the attacker's, the defender's and the battle's.</summary>
+    /// <summary>
+    /// Showdown's ModifyDamage handlers: the attacker's (its Metronome condition, then its abilities,
+    /// then its item, following Showdown's subOrder), the defender's and the battle's.
+    /// </summary>
     private static ModifierChain FinalModifiers(DamageInput input, double effectiveness, bool critical)
     {
-        var chain = new ModifierChain();
+        var chain = HeldItems.ChainMetronome(new ModifierChain(), input.Attacker.Set, input.Attacker.ConsecutiveUses);
         if (input.Attacker.Ability == "tintedlens" && effectiveness < 1)
         {
             chain = chain.Chain(2);
@@ -243,6 +256,8 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         {
             chain = chain.Chain(3, 2);
         }
+
+        chain = HeldItems.ChainDamage(chain, input.Attacker.Set, effectiveness);
 
         if (input.Defender.Ability == "filter" && effectiveness > 1)
         {
@@ -257,14 +272,16 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         return chain.Chain(input.FinalModifiers.Modifier, 4096);
     }
 
-    private static bool IsCritical(MoveDefinition move, IBattleRandom random)
+    /// <summary>Critical hit roll; the attacker's item can raise the stage (ModifyCritRatio).</summary>
+    private static bool IsCritical(MoveDefinition move, PokemonSet attacker, IBattleRandom random)
     {
-        if (move.WillCrit || move.CritRatio >= CritOdds.Length)
+        var stage = move.CritRatio + HeldItems.CritStageBonus(attacker);
+        if (move.WillCrit || stage >= CritOdds.Length)
         {
             return true;
         }
 
-        return random.Next(0, CritOdds[Math.Max(1, move.CritRatio) - 1]) == 0;
+        return random.Next(0, CritOdds[Math.Max(1, stage) - 1]) == 0;
     }
 
     /// <summary>

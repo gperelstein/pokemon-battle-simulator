@@ -7,6 +7,12 @@ namespace PokemonBattle.Engine.Pokemon;
 /// <param name="Happiness">Friendship from 0 to 255 (Return, Frustration). Showdown defaults to 255.</param>
 /// <param name="AbilityBreakable">Mold Breaker can ignore the ability (Showdown's "breakable" flag).</param>
 /// <param name="AbilityTraceable">Trace can copy the ability (false for Showdown's "notrace" flag).</param>
+/// <param name="BaseSpecies">
+/// Base species of a forme (Pikachu for Pikachu-Cosplay); null means <paramref name="Species"/> itself.
+/// Species-specific items (Light Ball, Thick Club, Stick) check it.
+/// </param>
+/// <param name="CanEvolve">The species can still evolve (Showdown's "nfe"); Eviolite reads it.</param>
+/// <param name="PlateType">Type of the held Plate (the catalog's "onPlate"), which it boosts; null for other items.</param>
 public sealed record PokemonSet(
     string Species,
     IReadOnlyList<PokemonType> Types,
@@ -18,7 +24,10 @@ public sealed record PokemonSet(
     int WeightHg = 1,
     int Happiness = 255,
     bool AbilityBreakable = false,
-    bool AbilityTraceable = true)
+    bool AbilityTraceable = true,
+    string? BaseSpecies = null,
+    bool CanEvolve = false,
+    PokemonType? PlateType = null)
 {
     public const int MaxMoves = 4;
 }

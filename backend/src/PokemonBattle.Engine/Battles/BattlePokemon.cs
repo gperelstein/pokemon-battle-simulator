@@ -16,6 +16,7 @@ public sealed class BattlePokemon
         TeamIndex = teamIndex;
         Set = set;
         CurrentHp = set.Stats.Hp;
+        Item = set.Item;
         _field = field;
         RestoreAbility();
     }
@@ -38,6 +39,14 @@ public sealed class BattlePokemon
 
     private void RestoreAbility() => ChangeAbility(Set.Ability, Set.AbilityBreakable, Set.AbilityTraceable);
 
+    /// <summary>
+    /// Held item right now: the set's until it is used up (Normal Gem). A consumed item stays gone
+    /// after switching out, as in Showdown.
+    /// </summary>
+    public string? Item { get; private set; }
+
+    internal void ConsumeItem() => Item = null;
+
     public SideId Side { get; }
     public int TeamIndex { get; }
     public PokemonSet Set { get; }
@@ -56,7 +65,8 @@ public sealed class BattlePokemon
     /// <summary>
     /// Speed used for turn order, as Showdown's getStat: stat stage, then the chained ModifySpe
     /// abilities (Chlorophyll, Swift Swim, Sand Rush x2 in their weather; Quick Feet x1.5 when
-    /// statused), then paralysis last (Gen 6: x0.25, floored; Quick Feet ignores it).
+    /// statused) and held item (Choice Scarf, Quick Powder, Iron Ball...; items run after abilities),
+    /// then paralysis last (Gen 6: x0.25, floored; Quick Feet ignores it).
     /// </summary>
     public int Speed
     {
@@ -77,7 +87,7 @@ public sealed class BattlePokemon
                     break;
             }
 
-            speed = chain.Apply(speed);
+            speed = HeldItems.ChainSpeed(chain, Item, Set.Species).Apply(speed);
             return Status == MajorStatus.Paralysis && Ability != "quickfeet" ? speed * 25 / 100 : speed;
         }
     }
@@ -109,6 +119,16 @@ public sealed class BattlePokemon
     /// <summary>Flash Fire absorbed a Fire move: its own Fire moves are stronger until it leaves the field.</summary>
     internal bool FlashFireActive { get; set; }
 
+    /// <summary>Last move the Metronome item saw, and how many consecutive uses it counts (its condition's state).</summary>
+    internal string? MetronomeMove { get; set; }
+
+    internal int MetronomeCount { get; set; }
+
+    /// <summary>Its move succeeded this turn / last turn (Showdown's moveThisTurnResult / moveLastTurnResult).</summary>
+    internal bool MoveSucceededThisTurn { get; set; }
+
+    internal bool MoveSucceededLastTurn { get; private set; }
+
     /// <summary>Its next action is fixed, so its player is not asked for a decision.</summary>
     internal bool IsLocked => ChargedChoice is not null || MustRecharge;
 
@@ -132,6 +152,10 @@ public sealed class BattlePokemon
         MustRecharge = false;
         FlashFireActive = false;
         TraceSeeking = false;
+        MetronomeMove = null;
+        MetronomeCount = 0;
+        MoveSucceededThisTurn = false;
+        MoveSucceededLastTurn = false;
         RestoreAbility();
     }
 
@@ -140,6 +164,8 @@ public sealed class BattlePokemon
         HitsTakenThisTurn.Clear();
         HurtThisTurn = false;
         NewlySwitched = false;
+        MoveSucceededLastTurn = MoveSucceededThisTurn;
+        MoveSucceededThisTurn = false;
     }
 
     internal int Heal(int amount)

@@ -100,3 +100,13 @@ public sealed record ForewarnAlert(SideId Side, int Slot, string Species, string
 /// <summary>Damage dealt by an ability (Aftermath) to the Pokémon in this slot.</summary>
 public sealed record AbilityDamage(SideId Side, int Slot, string Species, string Ability, int Amount, int RemainingHp)
     : BattleEvent;
+
+/// <summary>The held item took effect (Quick Claw letting its holder move first).</summary>
+public sealed record ItemActivated(SideId Side, int Slot, string Species, string Item) : BattleEvent;
+
+/// <summary>The held item was used up (a Gem strengthening its holder's move).</summary>
+public sealed record ItemConsumed(SideId Side, int Slot, string Species, string Item) : BattleEvent;
+
+/// <summary>Damage dealt by the Pokémon's own held item (Life Orb) to the Pokémon in this slot.</summary>
+public sealed record ItemDamage(SideId Side, int Slot, string Species, string Item, int Amount, int RemainingHp)
+    : BattleEvent;

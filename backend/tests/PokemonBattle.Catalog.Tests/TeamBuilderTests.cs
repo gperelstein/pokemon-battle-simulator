@@ -186,4 +186,41 @@ public class TeamBuilderTests
             ["Slot 1: happiness must be between 0 and 255."],
             ErrorsFor(Mewtwo() with { Happiness = happiness }));
     }
+
+    [Fact]
+    public void Marks_species_that_can_still_evolve_for_eviolite()
+    {
+        var team = Builder.Build(
+        [
+            new PokemonSetSpec("Charmander", ["Ember"], "Blaze", Item: "Eviolite"),
+            new PokemonSetSpec("Charizard", ["Flare Blitz"], "Blaze", Item: "Eviolite"),
+        ]).Team;
+
+        Assert.Equal([true, false], team.Select(set => set.CanEvolve));
+    }
+
+    [Fact]
+    public void Records_the_base_species_of_formes()
+    {
+        var team = Builder.Build(
+        [
+            new PokemonSetSpec("Pikachu-Cosplay", ["Thunder Shock"], "Lightning Rod", Item: "Light Ball"),
+            new PokemonSetSpec("Pikachu", ["Thunder Shock"], "Static"),
+        ]).Team;
+
+        Assert.Equal("Pikachu-Cosplay", team[0].Species);
+        Assert.Equal("Pikachu", team[0].BaseSpecies);
+        Assert.Equal("Pikachu", team[1].BaseSpecies);
+    }
+
+    [Theory]
+    [InlineData("Flame Plate", PokemonType.Fire)]
+    [InlineData("Pixie Plate", PokemonType.Fairy)]
+    [InlineData("Charcoal", null)]
+    public void Records_the_type_of_a_held_plate(string item, PokemonType? plateType)
+    {
+        var team = Builder.Build([new PokemonSetSpec("Charizard", ["Flare Blitz"], "Blaze", Item: item)]).Team;
+
+        Assert.Equal(plateType, team[0].PlateType);
+    }
 }
