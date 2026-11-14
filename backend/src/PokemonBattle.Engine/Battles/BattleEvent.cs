@@ -42,3 +42,15 @@ public sealed record StatStageChanged(SideId Side, int Slot, string Species, Boo
 
 /// <summary>The stat could not go any higher (<paramref name="Raise"/>) or lower: it is already at +6 or -6.</summary>
 public sealed record StatStageAtLimit(SideId Side, int Slot, string Species, BoostStat Stat, bool Raise) : BattleEvent;
+
+public sealed record StatusInflicted(SideId Side, int Slot, string Species, MajorStatus Status) : BattleEvent;
+
+/// <summary>The status ended: the Pokémon woke up or thawed out.</summary>
+public sealed record StatusCured(SideId Side, int Slot, string Species, MajorStatus Status) : BattleEvent;
+
+/// <summary>The Pokémon lost its action because of <paramref name="Reason"/> (asleep, frozen, fully paralyzed).</summary>
+public sealed record CantMove(SideId Side, int Slot, string Species, MajorStatus Reason) : BattleEvent;
+
+/// <summary>End-of-turn damage from burn or poison.</summary>
+public sealed record StatusDamage(SideId Side, int Slot, string Species, MajorStatus Status, int Amount, int RemainingHp)
+    : BattleEvent;

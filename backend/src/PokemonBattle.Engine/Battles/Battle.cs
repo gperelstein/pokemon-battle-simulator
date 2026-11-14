@@ -155,7 +155,13 @@ public sealed class Battle
             if (_turnInProgress)
             {
                 _turnInProgress = false;
-                RequestFaintReplacements();
+                ApplyResidualDamage();
+                CheckForWinner();
+                if (!IsOver)
+                {
+                    RequestFaintReplacements();
+                }
+
                 continue;
             }
 
@@ -240,6 +246,11 @@ public sealed class Battle
     {
         var user = action.Actor;
         var move = user.Set.Moves[action.Choice.MoveIndex];
+        if (!CanMove(action, move))
+        {
+            return;
+        }
+
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
 
         if (move.HasVariablePower)
@@ -267,10 +278,15 @@ public sealed class Battle
             .Select(t => t.Side.Active[t.Slot]!)
             .ToArray();
 
-        // Same order as Showdown: primary boosts, then the user's own changes, then secondary effects.
+        // Same order as Showdown: primary boosts and status, then the user's own changes, then
+        // secondary effects (target boosts, status, user boosts).
         foreach (var target in hit.Where(t => !t.IsFainted))
         {
             ChangeStages(target, move.Boosts, announceLimit: true);
+            if (move.Status is { } status)
+            {
+                TrySetStatus(target, status, action, move, primary: true);
+            }
         }
 
         if (hit.Length > 0 && move.SelfBoosts.Count > 0 && RollChance(move.SelfBoostChance ?? 100))
@@ -283,7 +299,17 @@ public sealed class Battle
             foreach (var secondary in move.Secondaries.Where(s => RollChance(s.Chance)))
             {
                 ChangeStages(target, secondary.TargetBoosts, announceLimit: false);
+                if (secondary.Status is { } status)
+                {
+                    TrySetStatus(target, status, action, move, primary: false);
+                }
+
                 ChangeStages(user, secondary.SelfBoosts, announceLimit: false);
+            }
+
+            if (move.ThawsTarget && target.Status == MajorStatus.Freeze && !target.IsFainted)
+            {
+                Cure(target);
             }
         }
 
@@ -328,14 +354,56 @@ public sealed class Battle
     }
 
     /// <summary>
-    /// Runs the hit checks of a move against one target, in Gen 6 order (type immunity, then
-    /// accuracy), and deals the damage. Returns false when the target is immune or the move misses.
+    /// Status checks before the move is announced, in Showdown's priority order: sleep and freeze,
+    /// then paralysis. Returns false when the Pokémon loses its action.
+    /// </summary>
+    private bool CanMove(MoveAction action, MoveDefinition move)
+    {
+        var user = action.Actor;
+        switch (user.Status)
+        {
+            case MajorStatus.Sleep:
+                if (--user.SleepTurns <= 0)
+                {
+                    Cure(user);
+                    return true;
+                }
+
+                _events.Add(new CantMove(action.Side.Id, action.Slot, user.Set.Species, MajorStatus.Sleep));
+                return move.SleepUsable;
+
+            case MajorStatus.Freeze:
+                // Defrosting moves thaw their user; otherwise there is a 1 in 5 chance to thaw.
+                if (move.Defrost || _random.Next(0, 5) == 0)
+                {
+                    Cure(user);
+                    return true;
+                }
+
+                _events.Add(new CantMove(action.Side.Id, action.Slot, user.Set.Species, MajorStatus.Freeze));
+                return false;
+
+            case MajorStatus.Paralysis when _random.Next(0, 4) == 0:
+                _events.Add(new CantMove(action.Side.Id, action.Slot, user.Set.Species, MajorStatus.Paralysis));
+                return false;
+
+            default:
+                return true;
+        }
+    }
+
+    /// <summary>
+    /// Runs the hit checks of a move against one target, in Gen 6 order (type immunity, powder
+    /// immunity, then accuracy), and deals the damage. Returns false when the target is immune or
+    /// the move misses.
     /// </summary>
     private bool Hit(BattlePokemon user, Side side, int slot, MoveDefinition move, bool spread)
     {
         var target = side.Active[slot]!;
         var damaging = move.Category != MoveCategory.Status;
-        if (damaging && _typeChart.Effectiveness(move.Type, target.Set.Types) == 0)
+        var typeImmune = !move.IgnoresTypeImmunity && _typeChart.Effectiveness(move.Type, target.Set.Types) == 0;
+        var powderImmune = move.Powder && target != user && _typeChart.IsImmune(target.Set.Types, TypeCondition.Powder);
+        if (typeImmune || powderImmune)
         {
             _events.Add(new Immune(side.Id, slot, target.Set.Species));
             return false;
@@ -356,7 +424,8 @@ public sealed class Battle
         var result = _damage.Calculate(
             user.Set, target.Set, move, spread, _random,
             user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
-            target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense));
+            target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense),
+            attackerBurned: user.Status == MajorStatus.Burn);
 
         if (result.Effectiveness != 1)
         {
@@ -374,20 +443,128 @@ public sealed class Battle
         {
             _events.Add(new Fainted(side.Id, slot, target.Set.Species));
         }
+        else if (move.Type == PokemonType.Fire && target.Status == MajorStatus.Freeze)
+        {
+            Cure(target);
+        }
 
         return true;
     }
 
     private bool RollAccuracy(BattlePokemon user, BattlePokemon target, MoveDefinition move)
     {
-        // Moves that never miss and status moves aimed at the user skip the check.
-        if (move.Accuracy is not { } accuracy || move.Target == MoveTarget.Self)
+        // Moves that never miss and status moves aimed at the user skip the check. Gen 6 (from
+        // Showdown's gen7 mod): Toxic never misses when used by a Poison type.
+        if (move.Accuracy is not { } accuracy || move.Target == MoveTarget.Self ||
+            (move.Id == "toxic" && user.Set.Types.Contains(PokemonType.Poison)))
         {
             return true;
         }
 
         var evasion = move.IgnoreEvasion ? 0 : target.GetStage(BoostStat.Evasion);
         return RollChance(StatStages.ApplyToAccuracy(accuracy, user.GetStage(BoostStat.Accuracy), evasion));
+    }
+
+    /// <summary>
+    /// Inflicts a major status unless the target already has one or its type is immune. Only a
+    /// move's primary status reports the failure; secondary statuses fail silently.
+    /// </summary>
+    private void TrySetStatus(BattlePokemon target, MajorStatus status, MoveAction action, MoveDefinition move, bool primary)
+    {
+        if (target.IsFainted)
+        {
+            return;
+        }
+
+        if (target.Status is not null)
+        {
+            if (primary)
+            {
+                _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "The target already has a status."));
+            }
+
+            return;
+        }
+
+        var (side, slot) = Locate(target);
+        if (ImmunityTo(status) is { } condition && _typeChart.IsImmune(target.Set.Types, condition))
+        {
+            if (primary)
+            {
+                _events.Add(new Immune(side.Id, slot, target.Set.Species));
+            }
+
+            return;
+        }
+
+        target.SetStatus(status);
+        if (status == MajorStatus.Sleep)
+        {
+            // Showdown draws 2-4: the counter drops on each move attempt, so 1-3 turns asleep.
+            target.SleepTurns = _random.Next(2, 5);
+        }
+
+        _events.Add(new StatusInflicted(side.Id, slot, target.Set.Species, status));
+    }
+
+    private static TypeCondition? ImmunityTo(MajorStatus status) => status switch
+    {
+        MajorStatus.Burn => TypeCondition.Burn,
+        MajorStatus.Paralysis => TypeCondition.Paralysis,
+        MajorStatus.Poison or MajorStatus.Toxic => TypeCondition.Poison,
+        MajorStatus.Freeze => TypeCondition.Freeze,
+        _ => null,
+    };
+
+    private void Cure(BattlePokemon pokemon)
+    {
+        var (side, slot) = Locate(pokemon);
+        _events.Add(new StatusCured(side.Id, slot, pokemon.Set.Species, pokemon.Status!.Value));
+        pokemon.CureStatus();
+    }
+
+    /// <summary>
+    /// End-of-turn burn and poison damage. Showdown runs poison (residual order 9) before burn
+    /// (order 10), each by descending speed. Gen 6 burn deals 1/8 of max HP.
+    /// </summary>
+    private void ApplyResidualDamage()
+    {
+        var hurt = _sides.Values
+            .SelectMany(side => side.LiveSlots.Select(slot => side.Active[slot]!))
+            .Where(p => p.Status is MajorStatus.Burn or MajorStatus.Poison or MajorStatus.Toxic)
+            .OrderBy(p => p.Status == MajorStatus.Burn ? 1 : 0)
+            .ThenByDescending(p => p.Speed)
+            .ToArray();
+
+        foreach (var pokemon in hurt)
+        {
+            var maxHp = pokemon.Set.Stats.Hp;
+            int damage;
+            if (pokemon.Status == MajorStatus.Toxic)
+            {
+                pokemon.ToxicStage = Math.Min(pokemon.ToxicStage + 1, 15);
+                // trunc(max(1, maxHp / 16) * stage): the fraction is kept before multiplying.
+                damage = maxHp < 16 ? pokemon.ToxicStage : maxHp * pokemon.ToxicStage / 16;
+            }
+            else
+            {
+                damage = Math.Max(1, maxHp / 8);
+            }
+
+            var (side, slot) = Locate(pokemon);
+            var dealt = pokemon.TakeDamage(damage);
+            _events.Add(new StatusDamage(side.Id, slot, pokemon.Set.Species, pokemon.Status!.Value, dealt, pokemon.CurrentHp));
+            if (pokemon.IsFainted)
+            {
+                _events.Add(new Fainted(side.Id, slot, pokemon.Set.Species));
+            }
+        }
+    }
+
+    private (Side Side, int Slot) Locate(BattlePokemon pokemon)
+    {
+        var side = _sides[pokemon.Side];
+        return (side, side.Active.ToList().IndexOf(pokemon));
     }
 
     /// <summary>Percentage check; chances of 100 or more always succeed without rolling.</summary>
@@ -404,8 +581,7 @@ public sealed class Battle
             return;
         }
 
-        var side = _sides[pokemon.Side];
-        var slot = side.Active.ToList().IndexOf(pokemon);
+        var (side, slot) = Locate(pokemon);
         foreach (var change in changes)
         {
             var delta = pokemon.ChangeStage(change.Stat, change.Stages);
@@ -462,6 +638,7 @@ public sealed class Battle
 
         // Stat stages are lost on leaving the field (fainted Pokémon included).
         current?.ClearStages();
+        incoming.ToxicStage = 0;
         side.Place(slot, incoming);
         _events.Add(new SwitchedIn(side.Id, slot, incoming.TeamIndex, incoming.Set.Species));
     }

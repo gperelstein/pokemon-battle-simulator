@@ -58,6 +58,23 @@ public class DamageCalculatorTests
         Assert.Equal(new DamageResult(expected, 1, true), result);
     }
 
+    [Theory]
+    // Burn halves physical damage after effectiveness: pokeRound(36 * 0.5) = 18.
+    [InlineData(MoveCategory.Physical, "tackle", 18)]
+    [InlineData(MoveCategory.Special, "swift", 36)]
+    // Gen 6 exempts Facade from the burn penalty.
+    [InlineData(MoveCategory.Physical, "facade", 36)]
+    public void Burn_halves_physical_damage_except_facade(MoveCategory category, string id, int expected)
+    {
+        var move = Move(PokemonType.Normal, 50, category) with { Id = id };
+
+        var result = Calculator.Calculate(
+            Set(PokemonType.Normal), Set(PokemonType.Normal), move, false, new ScriptedRandom(1, 100),
+            attackerBurned: true);
+
+        Assert.Equal(expected, result.Damage);
+    }
+
     [Fact]
     public void Moves_that_ignore_defensive_stages_hit_as_if_unboosted()
     {

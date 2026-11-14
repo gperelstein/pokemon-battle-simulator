@@ -21,8 +21,34 @@ public sealed class BattlePokemon
     public int CurrentHp { get; private set; }
     public bool IsFainted => CurrentHp == 0;
 
-    /// <summary>Speed used for turn order, including its stat stage.</summary>
-    public int Speed => StatStages.ApplyToStat(Set.Stats.Speed, GetStage(BoostStat.Speed));
+    /// <summary>Major status, if any. It stays when the Pokémon switches out.</summary>
+    public MajorStatus? Status { get; private set; }
+
+    /// <summary>Remaining sleep counter; the Pokémon wakes when a move attempt brings it to 0.</summary>
+    internal int SleepTurns { get; set; }
+
+    /// <summary>Bad poison counter: damage is n/16 of max HP. Restarts when switching in.</summary>
+    internal int ToxicStage { get; set; }
+
+    /// <summary>
+    /// Speed used for turn order: its stat stage, then paralysis (Gen 6: x0.25, floored).
+    /// </summary>
+    public int Speed
+    {
+        get
+        {
+            var speed = StatStages.ApplyToStat(Set.Stats.Speed, GetStage(BoostStat.Speed));
+            return Status == MajorStatus.Paralysis ? speed * 25 / 100 : speed;
+        }
+    }
+
+    internal void SetStatus(MajorStatus status)
+    {
+        Status = status;
+        ToxicStage = 0;
+    }
+
+    internal void CureStatus() => Status = null;
 
     /// <summary>Current stage of <paramref name="stat"/>, from -6 to +6.</summary>
     public int GetStage(BoostStat stat) => _stages[(int)stat];

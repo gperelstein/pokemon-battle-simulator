@@ -61,6 +61,15 @@ public enum MoveTarget
 /// <param name="Secondaries">Chance-based effects applied to each target hit.</param>
 /// <param name="IgnoreEvasion">Ignores the target's evasion stage (Chip Away, Sacred Sword).</param>
 /// <param name="IgnoreDefensive">Ignores the target's defensive stat stage (Chip Away, Sacred Sword).</param>
+/// <param name="Status">Major status inflicted on each target (Thunder Wave, Spore, Toxic...).</param>
+/// <param name="IgnoreImmunity">
+/// Whether type immunities are ignored; null uses the default (status moves ignore them, damaging
+/// moves do not). Thunder Wave sets it to false so Ground types stay immune.
+/// </param>
+/// <param name="Powder">Powder or spore move: Grass types are immune (Gen 6).</param>
+/// <param name="Defrost">Thaws its frozen user before moving (Flame Wheel, Scald...).</param>
+/// <param name="ThawsTarget">Thaws a frozen target it hits, whatever its type (Scald, Steam Eruption).</param>
+/// <param name="SleepUsable">Can be used while asleep (Snore, Sleep Talk).</param>
 public sealed record MoveDefinition(
     string Id,
     string Name,
@@ -80,8 +89,17 @@ public sealed record MoveDefinition(
     int? SelfBoostChance = null,
     IReadOnlyList<SecondaryEffect>? Secondaries = null,
     bool IgnoreEvasion = false,
-    bool IgnoreDefensive = false)
+    bool IgnoreDefensive = false,
+    MajorStatus? Status = null,
+    bool? IgnoreImmunity = null,
+    bool Powder = false,
+    bool Defrost = false,
+    bool ThawsTarget = false,
+    bool SleepUsable = false)
 {
+    /// <summary>Whether a target the move's type cannot affect is still hit.</summary>
+    public bool IgnoresTypeImmunity => IgnoreImmunity ?? Category == MoveCategory.Status;
+
     public IReadOnlyList<StatChange> Boosts { get; init; } = Boosts ?? [];
     public IReadOnlyList<StatChange> SelfBoosts { get; init; } = SelfBoosts ?? [];
     public IReadOnlyList<SecondaryEffect> Secondaries { get; init; } = Secondaries ?? [];

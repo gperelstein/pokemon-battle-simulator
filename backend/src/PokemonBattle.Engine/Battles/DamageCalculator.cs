@@ -10,8 +10,9 @@ public sealed record DamageResult(int Damage, double Effectiveness, bool Critica
 /// Generation 6 damage formula, following Pokémon Showdown's order of operations and rounding:
 /// base damage, spread (x0.75), critical hit (x1.5), random roll (85-100%), STAB (x1.5),
 /// type effectiveness (successive doublings/halvings) and a minimum of 1. Attack and defense
-/// stat stages apply before the formula; critical hits ignore unfavourable stages.
-/// Weather, burn, abilities and items are not applied yet.
+/// stat stages apply before the formula; critical hits ignore unfavourable stages. Burn halves
+/// physical damage after effectiveness.
+/// Weather, abilities and items are not applied yet.
 /// </summary>
 public sealed class DamageCalculator(ITypeChart typeChart)
 {
@@ -27,7 +28,8 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         bool spread,
         IBattleRandom random,
         int attackStage = 0,
-        int defenseStage = 0)
+        int defenseStage = 0,
+        bool attackerBurned = false)
     {
         var effectiveness = typeChart.Effectiveness(move.Type, defender.Types);
         if (effectiveness == 0)
@@ -85,6 +87,12 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         for (var multiplier = effectiveness; multiplier < 1; multiplier *= 2)
         {
             damage /= 2;
+        }
+
+        // Gen 6 exempts Facade from the burn penalty.
+        if (attackerBurned && physical && move.Id != "facade")
+        {
+            damage = Modify(damage, 1, 2);
         }
 
         return new DamageResult(Math.Max(1, damage), effectiveness, critical);

@@ -95,5 +95,7 @@ public class BattleActorTests : TestKit
     private sealed class NeutralTypeChart : ITypeChart
     {
         public double Effectiveness(PokemonType attacking, IReadOnlyList<PokemonType> defending) => 1;
+
+        public bool IsImmune(IReadOnlyList<PokemonType> defending, TypeCondition condition) => false;
     }
 }
