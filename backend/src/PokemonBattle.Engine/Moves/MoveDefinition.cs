@@ -54,6 +54,13 @@ public enum MoveTarget
 /// <param name="WillCrit">Always lands a critical hit (Storm Throw, Frost Breath).</param>
 /// <param name="FixedDamage">Deals exactly this damage (Dragon Rage, Sonic Boom).</param>
 /// <param name="LevelDamage">Deals damage equal to the user's level (Seismic Toss, Night Shade).</param>
+/// <param name="Accuracy">Percentage chance to hit; null for moves that never miss (Swift, Swords Dance).</param>
+/// <param name="Boosts">Stage changes applied to each target (Growl, Sand Attack; the user for self moves).</param>
+/// <param name="SelfBoosts">Stage changes the user receives after hitting (Close Combat, Draco Meteor).</param>
+/// <param name="SelfBoostChance">Chance of <paramref name="SelfBoosts"/>; null means always (Diamond Storm: 50).</param>
+/// <param name="Secondaries">Chance-based effects applied to each target hit.</param>
+/// <param name="IgnoreEvasion">Ignores the target's evasion stage (Chip Away, Sacred Sword).</param>
+/// <param name="IgnoreDefensive">Ignores the target's defensive stat stage (Chip Away, Sacred Sword).</param>
 public sealed record MoveDefinition(
     string Id,
     string Name,
@@ -66,8 +73,19 @@ public sealed record MoveDefinition(
     int CritRatio = 1,
     bool WillCrit = false,
     int? FixedDamage = null,
-    bool LevelDamage = false)
+    bool LevelDamage = false,
+    int? Accuracy = null,
+    IReadOnlyList<StatChange>? Boosts = null,
+    IReadOnlyList<StatChange>? SelfBoosts = null,
+    int? SelfBoostChance = null,
+    IReadOnlyList<SecondaryEffect>? Secondaries = null,
+    bool IgnoreEvasion = false,
+    bool IgnoreDefensive = false)
 {
+    public IReadOnlyList<StatChange> Boosts { get; init; } = Boosts ?? [];
+    public IReadOnlyList<StatChange> SelfBoosts { get; init; } = SelfBoosts ?? [];
+    public IReadOnlyList<SecondaryEffect> Secondaries { get; init; } = Secondaries ?? [];
+
     /// <summary>
     /// Damaging move whose power is computed by move-specific logic (Low Kick, Return, OHKO moves,
     /// Counter...). The engine does not support those yet.

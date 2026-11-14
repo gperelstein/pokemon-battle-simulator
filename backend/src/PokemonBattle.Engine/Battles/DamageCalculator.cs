@@ -9,16 +9,25 @@ public sealed record DamageResult(int Damage, double Effectiveness, bool Critica
 /// <summary>
 /// Generation 6 damage formula, following Pokémon Showdown's order of operations and rounding:
 /// base damage, spread (x0.75), critical hit (x1.5), random roll (85-100%), STAB (x1.5),
-/// type effectiveness (successive doublings/halvings) and a minimum of 1.
-/// Stat stages, weather, burn, abilities and items are not applied yet.
+/// type effectiveness (successive doublings/halvings) and a minimum of 1. Attack and defense
+/// stat stages apply before the formula; critical hits ignore unfavourable stages.
+/// Weather, burn, abilities and items are not applied yet.
 /// </summary>
 public sealed class DamageCalculator(ITypeChart typeChart)
 {
     // Gen 6 critical hit odds by stage; stage 4 and above always crit.
     private static readonly int[] CritOdds = [16, 8, 2, 1];
 
+    /// <param name="attackStage">Stage of the attacker's offensive stat used by the move (Attack or Special Attack).</param>
+    /// <param name="defenseStage">Stage of the defender's defensive stat used by the move (Defense or Special Defense).</param>
     public DamageResult Calculate(
-        PokemonSet attacker, PokemonSet defender, MoveDefinition move, bool spread, IBattleRandom random)
+        PokemonSet attacker,
+        PokemonSet defender,
+        MoveDefinition move,
+        bool spread,
+        IBattleRandom random,
+        int attackStage = 0,
+        int defenseStage = 0)
     {
         var effectiveness = typeChart.Effectiveness(move.Type, defender.Types);
         if (effectiveness == 0)
@@ -33,8 +42,20 @@ public sealed class DamageCalculator(ITypeChart typeChart)
 
         var critical = IsCritical(move, random);
         var physical = move.Category == MoveCategory.Physical;
-        var attack = physical ? attacker.Stats.Attack : attacker.Stats.SpecialAttack;
-        var defense = Math.Max(1, physical ? defender.Stats.Defense : defender.Stats.SpecialDefense);
+        // Critical hits ignore the attacker's drops and the defender's boosts, but keep the rest.
+        if (move.IgnoreDefensive || (critical && defenseStage > 0))
+        {
+            defenseStage = 0;
+        }
+
+        if (critical && attackStage < 0)
+        {
+            attackStage = 0;
+        }
+
+        var attack = StatStages.ApplyToStat(physical ? attacker.Stats.Attack : attacker.Stats.SpecialAttack, attackStage);
+        var defense = Math.Max(1, StatStages.ApplyToStat(
+            physical ? defender.Stats.Defense : defender.Stats.SpecialDefense, defenseStage));
 
         var damage = (2 * attacker.Level / 5 + 2) * move.BasePower * attack / defense / 50;
         damage += 2;

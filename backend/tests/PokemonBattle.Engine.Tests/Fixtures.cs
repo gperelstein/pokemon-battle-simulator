@@ -28,6 +28,11 @@ internal static class Fixtures
     public static Battle Doubles(PokemonSet[] p1, PokemonSet[] p2) =>
         Battle.Create(BattleFormat.Doubles, p1, p2, TestTypeChart.Gen6Sample, new MaxRandom());
 
+    public static Battle Singles(PokemonSet[] p1, PokemonSet[] p2, IBattleRandom random) =>
+        Battle.Create(BattleFormat.Singles, p1, p2, TestTypeChart.Gen6Sample, random);
+
+    public static StatChange Stage(BoostStat stat, int stages) => new(stat, stages);
+
     public static Decision Move(int slot = 0, int moveIndex = 0, int target = 0) =>
         new(new MoveChoice(slot, moveIndex, target));
 
@@ -46,6 +51,9 @@ internal static class Fixtures
         CriticalHit c => $"{c.Side}.{c.Slot} critical hit",
         Immune i => $"{i.Side}.{i.Slot} {i.Species} immune",
         Fainted f => $"{f.Side}.{f.Slot} {f.Species} fainted",
+        Missed m => $"{m.Side}.{m.Slot} {m.Species} avoided",
+        StatStageChanged c => $"{c.Side}.{c.Slot} {c.Species} {c.Stat} {c.Delta:+0;-0} = {c.Stage}",
+        StatStageAtLimit l => $"{l.Side}.{l.Slot} {l.Species} {l.Stat} won't go {(l.Raise ? "higher" : "lower")}",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,
@@ -56,6 +64,28 @@ internal static class Fixtures
 internal sealed class MaxRandom : IBattleRandom
 {
     public int Next(int minInclusive, int maxExclusive) => maxExclusive - 1;
+}
+
+/// <summary>
+/// Returns the given values, in order, for every percentage roll (accuracy and effect chances,
+/// requested as [0, 100)); any other range gets its highest value like <see cref="MaxRandom"/>.
+/// </summary>
+internal sealed class PercentRolls(params int[] rolls) : IBattleRandom
+{
+    private readonly Queue<int> _rolls = new(rolls);
+
+    public int Remaining => _rolls.Count;
+
+    public int Next(int minInclusive, int maxExclusive)
+    {
+        if ((minInclusive, maxExclusive) != (0, 100))
+        {
+            return maxExclusive - 1;
+        }
+
+        Assert.True(_rolls.Count > 0, "Unexpected percentage roll.");
+        return _rolls.Dequeue();
+    }
 }
 
 /// <summary>Returns the given values in order and records every requested range.</summary>

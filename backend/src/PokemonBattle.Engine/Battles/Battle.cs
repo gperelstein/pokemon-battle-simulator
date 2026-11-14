@@ -17,6 +17,7 @@ public sealed class Battle
 {
     private readonly Dictionary<SideId, Side> _sides;
     private readonly IBattleRandom _random;
+    private readonly ITypeChart _typeChart;
     private readonly DamageCalculator _damage;
     private readonly List<DecisionRequest> _pending = [];
     private readonly Dictionary<SideId, Decision> _turnDecisions = [];
@@ -31,6 +32,7 @@ public sealed class Battle
         Format = format;
         _sides = new() { [SideId.P1] = p1, [SideId.P2] = p2 };
         _random = random;
+        _typeChart = typeChart;
         _damage = new DamageCalculator(typeChart);
     }
 
@@ -184,7 +186,7 @@ public sealed class Battle
             foreach (var choice in decision.Choices)
             {
                 var actor = side.Active[choice.Slot]!;
-                var speed = actor.Set.Stats.Speed;
+                var speed = actor.Speed;
                 var tieBreak = _random.Next(0, int.MaxValue);
                 actions.Add(choice switch
                 {
@@ -253,18 +255,48 @@ public sealed class Battle
             return;
         }
 
-        // Status moves have no damage step; their effects are not implemented yet.
-        var hitAny = move.Category == MoveCategory.Status;
-        if (move.Category != MoveCategory.Status)
+        // Moves without Pokémon targets (field and side effects) are not implemented yet.
+        if (targets is null)
         {
-            foreach (var (side, slot) in targets ?? [])
+            RequestSelfSwitch(action, move);
+            return;
+        }
+
+        var hit = targets
+            .Where(t => Hit(user, t.Side, t.Slot, move, spread: targets.Count > 1))
+            .Select(t => t.Side.Active[t.Slot]!)
+            .ToArray();
+
+        // Same order as Showdown: primary boosts, then the user's own changes, then secondary effects.
+        foreach (var target in hit.Where(t => !t.IsFainted))
+        {
+            ChangeStages(target, move.Boosts, announceLimit: true);
+        }
+
+        if (hit.Length > 0 && move.SelfBoosts.Count > 0 && RollChance(move.SelfBoostChance ?? 100))
+        {
+            ChangeStages(user, move.SelfBoosts, announceLimit: false);
+        }
+
+        foreach (var target in hit)
+        {
+            foreach (var secondary in move.Secondaries.Where(s => RollChance(s.Chance)))
             {
-                hitAny |= Hit(user, side, slot, move, spread: targets!.Count > 1);
+                ChangeStages(target, secondary.TargetBoosts, announceLimit: false);
+                ChangeStages(user, secondary.SelfBoosts, announceLimit: false);
             }
         }
 
-        // A self-switch move that did not hit anything (immune targets) does not switch out.
-        if (move.SelfSwitch && hitAny && !user.IsFainted && action.Side.Bench.Count > 0)
+        // A self-switch move that did not hit anything (immune targets, misses) does not switch out.
+        if (hit.Length > 0)
+        {
+            RequestSelfSwitch(action, move);
+        }
+    }
+
+    private void RequestSelfSwitch(MoveAction action, MoveDefinition move)
+    {
+        if (move.SelfSwitch && !action.Actor.IsFainted && action.Side.Bench.Count > 0)
         {
             Request(new DecisionRequest(action.Side.Id, DecisionKind.MidTurnSwitch, [action.Slot]));
         }
@@ -287,6 +319,7 @@ public sealed class Battle
                 .Concat(action.Side.LiveSlots.Where(slot => slot != action.Slot).Select(slot => (action.Side, slot)))
                 .ToArray(),
             MoveTarget.RandomNormal => liveFoes.Length == 0 ? [] : [liveFoes[_random.Next(0, liveFoes.Length)]],
+            MoveTarget.Self => [(action.Side, action.Slot)],
             // A single-target move retargets to another foe when its chosen target is gone.
             MoveTarget.AdjacentFoe or MoveTarget.Normal or MoveTarget.Any or MoveTarget.Scripted =>
                 liveFoes.Any(t => t.slot == chosen) ? [(foes, chosen)] : liveFoes.Take(1).ToArray(),
@@ -294,16 +327,36 @@ public sealed class Battle
         };
     }
 
-    /// <summary>Applies a damaging move to one target. Returns false when the target is immune.</summary>
+    /// <summary>
+    /// Runs the hit checks of a move against one target, in Gen 6 order (type immunity, then
+    /// accuracy), and deals the damage. Returns false when the target is immune or the move misses.
+    /// </summary>
     private bool Hit(BattlePokemon user, Side side, int slot, MoveDefinition move, bool spread)
     {
         var target = side.Active[slot]!;
-        var result = _damage.Calculate(user.Set, target.Set, move, spread, _random);
-        if (result.Effectiveness == 0)
+        var damaging = move.Category != MoveCategory.Status;
+        if (damaging && _typeChart.Effectiveness(move.Type, target.Set.Types) == 0)
         {
             _events.Add(new Immune(side.Id, slot, target.Set.Species));
             return false;
         }
+
+        if (!RollAccuracy(user, target, move))
+        {
+            _events.Add(new Missed(side.Id, slot, target.Set.Species));
+            return false;
+        }
+
+        if (!damaging)
+        {
+            return true;
+        }
+
+        var physical = move.Category == MoveCategory.Physical;
+        var result = _damage.Calculate(
+            user.Set, target.Set, move, spread, _random,
+            user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
+            target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense));
 
         if (result.Effectiveness != 1)
         {
@@ -323,6 +376,49 @@ public sealed class Battle
         }
 
         return true;
+    }
+
+    private bool RollAccuracy(BattlePokemon user, BattlePokemon target, MoveDefinition move)
+    {
+        // Moves that never miss and status moves aimed at the user skip the check.
+        if (move.Accuracy is not { } accuracy || move.Target == MoveTarget.Self)
+        {
+            return true;
+        }
+
+        var evasion = move.IgnoreEvasion ? 0 : target.GetStage(BoostStat.Evasion);
+        return RollChance(StatStages.ApplyToAccuracy(accuracy, user.GetStage(BoostStat.Accuracy), evasion));
+    }
+
+    /// <summary>Percentage check; chances of 100 or more always succeed without rolling.</summary>
+    private bool RollChance(int percent) => percent >= 100 || _random.Next(0, 100) < percent;
+
+    /// <summary>
+    /// Applies stage changes to an active Pokémon. Only a move's primary effect announces that a stat
+    /// cannot change any further; self and secondary changes stay silent, as in Showdown.
+    /// </summary>
+    private void ChangeStages(BattlePokemon pokemon, IReadOnlyList<StatChange> changes, bool announceLimit)
+    {
+        if (pokemon.IsFainted || changes.Count == 0)
+        {
+            return;
+        }
+
+        var side = _sides[pokemon.Side];
+        var slot = side.Active.ToList().IndexOf(pokemon);
+        foreach (var change in changes)
+        {
+            var delta = pokemon.ChangeStage(change.Stat, change.Stages);
+            if (delta != 0)
+            {
+                _events.Add(new StatStageChanged(
+                    side.Id, slot, pokemon.Set.Species, change.Stat, delta, pokemon.GetStage(change.Stat)));
+            }
+            else if (announceLimit)
+            {
+                _events.Add(new StatStageAtLimit(side.Id, slot, pokemon.Set.Species, change.Stat, change.Stages > 0));
+            }
+        }
     }
 
     private void RequestFaintReplacements()
@@ -345,7 +441,7 @@ public sealed class Battle
         var switches = _replacements
             .SelectMany(entry => entry.Value.Choices.Cast<SwitchChoice>()
                 .Select(choice => (Side: _sides[entry.Key], choice.Slot, Incoming: _sides[entry.Key].Team[choice.TeamIndex])))
-            .OrderByDescending(s => s.Incoming.Set.Stats.Speed)
+            .OrderByDescending(s => s.Incoming.Speed)
             .ToArray();
 
         foreach (var (side, slot, incoming) in switches)
@@ -364,6 +460,8 @@ public sealed class Battle
             _events.Add(new SwitchedOut(side.Id, slot, current.TeamIndex, current.Set.Species));
         }
 
+        // Stat stages are lost on leaving the field (fainted Pokémon included).
+        current?.ClearStages();
         side.Place(slot, incoming);
         _events.Add(new SwitchedIn(side.Id, slot, incoming.TeamIndex, incoming.Set.Species));
     }

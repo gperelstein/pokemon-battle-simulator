@@ -24,6 +24,56 @@ public class DamageCalculatorTests
         Assert.Equal(new DamageResult(36, 1, false), result);
     }
 
+    [Theory]
+    // Attack 200 vs 101: floor(floor(220000 / 101) / 50) = 43, +2 = 45, STAB 67.5 rounds down to 67.
+    [InlineData(2, 0, 67)]
+    // Defense 67 (101 at -1): floor(floor(110000 / 67) / 50) = 32, +2 = 34, STAB 51.
+    [InlineData(0, -1, 51)]
+    // Defense 101: 1089 / 50 = 21, +2 = 23, STAB 34.5 rounds half down to 34.
+    [InlineData(0, 0, 34)]
+    public void Applies_attack_and_defense_stages(int attackStage, int defenseStage, int expected)
+    {
+        var result = Calculator.Calculate(
+            Set(PokemonType.Normal), Set(PokemonType.Normal, defense: 101), Move(PokemonType.Normal, 50), false,
+            new ScriptedRandom(1, 100), attackStage, defenseStage);
+
+        Assert.Equal(expected, result.Damage);
+    }
+
+    [Theory]
+    // Unboosted crit: 24 x1.5 = 36, STAB 54. Negative attack and positive defense stages are ignored.
+    [InlineData(-2, 2, 54)]
+    // Attack 200 (or defense 50): 46 x1.5 = 69, STAB 103.5 rounds down to 103. Those stages are kept.
+    [InlineData(2, 0, 103)]
+    [InlineData(0, -2, 103)]
+    [InlineData(2, 2, 103)]
+    public void Critical_hits_ignore_only_unfavourable_stages(int attackStage, int defenseStage, int expected)
+    {
+        var move = Move(PokemonType.Normal, 50) with { WillCrit = true };
+
+        var result = Calculator.Calculate(
+            Set(PokemonType.Normal), Set(PokemonType.Normal), move, false, new ScriptedRandom(100),
+            attackStage, defenseStage);
+
+        Assert.Equal(new DamageResult(expected, 1, true), result);
+    }
+
+    [Fact]
+    public void Moves_that_ignore_defensive_stages_hit_as_if_unboosted()
+    {
+        var chipAway = Move(PokemonType.Normal, 50) with { IgnoreDefensive = true };
+        var tackle = Move(PokemonType.Normal, 50);
+
+        var ignoring = Calculator.Calculate(
+            Set(PokemonType.Normal), Set(PokemonType.Normal), chipAway, false, new ScriptedRandom(1, 100), 0, 2);
+        // Defense 200: 550 / 50 = 11, +2 = 13, STAB 19.5 rounds down to 19.
+        var normal = Calculator.Calculate(
+            Set(PokemonType.Normal), Set(PokemonType.Normal), tackle, false, new ScriptedRandom(1, 100), 0, 2);
+
+        Assert.Equal(36, ignoring.Damage);
+        Assert.Equal(19, normal.Damage);
+    }
+
     [Fact]
     public void Chains_spread_crit_roll_stab_and_effectiveness_with_gen_6_rounding()
     {
