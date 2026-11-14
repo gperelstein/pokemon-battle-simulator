@@ -187,7 +187,8 @@ public sealed partial class Battle
             var slots = side.LiveSlots.Where(slot => !side.Active[slot]!.IsLocked).ToArray();
             if (slots.Length > 0)
             {
-                Request(new DecisionRequest(side.Id, DecisionKind.Turn, slots));
+                var trapped = slots.Where(slot => IsTrapped(side.Active[slot]!)).ToArray();
+                Request(new DecisionRequest(side.Id, DecisionKind.Turn, slots, trapped));
             }
         }
 
@@ -1074,6 +1075,9 @@ public sealed partial class Battle
                         return $"Target slot {move.TargetSlot} does not exist.";
                     }
                     break;
+
+                case SwitchChoice sw when request.Kind == DecisionKind.Turn && request.TrappedSlots.Contains(sw.Slot):
+                    return "Can't switch: the active Pokémon is trapped.";
 
                 case SwitchChoice sw:
                     if (sw.TeamIndex < 0 || sw.TeamIndex >= side.Team.Count || !side.Bench.Contains(side.Team[sw.TeamIndex]))

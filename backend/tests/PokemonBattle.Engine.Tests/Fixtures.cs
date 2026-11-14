@@ -164,6 +164,7 @@ internal sealed class TestTypeChart(Dictionary<(PokemonType Attacking, PokemonTy
         [PokemonType.Steel] = [TypeCondition.Poison, TypeCondition.Sandstorm],
         [PokemonType.Rock] = [TypeCondition.Sandstorm],
         [PokemonType.Ground] = [TypeCondition.Sandstorm],
+        [PokemonType.Ghost] = [TypeCondition.Trapped],
         [PokemonType.Grass] = [TypeCondition.Powder],
     };
 

@@ -16,7 +16,14 @@ public enum DecisionKind
 }
 
 /// <summary>What the engine is waiting for from one player.</summary>
-public sealed record DecisionRequest(SideId Side, DecisionKind Kind, IReadOnlyList<int> Slots);
+/// <param name="TrappedSlots">
+/// Requested slots whose Pokémon cannot choose to switch (Arena Trap, Magnet Pull, Shadow Tag).
+/// </param>
+public sealed record DecisionRequest(
+    SideId Side, DecisionKind Kind, IReadOnlyList<int> Slots, IReadOnlyList<int>? TrappedSlots = null)
+{
+    public IReadOnlyList<int> TrappedSlots { get; init; } = TrappedSlots ?? [];
+}
 
 public abstract record SlotChoice(int Slot);
 
