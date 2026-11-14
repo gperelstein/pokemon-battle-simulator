@@ -33,6 +33,10 @@ internal static class Fixtures
 
     public static StatChange Stage(BoostStat stat, int stages) => new(stat, stages);
 
+    /// <summary>Gives the set an ability; most abilities are "breakable" (ignored by Mold Breaker).</summary>
+    public static PokemonSet WithAbility(PokemonSet set, string ability, bool breakable = true) =>
+        set with { Ability = ability, AbilityBreakable = breakable };
+
     public static Decision Move(int slot = 0, int moveIndex = 0, int target = 0) =>
         new(new MoveChoice(slot, moveIndex, target));
 
@@ -66,6 +70,9 @@ internal static class Fixtures
         WeatherDamage d => $"{d.Side}.{d.Slot} {d.Species} hurt by {d.Weather} {d.Amount}",
         MoveCharging c => $"{c.Side}.{c.Slot} {c.Species} charges {c.MoveId}",
         Recharging r => $"{r.Side}.{r.Slot} {r.Species} must recharge",
+        AbilityImmune a => $"{a.Side}.{a.Slot} {a.Species} immune ({a.Ability})",
+        AbilityActivated a => $"{a.Side}.{a.Slot} {a.Species} {a.Ability} activates",
+        StatDropPrevented p => $"{p.Side}.{p.Slot} {p.Species} {p.Ability} prevents stat drop",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,

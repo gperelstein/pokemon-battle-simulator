@@ -78,6 +78,7 @@ public enum MoveTarget
 /// <param name="Recharge">The user must spend the next turn recharging after a hit (Hyper Beam, Giga Impact...).</param>
 /// <param name="Flags">Contact, punch, pulse... (Showdown move flags the engine reacts to).</param>
 /// <param name="HasRecoil">Hurts its user with recoil or crash damage (Double-Edge, High Jump Kick); boosted by Reckless.</param>
+/// <param name="SelfDestruct">Makes its user faint (Explosion always; Final Gambit and Memento when they hit).</param>
 public sealed record MoveDefinition(
     string Id,
     string Name,
@@ -110,7 +111,8 @@ public sealed record MoveDefinition(
     bool Charge = false,
     bool Recharge = false,
     MoveFlags Flags = MoveFlags.None,
-    bool HasRecoil = false)
+    bool HasRecoil = false,
+    SelfDestruct? SelfDestruct = null)
 {
     /// <summary>Whether a target the move's type cannot affect is still hit.</summary>
     public bool IgnoresTypeImmunity => IgnoreImmunity ?? Category == MoveCategory.Status;

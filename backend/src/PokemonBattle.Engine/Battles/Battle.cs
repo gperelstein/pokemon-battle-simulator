@@ -285,6 +285,21 @@ public sealed partial class Battle
             return;
         }
 
+        // Mold Breaker sets ignoreAbility while its move runs (Showdown's onModifyMove).
+        _moldBreakerUser = user.Set.Ability == "moldbreaker" ? user : null;
+        try
+        {
+            RunMove(action, move, releasingCharge);
+        }
+        finally
+        {
+            _moldBreakerUser = null;
+        }
+    }
+
+    private void RunMove(MoveAction action, MoveDefinition move, bool releasingCharge)
+    {
+        var user = action.Actor;
         var (rolled, magnitude, heals, typeBoosted) = ModifyMove(move, user);
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
         if (magnitude is { } strength)
@@ -303,8 +318,26 @@ public sealed partial class Battle
             return;
         }
 
+        if (StoppedByDamp(action, move))
+        {
+            return;
+        }
+
+        // Explosion and Self-Destruct: the user faints before hitting, even if the move then misses.
+        // Its faint is reported once the move has been resolved, like Showdown's faint queue.
+        var userFaints = move.SelfDestruct == SelfDestruct.Always;
+        if (userFaints)
+        {
+            user.TakeDamage(user.CurrentHp);
+        }
+
         int? retaliation = null;
         var targets = ResolveTargets(move, action);
+        if (targets is { Count: > 0 } && !IsRetaliation(move))
+        {
+            targets = RedirectToLightningRod(move, user, targets);
+        }
+
         if (IsRetaliation(move))
         {
             if (Retaliation(move, user) is not { } answer)
@@ -325,6 +358,11 @@ public sealed partial class Battle
         if (targets is { Count: 0 })
         {
             _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "No target."));
+            if (userFaints)
+            {
+                _events.Add(new Fainted(action.Side.Id, action.Slot, user.Set.Species));
+            }
+
             return;
         }
 
@@ -346,10 +384,15 @@ public sealed partial class Battle
             .Select(t => t.Side.Active[t.Slot]!)
             .ToArray();
 
-        // Final Gambit: the user faints once it has dealt its HP as damage.
-        if (move.Id == "finalgambit" && hit.Length > 0 && !user.IsFainted)
+        // Final Gambit and Memento: the user faints once the move has hit.
+        if (move.SelfDestruct == SelfDestruct.IfHit && hit.Length > 0 && !user.IsFainted)
         {
             user.TakeDamage(user.CurrentHp);
+            userFaints = true;
+        }
+
+        if (userFaints)
+        {
             _events.Add(new Fainted(action.Side.Id, action.Slot, user.Set.Species));
         }
 
@@ -357,7 +400,7 @@ public sealed partial class Battle
         // secondary effects (target boosts, status, user boosts).
         foreach (var target in hit.Where(t => !t.IsFainted))
         {
-            ChangeStages(target, rolled.Boosts, announceLimit: true);
+            ChangeStages(target, rolled.Boosts, announceLimit: true, source: user);
             if (HealAmount(move, target) is { } amount)
             {
                 Heal(target, amount, user, move);
@@ -381,9 +424,13 @@ public sealed partial class Battle
 
         foreach (var target in hit)
         {
-            foreach (var secondary in move.Secondaries.Where(s => RollChance(s.Chance)))
+            // Shield Dust keeps only the secondaries that affect the attacker (onModifySecondaries).
+            var secondaries = AbilityOf(target) == "shielddust"
+                ? move.Secondaries.Where(s => s.SelfBoosts.Count > 0)
+                : move.Secondaries;
+            foreach (var secondary in secondaries.Where(s => RollChance(s.Chance)))
             {
-                ChangeStages(target, secondary.TargetBoosts, announceLimit: false);
+                ChangeStages(target, secondary.TargetBoosts, announceLimit: false, source: user);
                 if (secondary.Status is { } status)
                 {
                     TrySetStatus(target, status, action, move, primary: false);
@@ -500,15 +547,34 @@ public sealed partial class Battle
             return false;
         }
 
+        // Gen 6 order: type immunity (Levitate included), the target's TryHit abilities, then the
+        // move's own immunities, all before accuracy.
         var damaging = move.Category != MoveCategory.Status;
         var scrappy = user.Set.Ability == "scrappy" && move.Type is PokemonType.Normal or PokemonType.Fighting;
         var typeImmune = !move.IgnoresTypeImmunity && !scrappy &&
             _typeChart.Effectiveness(move.Type, target.Set.Types) == 0;
+        if (typeImmune)
+        {
+            _events.Add(new Immune(side.Id, slot, target.Set.Species));
+            return false;
+        }
+
+        if (!move.IgnoresTypeImmunity && move.Type == PokemonType.Ground && AbilityOf(target) == "levitate")
+        {
+            AbilityImmunity(target, "levitate");
+            return false;
+        }
+
+        if (AbsorbedByAbility(user, target, move))
+        {
+            return false;
+        }
+
         var powderImmune = move.Powder && target != user && _typeChart.IsImmune(target.Set.Types, TypeCondition.Powder);
         // Endeavor needs a target with more HP; OHKO moves cannot affect a higher-level target.
         var moveImmune = (move.Id == "endeavor" && user.CurrentHp >= target.CurrentHp) ||
             (move.Ohko && user.Set.Level < target.Set.Level);
-        if (typeImmune || powderImmune || moveImmune)
+        if (powderImmune || moveImmune)
         {
             _events.Add(new Immune(side.Id, slot, target.Set.Species));
             return false;
@@ -539,9 +605,11 @@ public sealed partial class Battle
                 : _damage.Calculate(
                     new DamageInput(
                         new Combatant(user.Set, user.CurrentHp, user.Status,
-                            AttackStage: user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack)),
+                            AttackStage: user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
+                            FlashFire: user.FlashFireActive && AbilityOf(user) == "flashfire"),
                         new Combatant(target.Set, target.CurrentHp, target.Status,
-                            DefenseStage: target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense)),
+                            DefenseStage: target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense),
+                            AbilitySuppressed: AbilityOf(target) is null),
                         move with { BasePower = BasePower(move, user, target, use.TypeBoosted) })
                     {
                         Spread = spread,
@@ -560,7 +628,7 @@ public sealed partial class Battle
             _events.Add(new CriticalHit(side.Id, slot));
         }
 
-        var dealt = target.TakeDamage(result.Damage);
+        var dealt = target.TakeDamage(EnduredBySturdy(target, result.Damage));
         _events.Add(new DamageDealt(side.Id, slot, target.Set.Species, dealt, target.CurrentHp));
         var (userSide, userSlot) = Locate(user);
         target.HitsTakenThisTurn.Add(new HitTaken(user, userSide.Id, userSlot, dealt, move.Category));
@@ -617,7 +685,7 @@ public sealed partial class Battle
 
         // ModifyAccuracy: Wonder Skin (priority 10) replaces a status move's accuracy with 50, then
         // the chained modifiers of the target (Sand Veil, Snow Cloak) and the user (Compound Eyes, Hustle).
-        var targetAbility = target.Set.Ability;
+        var targetAbility = AbilityOf(target);
         if (targetAbility == "wonderskin" && move.Category == MoveCategory.Status)
         {
             accuracy = 50;
@@ -684,6 +752,17 @@ public sealed partial class Battle
             return;
         }
 
+        // Abilities run after the type check (Showdown's SetStatus event); silent for secondaries.
+        if (StatusBlockingAbility(target, status) is { } ability)
+        {
+            if (primary)
+            {
+                AbilityImmunity(target, ability);
+            }
+
+            return;
+        }
+
         target.SetStatus(status);
         if (status == MajorStatus.Sleep)
         {
@@ -739,6 +818,12 @@ public sealed partial class Battle
                 damage = Math.Max(1, maxHp / 8);
             }
 
+            // Magic Guard blocks the damage; the toxic counter above still grows, as in Showdown.
+            if (IgnoresIndirectDamage(pokemon))
+            {
+                continue;
+            }
+
             var (side, slot) = Locate(pokemon);
             var dealt = pokemon.TakeDamage(damage);
             pokemon.HurtThisTurn = true;
@@ -761,14 +846,19 @@ public sealed partial class Battle
 
     /// <summary>
     /// Applies stage changes to an active Pokémon. Only a move's primary effect announces that a stat
-    /// cannot change any further; self and secondary changes stay silent, as in Showdown.
+    /// cannot change any further, or that an ability blocked a drop; self and secondary changes stay
+    /// silent, as in Showdown.
     /// </summary>
-    private void ChangeStages(BattlePokemon pokemon, IReadOnlyList<StatChange> changes, bool announceLimit)
+    /// <param name="source">Pokémon causing the change; drops from another Pokémon can be blocked by abilities.</param>
+    private void ChangeStages(
+        BattlePokemon pokemon, IReadOnlyList<StatChange> changes, bool announceLimit, BattlePokemon? source = null)
     {
         if (pokemon.IsFainted || changes.Count == 0)
         {
             return;
         }
+
+        changes = WithoutBlockedDrops(pokemon, source, changes, announceLimit);
 
         var (side, slot) = Locate(pokemon);
         foreach (var change in changes)

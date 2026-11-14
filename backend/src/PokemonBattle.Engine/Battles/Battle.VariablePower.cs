@@ -218,6 +218,12 @@ public sealed partial class Battle
             chain = chain.Chain(3, 2);
         }
 
+        // The target's Dry Skin takes more from Fire moves (onSourceBasePower, priority 17).
+        if (AbilityOf(target) == "dryskin" && move.Type == PokemonType.Fire)
+        {
+            chain = chain.Chain(5120, 4096);
+        }
+
         // ...then the move's own modifiers and the target's conditions (priority 0).
         var moveModifier = move.Id switch
         {
@@ -250,7 +256,7 @@ public sealed partial class Battle
         var side = _sides[target.Side];
         var friendGuard = side.LiveSlots
             .Select(slot => side.Active[slot]!)
-            .Any(ally => ally != target && ally.Set.Ability == "friendguard");
+            .Any(ally => ally != target && AbilityOf(ally) == "friendguard");
         return friendGuard ? chain.Chain(3, 4) : chain;
     }
 

@@ -50,3 +50,13 @@ public enum MoveFlags
     /// <summary>Biting move (Strong Jaw).</summary>
     Bite = 32,
 }
+
+/// <summary>When a move makes its own user faint (Showdown's selfdestruct).</summary>
+public enum SelfDestruct
+{
+    /// <summary>Right before hitting, even if it then misses (Explosion, Self-Destruct).</summary>
+    Always,
+
+    /// <summary>Only if the move hits (Final Gambit, Memento).</summary>
+    IfHit,
+}

@@ -87,6 +87,9 @@ public sealed class BattlePokemon
     /// <summary>Must spend its next turn recharging (Hyper Beam...).</summary>
     internal bool MustRecharge { get; set; }
 
+    /// <summary>Flash Fire absorbed a Fire move: its own Fire moves are stronger until it leaves the field.</summary>
+    internal bool FlashFireActive { get; set; }
+
     /// <summary>Its next action is fixed, so its player is not asked for a decision.</summary>
     internal bool IsLocked => ChargedChoice is not null || MustRecharge;
 
@@ -108,6 +111,7 @@ public sealed class BattlePokemon
         Array.Clear(_stages);
         StopCharging();
         MustRecharge = false;
+        FlashFireActive = false;
     }
 
     internal void ResetTurnState()

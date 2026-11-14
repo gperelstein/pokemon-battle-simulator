@@ -79,3 +79,12 @@ public sealed record MoveCharging(SideId Side, int Slot, string Species, string 
 
 /// <summary>The Pokémon spends its turn recharging after Hyper Beam or a similar move.</summary>
 public sealed record Recharging(SideId Side, int Slot, string Species) : BattleEvent;
+
+/// <summary>The Pokémon's ability made it immune to the move or effect (Levitate, Volt Absorb, Limber...).</summary>
+public sealed record AbilityImmune(SideId Side, int Slot, string Species, string Ability) : BattleEvent;
+
+/// <summary>The Pokémon's ability took effect (Volt Absorb healing, Flash Fire, Sturdy, Damp...).</summary>
+public sealed record AbilityActivated(SideId Side, int Slot, string Species, string Ability) : BattleEvent;
+
+/// <summary>The Pokémon's ability stopped another Pokémon from lowering its stats (Clear Body...).</summary>
+public sealed record StatDropPrevented(SideId Side, int Slot, string Species, string Ability) : BattleEvent;

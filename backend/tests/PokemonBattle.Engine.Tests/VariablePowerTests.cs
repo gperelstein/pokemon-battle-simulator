@@ -379,7 +379,7 @@ public class VariablePowerTests
     [Fact]
     public void Final_gambit_deals_the_user_hp_and_faints_the_user()
     {
-        var finalGambit = Special("finalgambit", PokemonType.Fighting);
+        var finalGambit = Special("finalgambit", PokemonType.Fighting) with { SelfDestruct = SelfDestruct.IfHit };
         var battle = Singles(
             [Mon("User", 100, hp: 150, moves: [finalGambit]), Mon("Backup", 10)],
             [Mon("Target", 50, moves: [Splash])]);
@@ -395,7 +395,7 @@ public class VariablePowerTests
     public void Final_gambit_does_not_faint_the_user_when_the_target_is_immune()
     {
         var battle = Singles(
-            [Mon("User", 100, hp: 150, moves: [Special("finalgambit", PokemonType.Fighting)])],
+            [Mon("User", 100, hp: 150, moves: [Special("finalgambit", PokemonType.Fighting) with { SelfDestruct = SelfDestruct.IfHit }])],
             [Mon("Gengar", 50, moves: [Splash]) with { Types = [PokemonType.Ghost] }]);
         battle.Start();
 

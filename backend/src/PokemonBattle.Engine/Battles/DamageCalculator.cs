@@ -11,13 +11,15 @@ public sealed record DamageResult(int Damage, double Effectiveness, bool Critica
 /// <param name="AttackStage">Stage of the offensive stat the move uses (Attack or Special Attack).</param>
 /// <param name="DefenseStage">Stage of the defensive stat the move uses (Defense or Special Defense).</param>
 /// <param name="AbilitySuppressed">Its ability is ignored (for instance by Mold Breaker).</param>
+/// <param name="FlashFire">Flash Fire has been activated: its Fire moves use x1.5 Attack or Special Attack.</param>
 public sealed record Combatant(
     PokemonSet Set,
     int? CurrentHp = null,
     MajorStatus? Status = null,
     int AttackStage = 0,
     int DefenseStage = 0,
-    bool AbilitySuppressed = false)
+    bool AbilitySuppressed = false,
+    bool FlashFire = false)
 {
     public int Hp => CurrentHp ?? Set.Stats.Hp;
     public string? Ability => AbilitySuppressed ? null : Set.Ability;
@@ -191,6 +193,7 @@ public sealed class DamageCalculator(ITypeChart typeChart)
             "swarm" => pinch && move.Type == PokemonType.Bug,
             "guts" => physical && attacker.Status is not null,
             "solarpower" => !physical && input.Weather == Weather.Sun,
+            "flashfire" => attacker.FlashFire && move.Type == PokemonType.Fire,
             _ => false,
         };
         if (boosted)

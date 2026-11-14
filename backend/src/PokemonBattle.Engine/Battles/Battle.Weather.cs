@@ -50,15 +50,26 @@ public sealed partial class Battle
         _events.Add(new WeatherContinues(weather));
 
         // Each active Pokémon's weather effect, by speed (Showdown's eachEvent('Weather')).
-        var affected = _sides.Values
+        var active = _sides.Values
             .SelectMany(side => side.LiveSlots.Select(slot => side.Active[slot]!))
             .OrderByDescending(p => p.Speed)
-            .Select(p => (Pokemon: p, Damage: WeatherDamageTo(p, weather)))
-            .Where(entry => entry.Damage > 0)
             .ToArray();
 
-        foreach (var (pokemon, damage) in affected)
+        foreach (var pokemon in active)
         {
+            // Dry Skin recovers 1/8 in rain (nothing at full HP).
+            if (weather == Battles.Weather.Rain && pokemon.Set.Ability == "dryskin")
+            {
+                HealByAbility(pokemon, "dryskin", pokemon.Set.Stats.Hp / 8);
+                continue;
+            }
+
+            var damage = WeatherDamageTo(pokemon, weather);
+            if (damage == 0)
+            {
+                continue;
+            }
+
             var (side, slot) = Locate(pokemon);
             var dealt = pokemon.TakeDamage(damage);
             pokemon.HurtThisTurn = true;
@@ -72,25 +83,31 @@ public sealed partial class Battle
 
     /// <summary>
     /// End-of-turn weather damage to one Pokémon: 1/16 from sandstorm or hail unless its type, its
-    /// ability (Sand Veil, Sand Rush, Sand Force; Snow Cloak) or Dig/Dive shelters it, and 1/8 in sun
-    /// for Solar Power holders.
+    /// ability (Sand Veil, Sand Rush, Sand Force, Overcoat; Snow Cloak, Overcoat) or Dig/Dive shelters
+    /// it, and 1/8 in sun for Solar Power and Dry Skin holders. Magic Guard blocks all of it.
     /// </summary>
     private int WeatherDamageTo(BattlePokemon pokemon, Weather weather)
     {
         var maxHp = pokemon.Set.Stats.Hp;
         var ability = pokemon.Set.Ability;
+        if (IgnoresIndirectDamage(pokemon))
+        {
+            return 0;
+        }
+
         switch (weather)
         {
-            case Battles.Weather.Sun when ability == "solarpower":
+            case Battles.Weather.Sun when ability is "solarpower" or "dryskin":
                 return Math.Max(1, maxHp / 8);
 
             case Battles.Weather.Sandstorm:
                 var sandImmune = _typeChart.IsImmune(pokemon.Set.Types, TypeCondition.Sandstorm) ||
-                    ability is "sandveil" or "sandrush" or "sandforce";
+                    ability is "sandveil" or "sandrush" or "sandforce" or "overcoat";
                 return sandImmune || IsShelteredFromWeather(pokemon) ? 0 : Math.Max(1, maxHp / 16);
 
             case Battles.Weather.Hail:
-                var hailImmune = _typeChart.IsImmune(pokemon.Set.Types, TypeCondition.Hail) || ability == "snowcloak";
+                var hailImmune = _typeChart.IsImmune(pokemon.Set.Types, TypeCondition.Hail) ||
+                    ability is "snowcloak" or "overcoat";
                 return hailImmune || IsShelteredFromWeather(pokemon) ? 0 : Math.Max(1, maxHp / 16);
 
             default:
