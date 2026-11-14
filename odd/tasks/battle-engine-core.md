@@ -14,9 +14,9 @@ Branch: `feat/battle-engine-core` · Delivery: ask-on-risk · Test runner: `dotn
 
 ## Tasks
 
-- [ ] T1 (S1) Solution scaffold: engine, actors, tests projects under `backend/` — inline
-- [ ] T2 (S4, S5) Engine core: singles/doubles slots, action queue, resumable turn with mid-turn decision requests (self-switch moves) and end-of-turn faint replacements — inline
-- [ ] T3 (S1, S5) `BattleActor` (Akka.NET) orchestrating decision requests per player — inline
+- [x] T1 (S1) Solution scaffold: engine, actors, tests projects under `backend/` — inline — 02783ef
+- [x] T2 (S4, S5) Engine core: singles/doubles slots, action queue, resumable turn with mid-turn decision requests (self-switch moves) and end-of-turn faint replacements — inline — 5f9c7f4 (20 tests green)
+- [x] T3 (S1, S5) `BattleActor` (Akka.NET) orchestrating decision requests per player — inline — f832ba8 (RED: compile failure; GREEN: 3 tests)
 - [ ] T4 (S2, S3) Catalog importer: Gen 6 data from Showdown, Gen 1 species + megas, learnsets, moves, abilities, items, type chart — inline
 - [ ] T5 (S2) Full Gen 6 damage calc (type chart, crits, modifiers) wired to catalog — inline
 - [ ] T6 (S2) Mechanics coverage: status, stat stages, weather, abilities, items, mega evolution — multiple slices
@@ -27,3 +27,6 @@ Branch: `feat/battle-engine-core` · Delivery: ask-on-risk · Test runner: `dotn
 - L1 (2026-11-13): "En este proyecto me gustaría crear un simulador de batallas pokemon online. La estructura del repositorio va a ser monorepo. Ya están creadas las carpetas del backend y el frontend. Quiero empezar trabajando en el backend. El backend debe estar hecho en .net 10 y usando akka.net para gestionar las batallas. Quiero que las reglas y el catalogo sigan el de la sexta generación con todos los items, movesets, pokemon, mega evoluciones, habilidades, etc de esa generación. Quiero en una primer etapa tener disponibles solamente los pokemon de la primera generación"
 - L2 (2026-11-13): "Quiero que pueda haber singles y dobles. Desde el principio me gustaría que haya algo que se tenga en cuenta. Un turno no se resuelve completamente a partir del input inicial de los players. Hay eventos que obligan a que un jugudor tenga que cargar un nuevo input a la mitad del turno. Por ejemplo el ataque volt turn, obliga al jugador que lo ejecuta a tener que seleccionar un nuevo pokemon para salir al campo a la mitad del turno"
 - L3: Design decision: engine is a pure domain library (no Akka) modelled as a resumable state machine. A turn is an action queue; when an action needs input (self-switch, faint replacement) the engine pauses with the queue intact, emits a `DecisionRequest` only to the affected player, and resumes on submission. `BattleActor` only orchestrates messages.
+- L4: T2 tests were written in the same batch as the engine, so RED was not observed separately for T2 (honest gap). Suite: 23/23 green. Review assess (base 9f025a8): medium, `under_budget`, no review due.
+- L5: Open points for later tasks: `SubmitDecision` trusts its `Side` field, so T7 must bind each connection to its side; damage still lacks type chart, crits and Gen 6 rounding (T5); Gen 6 speed ties and switch-in order of faint replacements are simplified; Pursuit, Baton Pass, Parting Shot, Eject Button reuse the `MidTurnSwitch` request when implemented (T6).
+- Next step: T4 catalog importer from Showdown Gen 6 data.
