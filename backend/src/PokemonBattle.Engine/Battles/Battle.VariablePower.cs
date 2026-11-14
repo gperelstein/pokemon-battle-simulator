@@ -5,7 +5,7 @@ namespace PokemonBattle.Engine.Battles;
 
 /// <summary>
 /// Move-specific power and damage logic, keyed by move id like Showdown's basePowerCallback,
-/// onBasePower, damageCallback and onModifyMove (data/moves.ts; Gen 6 inherits these). Moves that
+/// onBasePower, damageCallback, onModifyMove and heal effects (data/moves.ts; Gen 6 inherits these). Moves that
 /// depend on items, weather, allies or consecutive use are not supported yet.
 /// </summary>
 public sealed partial class Battle
@@ -22,13 +22,34 @@ public sealed partial class Battle
         !move.HasVariablePower || move.Ohko || SupportedVariableMoves.Contains(move.Id);
 
     /// <summary>
-    /// Random rolls made before the move is announced (Showdown's onModifyMove): Magnitude's
-    /// strength and Present's power or heal.
+    /// Changes made to the move before it is announced (Showdown's onModifyType/onModifyMove):
+    /// Magnitude's strength, Present's power or heal, and the weather-dependent moves.
     /// </summary>
-    private (MoveDefinition Move, int? Magnitude, bool Heals) RollMoveVariant(MoveDefinition move)
+    private (MoveDefinition Move, int? Magnitude, bool Heals) ModifyMove(MoveDefinition move)
     {
         switch (move.Id)
         {
+            case "weatherball" when Weather is { } weather:
+                var type = weather switch
+                {
+                    Battles.Weather.Sun => PokemonType.Fire,
+                    Battles.Weather.Rain => PokemonType.Water,
+                    Battles.Weather.Sandstorm => PokemonType.Rock,
+                    _ => PokemonType.Ice,
+                };
+                return (move with { Type = type, BasePower = move.BasePower * 2 }, null, false);
+
+            // Null accuracy never misses.
+            case "thunder" or "hurricane" when Weather == Battles.Weather.Rain:
+            case "blizzard" when Weather == Battles.Weather.Hail:
+                return (move with { Accuracy = null }, null, false);
+
+            case "thunder" or "hurricane" when Weather == Battles.Weather.Sun:
+                return (move with { Accuracy = 50 }, null, false);
+
+            case "growth" when Weather == Battles.Weather.Sun:
+                return (move with { Boosts = [new(BoostStat.Attack, 2), new(BoostStat.SpecialAttack, 2)] }, null, false);
+
             case "magnitude":
                 var roll = _random.Next(0, 100);
                 var (magnitude, power) = roll switch
@@ -156,7 +177,33 @@ public sealed partial class Battle
             "venoshock" => target.Status is MajorStatus.Poison or MajorStatus.Toxic,
             _ => false,
         };
-        return doubled ? power * 2 : power;
+
+        // Solar Beam is weakened by any weather but sun (pokeRound(x * 0.5)).
+        var halved = move.Id == "solarbeam" && Weather is { } weather && weather != Battles.Weather.Sun;
+        return doubled ? power * 2 : halved ? (power * 2048 + 2047) / 4096 : power;
+    }
+
+    /// <summary>
+    /// HP restored by a healing move: a rounded fraction of max HP, or for Moonlight, Synthesis and
+    /// Morning Sun Showdown's modify(maxHp, 0.5 | 0.667 in sun | 0.25 in other weather).
+    /// </summary>
+    private int? HealAmount(MoveDefinition move, BattlePokemon target)
+    {
+        var maxHp = target.Set.Stats.Hp;
+        if (move.Id is "moonlight" or "synthesis" or "morningsun")
+        {
+            var modifier = Weather switch
+            {
+                null => 2048,
+                Battles.Weather.Sun => 2732,
+                _ => 1024,
+            };
+            return (int)(((long)maxHp * modifier + 2047) / 4096);
+        }
+
+        return move.Heal is { } heal
+            ? (2 * maxHp * heal.Numerator + heal.Denominator) / (2 * heal.Denominator)
+            : null;
     }
 
     /// <summary>Showdown's 4096-based Wring Out / Crush Grip formula: up to 120, at least 1.</summary>

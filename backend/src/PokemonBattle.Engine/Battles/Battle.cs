@@ -257,7 +257,7 @@ public sealed partial class Battle
             return;
         }
 
-        var (rolled, magnitude, heals) = RollMoveVariant(move);
+        var (rolled, magnitude, heals) = ModifyMove(move);
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
         if (magnitude is { } strength)
         {
@@ -295,9 +295,15 @@ public sealed partial class Battle
             return;
         }
 
-        // Moves without Pokémon targets (field and side effects) are not implemented yet.
+        // Moves without Pokémon targets: weather is supported; other field and side effects are not yet.
         if (targets is null)
         {
+            if (move.SetsWeather is { } weather && !SetWeather(weather))
+            {
+                _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "That weather is already active."));
+                return;
+            }
+
             RequestSelfSwitch(action, move);
             return;
         }
@@ -318,7 +324,12 @@ public sealed partial class Battle
         // secondary effects (target boosts, status, user boosts).
         foreach (var target in hit.Where(t => !t.IsFainted))
         {
-            ChangeStages(target, move.Boosts, announceLimit: true);
+            ChangeStages(target, rolled.Boosts, announceLimit: true);
+            if (HealAmount(move, target) is { } amount)
+            {
+                Heal(target, amount, user, move);
+            }
+
             if (move.Status is { } status)
             {
                 TrySetStatus(target, status, action, move, primary: true);
@@ -469,7 +480,8 @@ public sealed partial class Battle
 
         if (heals)
         {
-            return HealTarget(user, target, move);
+            // Present: Math.round(maxHp / 4).
+            return Heal(target, (target.Set.Stats.Hp + 2) / 4, user, move);
         }
 
         var physical = move.Category == MoveCategory.Physical;
@@ -481,7 +493,8 @@ public sealed partial class Battle
                     user.Set, target.Set, move with { BasePower = BasePower(move, user, target) }, spread, _random,
                     user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
                     target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense),
-                    attackerBurned: user.Status == MajorStatus.Burn);
+                    attackerBurned: user.Status == MajorStatus.Burn,
+                    weather: Weather);
 
         if (result.Effectiveness != 1)
         {
@@ -515,11 +528,10 @@ public sealed partial class Battle
         return true;
     }
 
-    /// <summary>Present's heal: a quarter of the target's max HP (rounded), failing at full HP.</summary>
-    private bool HealTarget(BattlePokemon user, BattlePokemon target, MoveDefinition move)
+    /// <summary>Restores HP with a move; fails when the target is already at full HP.</summary>
+    private bool Heal(BattlePokemon target, int amount, BattlePokemon user, MoveDefinition move)
     {
-        var maxHp = target.Set.Stats.Hp;
-        if (target.CurrentHp == maxHp)
+        if (target.CurrentHp == target.Set.Stats.Hp)
         {
             var (userSide, userSlot) = Locate(user);
             _events.Add(new MoveFailed(userSide.Id, userSlot, move.Id, "The target is already at full HP."));
@@ -527,7 +539,7 @@ public sealed partial class Battle
         }
 
         var (side, slot) = Locate(target);
-        var healed = target.Heal((maxHp + 2) / 4);
+        var healed = target.Heal(amount);
         _events.Add(new Healed(side.Id, slot, target.Set.Species, healed, target.CurrentHp));
         return true;
     }
@@ -574,7 +586,10 @@ public sealed partial class Battle
         }
 
         var (side, slot) = Locate(target);
-        if (ImmunityTo(status) is { } condition && _typeChart.IsImmune(target.Set.Types, condition))
+        // Sunny Day grants immunity to freezing (Showdown's sunnyday onImmunity).
+        var sunBlocksFreeze = status == MajorStatus.Freeze && Weather == Battles.Weather.Sun;
+        if (sunBlocksFreeze ||
+            (ImmunityTo(status) is { } condition && _typeChart.IsImmune(target.Set.Types, condition)))
         {
             if (primary)
             {
@@ -611,11 +626,12 @@ public sealed partial class Battle
     }
 
     /// <summary>
-    /// End-of-turn burn and poison damage. Showdown runs poison (residual order 9) before burn
+    /// End-of-turn damage: weather first (residual order 1), then poison (order 9) before burn
     /// (order 10), each by descending speed. Gen 6 burn deals 1/8 of max HP.
     /// </summary>
     private void ApplyResidualDamage()
     {
+        ApplyWeatherResidual();
         var hurt = _sides.Values
             .SelectMany(side => side.LiveSlots.Select(slot => side.Active[slot]!))
             .Where(p => p.Status is MajorStatus.Burn or MajorStatus.Poison or MajorStatus.Toxic)

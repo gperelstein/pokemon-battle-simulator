@@ -1,4 +1,5 @@
 using PokemonBattle.Engine.Pokemon;
+using PokemonBattle.Engine.Battles;
 
 namespace PokemonBattle.Engine.Moves;
 
@@ -71,6 +72,8 @@ public enum MoveTarget
 /// <param name="ThawsTarget">Thaws a frozen target it hits, whatever its type (Scald, Steam Eruption).</param>
 /// <param name="SleepUsable">Can be used while asleep (Snore, Sleep Talk).</param>
 /// <param name="Ohko">One-hit KO move (Fissure, Guillotine, Horn Drill, Sheer Cold).</param>
+/// <param name="SetsWeather">Weather started by the move (Sunny Day, Rain Dance, Sandstorm, Hail).</param>
+/// <param name="Heal">Fraction of max HP restored to each target (Recover, Soft-Boiled...).</param>
 public sealed record MoveDefinition(
     string Id,
     string Name,
@@ -97,7 +100,9 @@ public sealed record MoveDefinition(
     bool Defrost = false,
     bool ThawsTarget = false,
     bool SleepUsable = false,
-    bool Ohko = false)
+    bool Ohko = false,
+    Weather? SetsWeather = null,
+    HealFraction? Heal = null)
 {
     /// <summary>Whether a target the move's type cannot affect is still hit.</summary>
     public bool IgnoresTypeImmunity => IgnoreImmunity ?? Category == MoveCategory.Status;

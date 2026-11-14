@@ -60,6 +60,10 @@ internal static class Fixtures
         StatusDamage d => $"{d.Side}.{d.Slot} {d.Species} hurt by {d.Status} {d.Amount}",
         OneHitKo o => $"{o.Side}.{o.Slot} one-hit KO",
         Healed h => $"{h.Side}.{h.Slot} {h.Species} healed {h.Amount}",
+        WeatherStarted w => $"weather {w.Weather} starts",
+        WeatherContinues w => $"weather {w.Weather} continues",
+        WeatherEnded w => $"weather {w.Weather} ends",
+        WeatherDamage d => $"{d.Side}.{d.Slot} {d.Species} hurt by {d.Weather} {d.Amount}",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,
@@ -140,9 +144,11 @@ internal sealed class TestTypeChart(Dictionary<(PokemonType Attacking, PokemonTy
     {
         [PokemonType.Electric] = [TypeCondition.Paralysis],
         [PokemonType.Fire] = [TypeCondition.Burn],
-        [PokemonType.Ice] = [TypeCondition.Freeze],
+        [PokemonType.Ice] = [TypeCondition.Freeze, TypeCondition.Hail],
         [PokemonType.Poison] = [TypeCondition.Poison],
-        [PokemonType.Steel] = [TypeCondition.Poison],
+        [PokemonType.Steel] = [TypeCondition.Poison, TypeCondition.Sandstorm],
+        [PokemonType.Rock] = [TypeCondition.Sandstorm],
+        [PokemonType.Ground] = [TypeCondition.Sandstorm],
         [PokemonType.Grass] = [TypeCondition.Powder],
     };
 

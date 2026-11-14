@@ -22,3 +22,6 @@ public sealed record SecondaryEffect(
     public IReadOnlyList<StatChange> TargetBoosts { get; init; } = TargetBoosts ?? [];
     public IReadOnlyList<StatChange> SelfBoosts { get; init; } = SelfBoosts ?? [];
 }
+
+/// <summary>Fraction of the target's max HP restored by a healing move (Recover: 1/2), rounded half up.</summary>
+public sealed record HealFraction(int Numerator, int Denominator);

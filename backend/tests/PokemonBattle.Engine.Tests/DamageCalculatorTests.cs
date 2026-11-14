@@ -75,6 +75,40 @@ public class DamageCalculatorTests
         Assert.Equal(expected, result.Damage);
     }
 
+    [Theory]
+    // Non-STAB 50 power special move, Normal vs Normal: base 24.
+    [InlineData(PokemonType.Fire, Weather.Sun, false, 36)] // pokeRound(24 * 1.5)
+    [InlineData(PokemonType.Water, Weather.Sun, false, 12)]
+    [InlineData(PokemonType.Water, Weather.Rain, false, 36)]
+    [InlineData(PokemonType.Fire, Weather.Rain, false, 12)]
+    [InlineData(PokemonType.Fire, Weather.Sandstorm, false, 24)]
+    [InlineData(PokemonType.Fire, null, false, 24)]
+    // Spread applies first: pokeRound(24 * 0.75) = 18, then pokeRound(18 * 1.5) = 27.
+    [InlineData(PokemonType.Fire, Weather.Sun, true, 27)]
+    public void Sun_and_rain_boost_or_weaken_fire_and_water_after_the_spread_modifier(
+        PokemonType type, Weather? weather, bool spread, int expected)
+    {
+        var result = Calculator.Calculate(
+            Set(PokemonType.Normal), Set(PokemonType.Normal), Move(type, 50, MoveCategory.Special), spread,
+            new ScriptedRandom(1, 100), weather: weather);
+
+        Assert.Equal(expected, result.Damage);
+    }
+
+    [Theory]
+    // Special Defense 100 x1.5 = 150: floor(floor(110000 / 150) / 50) = 14, +2 = 16.
+    [InlineData(MoveCategory.Special, Weather.Sandstorm, 16)]
+    [InlineData(MoveCategory.Physical, Weather.Sandstorm, 24)]
+    [InlineData(MoveCategory.Special, null, 24)]
+    public void Sandstorm_raises_the_special_defense_of_rock_types(MoveCategory category, Weather? weather, int expected)
+    {
+        var result = Calculator.Calculate(
+            Set(PokemonType.Normal), Set(PokemonType.Rock), Move(PokemonType.Water, 50, category), false,
+            new ScriptedRandom(1, 100), weather: weather);
+
+        Assert.Equal(expected, result.Damage);
+    }
+
     [Fact]
     public void Moves_that_ignore_defensive_stages_hit_as_if_unboosted()
     {

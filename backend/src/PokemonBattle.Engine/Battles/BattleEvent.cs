@@ -62,3 +62,14 @@ public sealed record Healed(SideId Side, int Slot, string Species, int Amount, i
 
 /// <summary>Magnitude rolled its strength (4 to 10), which sets its power.</summary>
 public sealed record MagnitudeActivated(SideId Side, int Slot, int Magnitude) : BattleEvent;
+
+public sealed record WeatherStarted(Weather Weather) : BattleEvent;
+
+/// <summary>End-of-turn reminder that the weather is still active.</summary>
+public sealed record WeatherContinues(Weather Weather) : BattleEvent;
+
+public sealed record WeatherEnded(Weather Weather) : BattleEvent;
+
+/// <summary>End-of-turn damage from sandstorm or hail.</summary>
+public sealed record WeatherDamage(SideId Side, int Slot, string Species, Weather Weather, int Amount, int RemainingHp)
+    : BattleEvent;

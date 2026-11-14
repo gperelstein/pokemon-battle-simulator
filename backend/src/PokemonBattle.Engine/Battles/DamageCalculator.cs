@@ -12,7 +12,8 @@ public sealed record DamageResult(int Damage, double Effectiveness, bool Critica
 /// type effectiveness (successive doublings/halvings) and a minimum of 1. Attack and defense
 /// stat stages apply before the formula; critical hits ignore unfavourable stages. Burn halves
 /// physical damage after effectiveness.
-/// Weather, abilities and items are not applied yet.
+/// Sun and rain modify Fire and Water damage after the spread modifier, and sandstorm raises
+/// the Special Defense of Rock types. Abilities and items are not applied yet.
 /// </summary>
 public sealed class DamageCalculator(ITypeChart typeChart)
 {
@@ -29,7 +30,8 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         IBattleRandom random,
         int attackStage = 0,
         int defenseStage = 0,
-        bool attackerBurned = false)
+        bool attackerBurned = false,
+        Weather? weather = null)
     {
         var effectiveness = typeChart.Effectiveness(move.Type, defender.Types);
         if (effectiveness == 0)
@@ -59,12 +61,28 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         var defense = Math.Max(1, StatStages.ApplyToStat(
             physical ? defender.Stats.Defense : defender.Stats.SpecialDefense, defenseStage));
 
+        // Sandstorm raises the Special Defense of Rock types by half, after stat stages.
+        if (!physical && weather == Weather.Sandstorm && defender.Types.Contains(PokemonType.Rock))
+        {
+            defense = Modify(defense, 3, 2);
+        }
+
         var damage = (2 * attacker.Level / 5 + 2) * move.BasePower * attack / defense / 50;
         damage += 2;
 
         if (spread)
         {
             damage = Modify(damage, 3, 4);
+        }
+
+        // Weather (Showdown's WeatherModifyDamage) applies right after the spread modifier.
+        if ((weather, move.Type) is (Weather.Sun, PokemonType.Fire) or (Weather.Rain, PokemonType.Water))
+        {
+            damage = Modify(damage, 3, 2);
+        }
+        else if ((weather, move.Type) is (Weather.Sun, PokemonType.Water) or (Weather.Rain, PokemonType.Fire))
+        {
+            damage = Modify(damage, 1, 2);
         }
 
         if (critical)
