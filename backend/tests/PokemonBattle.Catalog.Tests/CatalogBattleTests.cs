@@ -128,6 +128,14 @@ public class CatalogBattleTests
         Assert.Null(Move("tackle").SetsWeather);
         Assert.Equal(new HealFraction(1, 2), Move("recover").Heal);
         Assert.Null(Move("tackle").Heal);
+
+        Assert.True(Move("solarbeam").Charge);
+        Assert.True(Move("fly").Charge);
+        Assert.True(Move("skullbash").Charge);
+        Assert.False(Move("tackle").Charge);
+        Assert.True(Move("hyperbeam").Recharge);
+        Assert.True(Move("gigaimpact").Recharge);
+        Assert.False(Move("closecombat").Recharge);
     }
 
     [Fact]

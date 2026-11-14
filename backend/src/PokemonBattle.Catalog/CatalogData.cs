@@ -162,7 +162,9 @@ public sealed record MoveData
         SleepUsable,
         Ohko,
         ToWeather(Weather),
-        Heal is [var numerator, var denominator] ? new HealFraction(numerator, denominator) : null);
+        Heal is [var numerator, var denominator] ? new HealFraction(numerator, denominator) : null,
+        Flags.Contains("charge"),
+        Self?.VolatileStatus == "mustrecharge");
 
     private static Weather? ToWeather(string? id) => id?.ToLowerInvariant() switch
     {
@@ -208,6 +210,9 @@ public sealed record MoveSelfData
 
     /// <summary>Percentage chance; null means always.</summary>
     public int? Chance { get; init; }
+
+    /// <summary>Volatile condition put on the user, e.g. "mustrecharge" (Hyper Beam) or "lockedmove" (Outrage).</summary>
+    public string? VolatileStatus { get; init; }
 
     [JsonExtensionData]
     public Dictionary<string, JsonElement> Effects { get; init; } = [];
