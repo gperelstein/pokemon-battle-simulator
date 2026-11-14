@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PokemonBattle.Actors/PokemonBattle.Actors.csproj" />
+    <Project Path="src/PokemonBattle.Engine/PokemonBattle.Engine.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PokemonBattle.Actors.Tests/PokemonBattle.Actors.Tests.csproj" />
+    <Project Path="tests/PokemonBattle.Engine.Tests/PokemonBattle.Engine.Tests.csproj" />
+  </Folder>
+</Solution>
