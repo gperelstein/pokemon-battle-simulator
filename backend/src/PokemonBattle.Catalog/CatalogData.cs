@@ -183,7 +183,8 @@ public sealed record MoveData
             "always" => SelfDestruct.Always,
             "ifHit" => SelfDestruct.IfHit,
             _ => throw new InvalidOperationException($"Unknown selfdestruct '{SelfDestructValue}'."),
-        });
+        },
+        Secondaries is { Count: > 0 });
 
     private static MoveFlags ToMoveFlags(IReadOnlyList<string> flags) => flags.Aggregate(MoveFlags.None, (all, flag) => all | flag switch
     {

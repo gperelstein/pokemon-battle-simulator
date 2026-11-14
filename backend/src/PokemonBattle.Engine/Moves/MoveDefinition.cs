@@ -79,6 +79,10 @@ public enum MoveTarget
 /// <param name="Flags">Contact, punch, pulse... (Showdown move flags the engine reacts to).</param>
 /// <param name="HasRecoil">Hurts its user with recoil or crash damage (Double-Edge, High Jump Kick); boosted by Reckless.</param>
 /// <param name="SelfDestruct">Makes its user faint (Explosion always; Final Gambit and Memento when they hit).</param>
+/// <param name="HasSecondaryEffects">
+/// The move has secondary effects in the data, including ones the engine does not model yet (flinch);
+/// Sheer Force reads it.
+/// </param>
 public sealed record MoveDefinition(
     string Id,
     string Name,
@@ -112,7 +116,8 @@ public sealed record MoveDefinition(
     bool Recharge = false,
     MoveFlags Flags = MoveFlags.None,
     bool HasRecoil = false,
-    SelfDestruct? SelfDestruct = null)
+    SelfDestruct? SelfDestruct = null,
+    bool HasSecondaryEffects = false)
 {
     /// <summary>Whether a target the move's type cannot affect is still hit.</summary>
     public bool IgnoresTypeImmunity => IgnoreImmunity ?? Category == MoveCategory.Status;
@@ -120,6 +125,9 @@ public sealed record MoveDefinition(
     public IReadOnlyList<StatChange> Boosts { get; init; } = Boosts ?? [];
     public IReadOnlyList<StatChange> SelfBoosts { get; init; } = SelfBoosts ?? [];
     public IReadOnlyList<SecondaryEffect> Secondaries { get; init; } = Secondaries ?? [];
+
+    /// <summary>Whether Sheer Force boosts the move: it has any secondary effect, modelled or not.</summary>
+    public bool HasAnySecondary => HasSecondaryEffects || Secondaries.Count > 0;
 
     /// <summary>
     /// Damaging move without a fixed base power: its power or damage comes from move-specific logic

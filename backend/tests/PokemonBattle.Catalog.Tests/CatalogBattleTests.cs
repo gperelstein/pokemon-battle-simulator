@@ -149,6 +149,13 @@ public class CatalogBattleTests
         Assert.Equal(SelfDestruct.IfHit, Move("finalgambit").SelfDestruct);
         Assert.Equal(SelfDestruct.IfHit, Move("memento").SelfDestruct);
         Assert.Null(Move("tackle").SelfDestruct);
+
+        // Sheer Force counts every secondary, including the ones the engine does not model yet.
+        Assert.True(Move("bite").HasSecondaryEffects); // flinch only
+        Assert.True(Move("triattack").HasSecondaryEffects); // random status from a handler
+        Assert.True(Move("thunderbolt").HasSecondaryEffects);
+        Assert.False(Move("closecombat").HasSecondaryEffects); // only self drops
+        Assert.False(Move("tackle").HasSecondaryEffects);
     }
 
     [Fact]

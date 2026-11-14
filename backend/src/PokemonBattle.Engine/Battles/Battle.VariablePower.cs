@@ -202,6 +202,7 @@ public sealed partial class Battle
             "reckless" => move.HasRecoil,
             "analytic" => IsLastToMove(user),
             "toughclaws" => move.Flags.HasFlag(MoveFlags.Contact),
+            "sheerforce" => move.HasAnySecondary,
             "sandforce" => EffectiveWeather == Battles.Weather.Sandstorm &&
                 move.Type is PokemonType.Rock or PokemonType.Ground or PokemonType.Steel,
             _ => false,

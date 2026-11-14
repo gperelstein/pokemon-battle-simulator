@@ -304,6 +304,8 @@ public sealed partial class Battle
     private void RunMove(MoveAction action, MoveDefinition move, bool releasingCharge)
     {
         var user = action.Actor;
+        _criticalTargets.Clear();
+        _damagedTargets.Clear();
         var (rolled, magnitude, heals, typeBoosted) = ModifyMove(move, user);
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
         if (magnitude is { } strength)
@@ -419,9 +421,21 @@ public sealed partial class Battle
             {
                 Cure(target);
             }
+
+            // Anger Point (onHit): a critical hit maximizes its holder's Attack.
+            if (_criticalTargets.Contains(target) && AbilityOf(target) == "angerpoint")
+            {
+                ChangeStages(target, [new StatChange(BoostStat.Attack, 12)], announceLimit: false, source: target,
+                    fromAbility: "angerpoint");
+            }
         }
 
-        if (hit.Length > 0 && move.SelfBoosts.Count > 0 && RollChance(move.SelfBoostChance ?? 100))
+        // Sheer Force drops the secondary effects (and the user's own changes) of moves that have
+        // any; Serene Grace doubles their chances.
+        var sheerForce = user.Ability == "sheerforce" && move.HasAnySecondary;
+        var chanceFactor = user.Ability == "serenegrace" ? 2 : 1;
+        if (hit.Length > 0 && !sheerForce && move.SelfBoosts.Count > 0 &&
+            RollChance((move.SelfBoostChance ?? 100) * (move.SelfBoostChance is null ? 1 : chanceFactor)))
         {
             ChangeStages(user, move.SelfBoosts, announceLimit: false);
         }
@@ -429,10 +443,10 @@ public sealed partial class Battle
         foreach (var target in hit)
         {
             // Shield Dust keeps only the secondaries that affect the attacker (onModifySecondaries).
-            var secondaries = AbilityOf(target) == "shielddust"
-                ? move.Secondaries.Where(s => s.SelfBoosts.Count > 0)
+            var secondaries = sheerForce ? []
+                : AbilityOf(target) == "shielddust" ? move.Secondaries.Where(s => s.SelfBoosts.Count > 0)
                 : move.Secondaries;
-            foreach (var secondary in secondaries.Where(s => RollChance(s.Chance)))
+            foreach (var secondary in secondaries.Where(s => RollChance(s.Chance * chanceFactor)))
             {
                 ChangeStages(target, secondary.TargetBoosts, announceLimit: false, source: user);
                 if (secondary.Status is { } status)
@@ -446,6 +460,22 @@ public sealed partial class Battle
             if (move.ThawsTarget && target.Status == MajorStatus.Freeze && !target.IsFainted)
             {
                 Cure(target);
+            }
+        }
+
+        // DamagingHit: abilities that react to being damaged, then the attacker's Poison Touch.
+        foreach (var target in hit.Where(_damagedTargets.Contains))
+        {
+            AfterDamagingHit(user, target, move);
+        }
+
+        // Moxie: one Attack stage per Pokémon this move knocked out, once the faints are processed.
+        if (user.Ability == "moxie" && !user.IsFainted)
+        {
+            foreach (var _ in hit.Where(t => t.IsFainted))
+            {
+                ChangeStages(user, [new StatChange(BoostStat.Attack, 1)], announceLimit: false, source: user,
+                    fromAbility: "moxie");
             }
         }
 
@@ -632,9 +662,11 @@ public sealed partial class Battle
         if (result.Critical)
         {
             _events.Add(new CriticalHit(side.Id, slot));
+            _criticalTargets.Add(target);
         }
 
         var dealt = target.TakeDamage(EnduredBySturdy(target, result.Damage));
+        _damagedTargets.Add(target);
         _events.Add(new DamageDealt(side.Id, slot, target.Set.Species, dealt, target.CurrentHp));
         var (userSide, userSlot) = Locate(user);
         target.HitsTakenThisTurn.Add(new HitTaken(user, userSide.Id, userSlot, dealt, move.Category));
@@ -724,24 +756,38 @@ public sealed partial class Battle
         user.Ability == "noguard" || target.Ability == "noguard";
 
     /// <summary>
-    /// Inflicts a major status unless the target already has one or its type is immune. Only a
-    /// move's primary status reports the failure; secondary statuses fail silently.
+    /// Inflicts a major status from a move. Only a move's primary status reports the failure;
+    /// secondary statuses fail silently.
     /// </summary>
-    private void TrySetStatus(BattlePokemon target, MajorStatus status, MoveAction action, MoveDefinition move, bool primary)
+    private void TrySetStatus(BattlePokemon target, MajorStatus status, MoveAction action, MoveDefinition move, bool primary) =>
+        SetStatus(target, status, action.Actor, primary ? (action, move) : null, viaAbility: null);
+
+    /// <summary>
+    /// Inflicts a major status unless the target already has one, its type is immune or its ability
+    /// blocks it. Failures are reported only for a move's primary status. A status inflicted by an
+    /// ability (Static...) announces that ability first. Synchronize then passes burn, paralysis and
+    /// poison back to the Pokémon that caused them.
+    /// </summary>
+    private bool SetStatus(
+        BattlePokemon target,
+        MajorStatus status,
+        BattlePokemon? source,
+        (MoveAction Action, MoveDefinition Move)? primary,
+        (BattlePokemon Holder, string Ability)? viaAbility)
     {
         if (target.IsFainted)
         {
-            return;
+            return false;
         }
 
         if (target.Status is not null)
         {
-            if (primary)
+            if (primary is var (action, move))
             {
                 _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "The target already has a status."));
             }
 
-            return;
+            return false;
         }
 
         var (side, slot) = Locate(target);
@@ -750,23 +796,28 @@ public sealed partial class Battle
         if (sunBlocksFreeze ||
             (ImmunityTo(status) is { } condition && _typeChart.IsImmune(target.Set.Types, condition)))
         {
-            if (primary)
+            if (primary is not null)
             {
                 _events.Add(new Immune(side.Id, slot, target.Set.Species));
             }
 
-            return;
+            return false;
         }
 
         // Abilities run after the type check (Showdown's SetStatus event); silent for secondaries.
         if (StatusBlockingAbility(target, status) is { } ability)
         {
-            if (primary)
+            if (primary is not null)
             {
                 AbilityImmunity(target, ability);
             }
 
-            return;
+            return false;
+        }
+
+        if (viaAbility is var (holder, holderAbility))
+        {
+            AbilityActivation(holder, holderAbility);
         }
 
         target.SetStatus(status);
@@ -777,6 +828,15 @@ public sealed partial class Battle
         }
 
         _events.Add(new StatusInflicted(side.Id, slot, target.Set.Species, status));
+
+        if (source is not null && source != target && target.Ability == "synchronize" &&
+            status is MajorStatus.Burn or MajorStatus.Paralysis or MajorStatus.Poison or MajorStatus.Toxic)
+        {
+            AbilityActivation(target, "synchronize");
+            SetStatus(source, status, target, primary: null, viaAbility: null);
+        }
+
+        return true;
     }
 
     private static TypeCondition? ImmunityTo(MajorStatus status) => status switch
@@ -857,8 +917,16 @@ public sealed partial class Battle
     /// silent, as in Showdown.
     /// </summary>
     /// <param name="source">Pokémon causing the change; drops from another Pokémon can be blocked by abilities.</param>
+    /// <param name="fromAbility">
+    /// Ability causing the change, announced before the first stat that actually changes (Showdown's
+    /// "-ability ... boost").
+    /// </param>
     private void ChangeStages(
-        BattlePokemon pokemon, IReadOnlyList<StatChange> changes, bool announceLimit, BattlePokemon? source = null)
+        BattlePokemon pokemon,
+        IReadOnlyList<StatChange> changes,
+        bool announceLimit,
+        BattlePokemon? source = null,
+        string? fromAbility = null)
     {
         if (pokemon.IsFainted || changes.Count == 0)
         {
@@ -873,12 +941,27 @@ public sealed partial class Battle
             var delta = pokemon.ChangeStage(change.Stat, change.Stages);
             if (delta != 0)
             {
+                if (fromAbility is not null)
+                {
+                    AbilityActivation(pokemon, fromAbility);
+                    fromAbility = null;
+                }
+
                 _events.Add(new StatStageChanged(
                     side.Id, slot, pokemon.Set.Species, change.Stat, delta, pokemon.GetStage(change.Stat)));
             }
             else if (announceLimit)
             {
                 _events.Add(new StatStageAtLimit(side.Id, slot, pokemon.Set.Species, change.Stat, change.Stages > 0));
+            }
+
+            // Defiant / Competitive: each stat a foe lowers is answered with +2 Attack / Sp. Atk.
+            if (delta < 0 && source is not null && source.Side != pokemon.Side &&
+                pokemon.Ability is "defiant" or "competitive")
+            {
+                var raised = pokemon.Ability == "defiant" ? BoostStat.Attack : BoostStat.SpecialAttack;
+                ChangeStages(pokemon, [new StatChange(raised, 2)], announceLimit: false, source: pokemon,
+                    fromAbility: pokemon.Ability);
             }
         }
     }

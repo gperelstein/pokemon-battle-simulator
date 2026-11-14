@@ -96,3 +96,7 @@ public sealed record AbilityTraced(SideId Side, int Slot, string Species, string
 /// <summary>Forewarn revealed the foe's most powerful move.</summary>
 public sealed record ForewarnAlert(SideId Side, int Slot, string Species, string MoveId, SideId FoeSide, int FoeSlot)
     : BattleEvent;
+
+/// <summary>Damage dealt by an ability (Aftermath) to the Pokémon in this slot.</summary>
+public sealed record AbilityDamage(SideId Side, int Slot, string Species, string Ability, int Amount, int RemainingHp)
+    : BattleEvent;

@@ -78,6 +78,7 @@ internal static class Fixtures
         StatDropPrevented p => $"{p.Side}.{p.Slot} {p.Species} {p.Ability} prevents stat drop",
         AbilityTraced t => $"{t.Side}.{t.Slot} {t.Species} traced {t.Ability} from {t.FoeSide}.{t.FoeSlot}",
         ForewarnAlert f => $"{f.Side}.{f.Slot} {f.Species} forewarns {f.MoveId} of {f.FoeSide}.{f.FoeSlot}",
+        AbilityDamage d => $"{d.Side}.{d.Slot} {d.Species} hurt by {d.Ability} {d.Amount}",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,
