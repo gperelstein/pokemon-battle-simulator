@@ -8,12 +8,15 @@ public sealed class BattlePokemon
 {
     private readonly int[] _stages = new int[Enum.GetValues<BoostStat>().Length];
 
-    internal BattlePokemon(SideId side, int teamIndex, PokemonSet set)
+    private readonly BattleField _field;
+
+    internal BattlePokemon(SideId side, int teamIndex, PokemonSet set, BattleField field)
     {
         Side = side;
         TeamIndex = teamIndex;
         Set = set;
         CurrentHp = set.Stats.Hp;
+        _field = field;
     }
 
     public SideId Side { get; }
@@ -32,14 +35,31 @@ public sealed class BattlePokemon
     internal int ToxicStage { get; set; }
 
     /// <summary>
-    /// Speed used for turn order: its stat stage, then paralysis (Gen 6: x0.25, floored).
+    /// Speed used for turn order, as Showdown's getStat: stat stage, then the chained ModifySpe
+    /// abilities (Chlorophyll, Swift Swim, Sand Rush x2 in their weather; Quick Feet x1.5 when
+    /// statused), then paralysis last (Gen 6: x0.25, floored; Quick Feet ignores it).
     /// </summary>
     public int Speed
     {
         get
         {
             var speed = StatStages.ApplyToStat(Set.Stats.Speed, GetStage(BoostStat.Speed));
-            return Status == MajorStatus.Paralysis ? speed * 25 / 100 : speed;
+            var weather = _field.Weather;
+            var chain = new ModifierChain();
+            switch (Set.Ability)
+            {
+                case "chlorophyll" when weather == Weather.Sun:
+                case "swiftswim" when weather == Weather.Rain:
+                case "sandrush" when weather == Weather.Sandstorm:
+                    chain = chain.Chain(2);
+                    break;
+                case "quickfeet" when Status is not null:
+                    chain = chain.Chain(3, 2);
+                    break;
+            }
+
+            speed = chain.Apply(speed);
+            return Status == MajorStatus.Paralysis && Set.Ability != "quickfeet" ? speed * 25 / 100 : speed;
         }
     }
 

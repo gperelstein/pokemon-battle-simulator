@@ -25,3 +25,28 @@ public sealed record SecondaryEffect(
 
 /// <summary>Fraction of the target's max HP restored by a healing move (Recover: 1/2), rounded half up.</summary>
 public sealed record HealFraction(int Numerator, int Denominator);
+
+/// <summary>Move properties that abilities and items react to (Showdown's move flags).</summary>
+[Flags]
+public enum MoveFlags
+{
+    None = 0,
+
+    /// <summary>Makes contact (Tough Claws, Static, Rough Skin...).</summary>
+    Contact = 1,
+
+    /// <summary>Punching move (Iron Fist).</summary>
+    Punch = 2,
+
+    /// <summary>Aura or pulse move (Mega Launcher).</summary>
+    Pulse = 4,
+
+    /// <summary>Sound-based move (Soundproof).</summary>
+    Sound = 8,
+
+    /// <summary>Ball or bomb move (Bulletproof).</summary>
+    Bullet = 16,
+
+    /// <summary>Biting move (Strong Jaw).</summary>
+    Bite = 32,
+}

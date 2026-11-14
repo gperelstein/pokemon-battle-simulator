@@ -18,6 +18,7 @@ public sealed partial class Battle
     private readonly Dictionary<SideId, Side> _sides;
     private readonly IBattleRandom _random;
     private readonly ITypeChart _typeChart;
+    private readonly BattleField _field;
     private readonly DamageCalculator _damage;
     private readonly List<DecisionRequest> _pending = [];
     private readonly Dictionary<SideId, Decision> _turnDecisions = [];
@@ -27,12 +28,13 @@ public sealed partial class Battle
     private bool _started;
     private bool _turnInProgress;
 
-    private Battle(BattleFormat format, Side p1, Side p2, ITypeChart typeChart, IBattleRandom random)
+    private Battle(BattleFormat format, Side p1, Side p2, ITypeChart typeChart, IBattleRandom random, BattleField field)
     {
         Format = format;
         _sides = new() { [SideId.P1] = p1, [SideId.P2] = p2 };
         _random = random;
         _typeChart = typeChart;
+        _field = field;
         _damage = new DamageCalculator(typeChart);
     }
 
@@ -54,8 +56,9 @@ public sealed partial class Battle
         var slots = format.ActiveSlots();
         ValidateTeam(p1Team, slots, nameof(p1Team));
         ValidateTeam(p2Team, slots, nameof(p2Team));
+        var field = new BattleField();
         return new Battle(
-            format, new Side(SideId.P1, p1Team, slots), new Side(SideId.P2, p2Team, slots), typeChart, random);
+            format, new Side(SideId.P1, p1Team, slots, field), new Side(SideId.P2, p2Team, slots, field), typeChart, random, field);
     }
 
     /// <summary>Sends in the leads and opens the first turn.</summary>
@@ -282,7 +285,7 @@ public sealed partial class Battle
             return;
         }
 
-        var (rolled, magnitude, heals) = ModifyMove(move);
+        var (rolled, magnitude, heals, typeBoosted) = ModifyMove(move, user);
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
         if (magnitude is { } strength)
         {
@@ -339,7 +342,7 @@ public sealed partial class Battle
         }
 
         var hit = targets
-            .Where(t => Hit(user, t.Side, t.Slot, rolled, spread: targets.Count > 1, heals, retaliation))
+            .Where(t => Hit(user, t.Side, t.Slot, new MoveUse(rolled, targets.Count > 1, heals, retaliation, typeBoosted)))
             .Select(t => t.Side.Active[t.Slot]!)
             .ToArray();
 
@@ -485,21 +488,22 @@ public sealed partial class Battle
     /// move-specific immunities, then accuracy), and deals the damage. Returns false when the target
     /// is immune or the move misses.
     /// </summary>
-    /// <param name="heals">Present rolled its heal: the target recovers HP instead of taking damage.</param>
-    /// <param name="retaliation">Damage returned by Counter, Mirror Coat or Metal Burst.</param>
-    private bool Hit(
-        BattlePokemon user, Side side, int slot, MoveDefinition move, bool spread, bool heals, int? retaliation)
+    private bool Hit(BattlePokemon user, Side side, int slot, MoveUse use)
     {
+        var (move, spread, heals, retaliation) = (use.Move, use.Spread, use.Heals, use.Retaliation);
         var target = side.Active[slot]!;
-        // Semi-invulnerable targets (Fly, Dig...) are checked first: unreachable moves miss without a roll.
-        if (target != user && IsOutOfReach(target, move))
+        // Semi-invulnerable targets (Fly, Dig...) are checked first: unreachable moves miss without a
+        // roll. No Guard on either side reaches them (its onAnyInvulnerability).
+        if (target != user && !HasNoGuard(user, target) && IsOutOfReach(target, move))
         {
             _events.Add(new Missed(side.Id, slot, target.Set.Species));
             return false;
         }
 
         var damaging = move.Category != MoveCategory.Status;
-        var typeImmune = !move.IgnoresTypeImmunity && _typeChart.Effectiveness(move.Type, target.Set.Types) == 0;
+        var scrappy = user.Set.Ability == "scrappy" && move.Type is PokemonType.Normal or PokemonType.Fighting;
+        var typeImmune = !move.IgnoresTypeImmunity && !scrappy &&
+            _typeChart.Effectiveness(move.Type, target.Set.Types) == 0;
         var powderImmune = move.Powder && target != user && _typeChart.IsImmune(target.Set.Types, TypeCondition.Powder);
         // Endeavor needs a target with more HP; OHKO moves cannot affect a higher-level target.
         var moveImmune = (move.Id == "endeavor" && user.CurrentHp >= target.CurrentHp) ||
@@ -533,12 +537,18 @@ public sealed partial class Battle
             : CallbackDamage(move, user, target, retaliation) is { } fixedDamage
                 ? new DamageResult(fixedDamage, 1, false)
                 : _damage.Calculate(
-                    user.Set, target.Set, move with { BasePower = BasePower(move, user, target) }, spread, _random,
-                    user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
-                    target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense),
-                    attackerBurned: user.Status == MajorStatus.Burn,
-                    weather: Weather,
-                    finalMultiplier: SemiInvulnerableDamageMultiplier(target, move));
+                    new DamageInput(
+                        new Combatant(user.Set, user.CurrentHp, user.Status,
+                            AttackStage: user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack)),
+                        new Combatant(target.Set, target.CurrentHp, target.Status,
+                            DefenseStage: target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense)),
+                        move with { BasePower = BasePower(move, user, target, use.TypeBoosted) })
+                    {
+                        Spread = spread,
+                        Weather = Weather,
+                        FinalModifiers = BattleDamageModifiers(target, move),
+                    },
+                    _random);
 
         if (result.Effectiveness != 1)
         {
@@ -592,8 +602,9 @@ public sealed partial class Battle
     {
         // Moves that never miss and status moves aimed at the user skip the check. Gen 6 (from
         // Showdown's gen7 mod): Toxic never misses when used by a Poison type.
+        // No Guard on either side makes every move hit (its onAnyAccuracy returns true).
         if (move.Accuracy is not { } accuracy || move.Target == MoveTarget.Self ||
-            (move.Id == "toxic" && user.Set.Types.Contains(PokemonType.Poison)))
+            (move.Id == "toxic" && user.Set.Types.Contains(PokemonType.Poison)) || HasNoGuard(user, target))
         {
             return true;
         }
@@ -604,9 +615,39 @@ public sealed partial class Battle
             return RollChance(30 + user.Set.Level - target.Set.Level);
         }
 
-        var evasion = move.IgnoreEvasion ? 0 : target.GetStage(BoostStat.Evasion);
-        return RollChance(StatStages.ApplyToAccuracy(accuracy, user.GetStage(BoostStat.Accuracy), evasion));
+        // ModifyAccuracy: Wonder Skin (priority 10) replaces a status move's accuracy with 50, then
+        // the chained modifiers of the target (Sand Veil, Snow Cloak) and the user (Compound Eyes, Hustle).
+        var targetAbility = target.Set.Ability;
+        if (targetAbility == "wonderskin" && move.Category == MoveCategory.Status)
+        {
+            accuracy = 50;
+        }
+
+        var chain = new ModifierChain();
+        if ((targetAbility == "sandveil" && Weather == Battles.Weather.Sandstorm) ||
+            (targetAbility == "snowcloak" && Weather == Battles.Weather.Hail))
+        {
+            chain = chain.Chain(3277, 4096);
+        }
+
+        if (user.Set.Ability == "compoundeyes")
+        {
+            chain = chain.Chain(5325, 4096);
+        }
+        else if (user.Set.Ability == "hustle" && move.Category == MoveCategory.Physical)
+        {
+            chain = chain.Chain(3277, 4096);
+        }
+
+        // Stages: Unaware ignores the other side's; Keen Eye ignores the target's evasion.
+        var accuracyStage = targetAbility == "unaware" ? 0 : user.GetStage(BoostStat.Accuracy);
+        var ignoresEvasion = move.IgnoreEvasion || user.Set.Ability is "keeneye" or "unaware";
+        var evasion = ignoresEvasion ? 0 : target.GetStage(BoostStat.Evasion);
+        return RollChance(StatStages.ApplyToAccuracy(chain.Apply(accuracy), accuracyStage, evasion));
     }
+
+    private static bool HasNoGuard(BattlePokemon user, BattlePokemon target) =>
+        user.Set.Ability == "noguard" || target.Set.Ability == "noguard";
 
     /// <summary>
     /// Inflicts a major status unless the target already has one or its type is immune. Only a
@@ -879,6 +920,12 @@ public sealed partial class Battle
 
     private sealed record MoveAction(Side Side, int Slot, BattlePokemon Actor, MoveChoice Choice)
         : BattleAction(Side, Slot, Actor);
+
+    /// <summary>One use of a move against its targets, after the changes made before announcing it.</summary>
+    /// <param name="Heals">Present rolled its heal: the target recovers HP instead of taking damage.</param>
+    /// <param name="Retaliation">Damage returned by Counter, Mirror Coat or Metal Burst.</param>
+    /// <param name="TypeBoosted">Aerilate changed the move's type.</param>
+    private sealed record MoveUse(MoveDefinition Move, bool Spread, bool Heals, int? Retaliation, bool TypeBoosted);
 
     private sealed record RechargeAction(Side Side, int Slot, BattlePokemon Actor) : BattleAction(Side, Slot, Actor);
 

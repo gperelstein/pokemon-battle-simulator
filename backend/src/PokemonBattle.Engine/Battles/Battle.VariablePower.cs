@@ -21,11 +21,31 @@ public sealed partial class Battle
     private static bool IsSupported(MoveDefinition move) =>
         !move.HasVariablePower || move.Ohko || SupportedVariableMoves.Contains(move.Id);
 
+    /// <summary>Moves whose type Aerilate leaves alone (Showdown's noModifyType list, Gen 6 entries).</summary>
+    private static readonly HashSet<string> TypeLockedMoves = ["judgment", "naturalgift", "technoblast", "weatherball"];
+
     /// <summary>
-    /// Changes made to the move before it is announced (Showdown's onModifyType/onModifyMove):
-    /// Magnitude's strength, Present's power or heal, and the weather-dependent moves.
+    /// Changes made to the move before it is announced: the move's own (Magnitude, Present, weather
+    /// moves), then the user's ability (Aerilate turns Normal moves into Flying ones and marks them for
+    /// its power boost; onModifyTypePriority -1 runs after the move's own type change).
     /// </summary>
-    private (MoveDefinition Move, int? Magnitude, bool Heals) ModifyMove(MoveDefinition move)
+    private (MoveDefinition Move, int? Magnitude, bool Heals, bool TypeBoosted) ModifyMove(
+        MoveDefinition move, BattlePokemon user)
+    {
+        var (modified, magnitude, heals) = ModifyMoveItself(move);
+        if (user.Set.Ability == "aerilate" && modified.Type == PokemonType.Normal && !TypeLockedMoves.Contains(move.Id))
+        {
+            return (modified with { Type = PokemonType.Flying }, magnitude, heals, true);
+        }
+
+        return (modified, magnitude, heals, false);
+    }
+
+    /// <summary>
+    /// The move's own changes (Showdown's onModifyType/onModifyMove): Magnitude's strength, Present's
+    /// power or heal, and the weather-dependent moves.
+    /// </summary>
+    private (MoveDefinition Move, int? Magnitude, bool Heals) ModifyMoveItself(MoveDefinition move)
     {
         switch (move.Id)
         {
@@ -117,10 +137,13 @@ public sealed partial class Battle
         };
 
     /// <summary>
-    /// Base power after the move's own logic: its callback (floored, at least 1), then the
-    /// doublings applied as base power modifiers (Facade, Brine, Venoshock).
+    /// Base power as Showdown computes it: the move's callback (floored, at least 1), then one
+    /// BasePower chain in handler priority order: the user's ability (Aerilate, Iron Fist, Reckless
+    /// 23; Analytic, Tough Claws, Sand Force 21; Technician, Mega Launcher 19), then the move's own
+    /// modifiers (Facade, Brine, Venoshock, Solar Beam) and Bounce's condition (0).
     /// </summary>
-    private int BasePower(MoveDefinition move, BattlePokemon user, BattlePokemon target)
+    /// <param name="typeBoosted">Aerilate changed the move's type, so it gets its power boost.</param>
+    private int BasePower(MoveDefinition move, BattlePokemon user, BattlePokemon target, bool typeBoosted = false)
     {
         var power = move.Id switch
         {
@@ -166,23 +189,69 @@ public sealed partial class Battle
                 move.BasePower * 2,
             "payback" when !target.NewlySwitched && !WillMove(target) => move.BasePower * 2,
             "assurance" when target.HurtThisTurn => move.BasePower * 2,
-            // Bounce doubles the base power of Gust and Twister (onSourceBasePower).
-            "gust" or "twister" when target.ChargingMoveId == "bounce" => move.BasePower * 2,
             _ => move.BasePower,
         };
         power = Math.Max(1, power);
 
-        var doubled = move.Id switch
+        // BasePower event, highest priority first, as one chain: the user's ability (23, 21, 19)...
+        var chain = new ModifierChain();
+        var boostedByAbility = user.Set.Ability switch
         {
-            "facade" => user.Status is not null and not MajorStatus.Sleep,
-            "brine" => target.CurrentHp * 2 <= target.Set.Stats.Hp,
-            "venoshock" => target.Status is MajorStatus.Poison or MajorStatus.Toxic,
+            "aerilate" => typeBoosted,
+            "ironfist" => move.Flags.HasFlag(MoveFlags.Punch),
+            "reckless" => move.HasRecoil,
+            "analytic" => IsLastToMove(user),
+            "toughclaws" => move.Flags.HasFlag(MoveFlags.Contact),
+            "sandforce" => Weather == Battles.Weather.Sandstorm &&
+                move.Type is PokemonType.Rock or PokemonType.Ground or PokemonType.Steel,
             _ => false,
         };
+        if (boostedByAbility)
+        {
+            chain = user.Set.Ability is "ironfist" or "reckless" ? chain.Chain(4915, 4096) : chain.Chain(5325, 4096);
+        }
 
-        // Solar Beam is weakened by any weather but sun (pokeRound(x * 0.5)).
-        var halved = move.Id == "solarbeam" && Weather is { } weather && weather != Battles.Weather.Sun;
-        return doubled ? power * 2 : halved ? (power * 2048 + 2047) / 4096 : power;
+        // Technician (19) checks the power with the modifiers chained so far (Gen 6 priority).
+        if ((user.Set.Ability == "technician" && chain.Apply(power) <= 60) ||
+            (user.Set.Ability == "megalauncher" && move.Flags.HasFlag(MoveFlags.Pulse)))
+        {
+            chain = chain.Chain(3, 2);
+        }
+
+        // ...then the move's own modifiers and the target's conditions (priority 0).
+        var moveModifier = move.Id switch
+        {
+            "facade" when user.Status is not null and not MajorStatus.Sleep => (2, 1),
+            "brine" when target.CurrentHp * 2 <= target.Set.Stats.Hp => (2, 1),
+            "venoshock" when target.Status is MajorStatus.Poison or MajorStatus.Toxic => (2, 1),
+            // Solar Beam is weakened by any weather but sun.
+            "solarbeam" when Weather is { } weather && weather != Battles.Weather.Sun => (1, 2),
+            // Bounce doubles the base power of Gust and Twister (onSourceBasePower).
+            "gust" or "twister" when target.ChargingMoveId == "bounce" => (2, 1),
+            _ => (1, 1),
+        };
+        chain = chain.Chain(moveModifier.Item1, moveModifier.Item2);
+        return Math.Max(1, chain.Apply(power));
+    }
+
+    /// <summary>No other active Pokémon still has an action queued this turn (Analytic).</summary>
+    private bool IsLastToMove(BattlePokemon user) =>
+        !_sides.Values
+            .SelectMany(side => side.LiveSlots.Select(slot => side.Active[slot]!))
+            .Any(pokemon => pokemon != user && WillMove(pokemon));
+
+    /// <summary>
+    /// Final damage modifiers from the battle rather than the two Pokémon's abilities: moves that
+    /// reach a semi-invulnerable target and an ally's Friend Guard (x0.75).
+    /// </summary>
+    private ModifierChain BattleDamageModifiers(BattlePokemon target, MoveDefinition move)
+    {
+        var chain = new ModifierChain().Chain(SemiInvulnerableDamageMultiplier(target, move));
+        var side = _sides[target.Side];
+        var friendGuard = side.LiveSlots
+            .Select(slot => side.Active[slot]!)
+            .Any(ally => ally != target && ally.Set.Ability == "friendguard");
+        return friendGuard ? chain.Chain(3, 4) : chain;
     }
 
     /// <summary>
@@ -215,7 +284,7 @@ public sealed partial class Battle
         return (int)Math.Max(1, (120 * (100 * ratio) + 2047) / 4096 / 100);
     }
 
-    private bool WillMove(BattlePokemon pokemon) => _queue.Any(a => a is MoveAction && a.Actor == pokemon);
+    private bool WillMove(BattlePokemon pokemon) => _queue.Any(a => a is MoveAction or RechargeAction && a.Actor == pokemon);
 
     /// <summary>Status cured by the move after it hits (Smelling Salts, Wake-Up Slap).</summary>
     private static MajorStatus? CuredOnHit(MoveDefinition move) => move.Id switch

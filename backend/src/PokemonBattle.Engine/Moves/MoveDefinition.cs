@@ -76,6 +76,8 @@ public enum MoveTarget
 /// <param name="Heal">Fraction of max HP restored to each target (Recover, Soft-Boiled...).</param>
 /// <param name="Charge">Two-turn move: charges on the first turn and attacks on the next (Solar Beam, Fly, Dig...).</param>
 /// <param name="Recharge">The user must spend the next turn recharging after a hit (Hyper Beam, Giga Impact...).</param>
+/// <param name="Flags">Contact, punch, pulse... (Showdown move flags the engine reacts to).</param>
+/// <param name="HasRecoil">Hurts its user with recoil or crash damage (Double-Edge, High Jump Kick); boosted by Reckless.</param>
 public sealed record MoveDefinition(
     string Id,
     string Name,
@@ -106,7 +108,9 @@ public sealed record MoveDefinition(
     Weather? SetsWeather = null,
     HealFraction? Heal = null,
     bool Charge = false,
-    bool Recharge = false)
+    bool Recharge = false,
+    MoveFlags Flags = MoveFlags.None,
+    bool HasRecoil = false)
 {
     /// <summary>Whether a target the move's type cannot affect is still hit.</summary>
     public bool IgnoresTypeImmunity => IgnoreImmunity ?? Category == MoveCategory.Status;

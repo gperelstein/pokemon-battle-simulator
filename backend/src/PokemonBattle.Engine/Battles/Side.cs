@@ -7,10 +7,10 @@ public sealed class Side
 {
     private readonly BattlePokemon?[] _active;
 
-    internal Side(SideId id, IReadOnlyList<PokemonSet> team, int activeSlots)
+    internal Side(SideId id, IReadOnlyList<PokemonSet> team, int activeSlots, BattleField field)
     {
         Id = id;
-        Team = team.Select((set, index) => new BattlePokemon(id, index, set)).ToArray();
+        Team = team.Select((set, index) => new BattlePokemon(id, index, set, field)).ToArray();
         _active = new BattlePokemon?[activeSlots];
     }
 
