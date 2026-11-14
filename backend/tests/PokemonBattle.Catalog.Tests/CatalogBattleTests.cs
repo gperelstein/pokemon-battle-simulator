@@ -136,6 +136,13 @@ public class CatalogBattleTests
         Assert.True(Move("hyperbeam").Recharge);
         Assert.True(Move("gigaimpact").Recharge);
         Assert.False(Move("closecombat").Recharge);
+
+        Assert.Equal(MoveFlags.Contact | MoveFlags.Punch, Move("firepunch").Flags & (MoveFlags.Contact | MoveFlags.Punch));
+        Assert.True(Move("aurasphere").Flags.HasFlag(MoveFlags.Pulse));
+        Assert.False(Move("thunderbolt").Flags.HasFlag(MoveFlags.Contact));
+        Assert.True(Move("doubleedge").HasRecoil);
+        Assert.True(Move("highjumpkick").HasRecoil); // crash damage counts for Reckless
+        Assert.False(Move("tackle").HasRecoil);
     }
 
     [Fact]

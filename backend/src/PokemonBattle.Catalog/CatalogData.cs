@@ -122,6 +122,12 @@ public sealed record MoveData
     /// <summary>Fraction of max HP healed, as [numerator, denominator].</summary>
     public IReadOnlyList<int>? Heal { get; init; }
 
+    /// <summary>Fraction of the damage dealt that the user takes as recoil, as [numerator, denominator].</summary>
+    public IReadOnlyList<int>? Recoil { get; init; }
+
+    /// <summary>The user is hurt when the move misses (Jump Kick, High Jump Kick).</summary>
+    public bool HasCrashDamage { get; init; }
+
     /// <summary>Remaining declarative mechanics (status, drain, recoil...) kept raw.</summary>
     [JsonExtensionData]
     public Dictionary<string, JsonElement> Effects { get; init; } = [];
@@ -164,7 +170,20 @@ public sealed record MoveData
         ToWeather(Weather),
         Heal is [var numerator, var denominator] ? new HealFraction(numerator, denominator) : null,
         Flags.Contains("charge"),
-        Self?.VolatileStatus == "mustrecharge");
+        Self?.VolatileStatus == "mustrecharge",
+        ToMoveFlags(Flags),
+        Recoil is not null || HasCrashDamage);
+
+    private static MoveFlags ToMoveFlags(IReadOnlyList<string> flags) => flags.Aggregate(MoveFlags.None, (all, flag) => all | flag switch
+    {
+        "contact" => MoveFlags.Contact,
+        "punch" => MoveFlags.Punch,
+        "pulse" => MoveFlags.Pulse,
+        "sound" => MoveFlags.Sound,
+        "bullet" => MoveFlags.Bullet,
+        "bite" => MoveFlags.Bite,
+        _ => MoveFlags.None,
+    });
 
     private static Weather? ToWeather(string? id) => id?.ToLowerInvariant() switch
     {
