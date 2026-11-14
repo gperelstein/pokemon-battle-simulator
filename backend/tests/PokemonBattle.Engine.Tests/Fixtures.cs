@@ -58,6 +58,8 @@ internal static class Fixtures
         StatusCured s => $"{s.Side}.{s.Slot} {s.Species} cured of {s.Status}",
         CantMove c => $"{c.Side}.{c.Slot} {c.Species} can't move ({c.Reason})",
         StatusDamage d => $"{d.Side}.{d.Slot} {d.Species} hurt by {d.Status} {d.Amount}",
+        OneHitKo o => $"{o.Side}.{o.Slot} one-hit KO",
+        Healed h => $"{h.Side}.{h.Slot} {h.Species} healed {h.Amount}",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,

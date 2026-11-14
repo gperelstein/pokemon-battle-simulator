@@ -1,4 +1,5 @@
 using PokemonBattle.Engine.Pokemon;
+using PokemonBattle.Engine.Moves;
 
 namespace PokemonBattle.Engine.Battles;
 
@@ -42,6 +43,35 @@ public sealed class BattlePokemon
         }
     }
 
+    /// <summary>Weight used by weight-based moves, in hectograms (at least 1).</summary>
+    public int WeightHg => Math.Max(1, Set.WeightHg);
+
+    /// <summary>Sum of the positive stat stages (Stored Power, Punishment).</summary>
+    public int PositiveStages => _stages.Where(stage => stage > 0).Sum();
+
+    /// <summary>Damage taken from moves this turn, oldest first (Counter, Revenge, Metal Burst...).</summary>
+    internal List<HitTaken> HitsTakenThisTurn { get; } = [];
+
+    /// <summary>Took damage of any kind this turn (Assurance).</summary>
+    internal bool HurtThisTurn { get; set; }
+
+    /// <summary>Entered the field this turn (Payback is not boosted against it).</summary>
+    internal bool NewlySwitched { get; set; }
+
+    internal void ResetTurnState()
+    {
+        HitsTakenThisTurn.Clear();
+        HurtThisTurn = false;
+        NewlySwitched = false;
+    }
+
+    internal int Heal(int amount)
+    {
+        var healed = Math.Min(amount, Set.Stats.Hp - CurrentHp);
+        CurrentHp += healed;
+        return healed;
+    }
+
     internal void SetStatus(MajorStatus status)
     {
         Status = status;
@@ -72,3 +102,6 @@ public sealed class BattlePokemon
     /// <summary>Stages are volatile: they are lost when the Pokémon leaves the field.</summary>
     internal void ClearStages() => Array.Clear(_stages);
 }
+
+/// <param name="Slot">Slot the attacker occupied when it hit (Counter aims back at it).</param>
+internal sealed record HitTaken(BattlePokemon Source, SideId Side, int Slot, int Damage, MoveCategory Category);

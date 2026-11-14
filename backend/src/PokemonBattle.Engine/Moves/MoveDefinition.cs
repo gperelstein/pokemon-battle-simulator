@@ -70,6 +70,7 @@ public enum MoveTarget
 /// <param name="Defrost">Thaws its frozen user before moving (Flame Wheel, Scald...).</param>
 /// <param name="ThawsTarget">Thaws a frozen target it hits, whatever its type (Scald, Steam Eruption).</param>
 /// <param name="SleepUsable">Can be used while asleep (Snore, Sleep Talk).</param>
+/// <param name="Ohko">One-hit KO move (Fissure, Guillotine, Horn Drill, Sheer Cold).</param>
 public sealed record MoveDefinition(
     string Id,
     string Name,
@@ -95,7 +96,8 @@ public sealed record MoveDefinition(
     bool Powder = false,
     bool Defrost = false,
     bool ThawsTarget = false,
-    bool SleepUsable = false)
+    bool SleepUsable = false,
+    bool Ohko = false)
 {
     /// <summary>Whether a target the move's type cannot affect is still hit.</summary>
     public bool IgnoresTypeImmunity => IgnoreImmunity ?? Category == MoveCategory.Status;
@@ -105,8 +107,8 @@ public sealed record MoveDefinition(
     public IReadOnlyList<SecondaryEffect> Secondaries { get; init; } = Secondaries ?? [];
 
     /// <summary>
-    /// Damaging move whose power is computed by move-specific logic (Low Kick, Return, OHKO moves,
-    /// Counter...). The engine does not support those yet.
+    /// Damaging move without a fixed base power: its power or damage comes from move-specific logic
+    /// (Low Kick, Return, OHKO moves, Counter...). The battle supports a subset of them.
     /// </summary>
     public bool HasVariablePower =>
         Category != MoveCategory.Status && BasePower == 0 && FixedDamage is null && !LevelDamage;

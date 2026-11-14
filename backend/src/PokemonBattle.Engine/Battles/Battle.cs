@@ -13,7 +13,7 @@ namespace PokemonBattle.Engine.Battles;
 /// </para>
 /// Not thread-safe: callers (the battle actor) must serialize access.
 /// </summary>
-public sealed class Battle
+public sealed partial class Battle
 {
     private readonly Dictionary<SideId, Side> _sides;
     private readonly IBattleRandom _random;
@@ -185,6 +185,12 @@ public sealed class Battle
 
     private void BuildTurnQueue()
     {
+        // Turn-scoped memory (hits taken, newly switched) used by Counter, Payback, Assurance...
+        foreach (var pokemon in _sides.Values.SelectMany(s => s.Team))
+        {
+            pokemon.ResetTurnState();
+        }
+
         var actions = new List<(BattleAction Action, int Bracket, int Priority, int Speed, int TieBreak)>();
         foreach (var (sideId, decision) in _turnDecisions)
         {
@@ -251,15 +257,38 @@ public sealed class Battle
             return;
         }
 
+        var (rolled, magnitude, heals) = RollMoveVariant(move);
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
+        if (magnitude is { } strength)
+        {
+            _events.Add(new MagnitudeActivated(action.Side.Id, action.Slot, strength));
+        }
 
-        if (move.HasVariablePower)
+        if (!IsSupported(move))
         {
             _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "Variable base power is not supported yet."));
             return;
         }
 
+        int? retaliation = null;
         var targets = ResolveTargets(move, action);
+        if (IsRetaliation(move))
+        {
+            if (Retaliation(move, user) is not { } answer)
+            {
+                _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "There is no damage to return."));
+                return;
+            }
+
+            // Aimed at the slot of the foe that hit the user, whatever target was chosen.
+            retaliation = answer.Damage;
+            var foeSide = _sides[answer.Hit.Side];
+            if (foeSide.Active[answer.Hit.Slot] is { IsFainted: false })
+            {
+                targets = [(foeSide, answer.Hit.Slot)];
+            }
+        }
+
         if (targets is { Count: 0 })
         {
             _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "No target."));
@@ -274,9 +303,16 @@ public sealed class Battle
         }
 
         var hit = targets
-            .Where(t => Hit(user, t.Side, t.Slot, move, spread: targets.Count > 1))
+            .Where(t => Hit(user, t.Side, t.Slot, rolled, spread: targets.Count > 1, heals, retaliation))
             .Select(t => t.Side.Active[t.Slot]!)
             .ToArray();
+
+        // Final Gambit: the user faints once it has dealt its HP as damage.
+        if (move.Id == "finalgambit" && hit.Length > 0 && !user.IsFainted)
+        {
+            user.TakeDamage(user.CurrentHp);
+            _events.Add(new Fainted(action.Side.Id, action.Slot, user.Set.Species));
+        }
 
         // Same order as Showdown: primary boosts and status, then the user's own changes, then
         // secondary effects (target boosts, status, user boosts).
@@ -286,6 +322,11 @@ public sealed class Battle
             if (move.Status is { } status)
             {
                 TrySetStatus(target, status, action, move, primary: true);
+            }
+
+            if (CuredOnHit(move) is { } cured && target.Status == cured)
+            {
+                Cure(target);
             }
         }
 
@@ -393,17 +434,23 @@ public sealed class Battle
     }
 
     /// <summary>
-    /// Runs the hit checks of a move against one target, in Gen 6 order (type immunity, powder
-    /// immunity, then accuracy), and deals the damage. Returns false when the target is immune or
-    /// the move misses.
+    /// Runs the hit checks of a move against one target, in Gen 6 order (type immunity, powder and
+    /// move-specific immunities, then accuracy), and deals the damage. Returns false when the target
+    /// is immune or the move misses.
     /// </summary>
-    private bool Hit(BattlePokemon user, Side side, int slot, MoveDefinition move, bool spread)
+    /// <param name="heals">Present rolled its heal: the target recovers HP instead of taking damage.</param>
+    /// <param name="retaliation">Damage returned by Counter, Mirror Coat or Metal Burst.</param>
+    private bool Hit(
+        BattlePokemon user, Side side, int slot, MoveDefinition move, bool spread, bool heals, int? retaliation)
     {
         var target = side.Active[slot]!;
         var damaging = move.Category != MoveCategory.Status;
         var typeImmune = !move.IgnoresTypeImmunity && _typeChart.Effectiveness(move.Type, target.Set.Types) == 0;
         var powderImmune = move.Powder && target != user && _typeChart.IsImmune(target.Set.Types, TypeCondition.Powder);
-        if (typeImmune || powderImmune)
+        // Endeavor needs a target with more HP; OHKO moves cannot affect a higher-level target.
+        var moveImmune = (move.Id == "endeavor" && user.CurrentHp >= target.CurrentHp) ||
+            (move.Ohko && user.Set.Level < target.Set.Level);
+        if (typeImmune || powderImmune || moveImmune)
         {
             _events.Add(new Immune(side.Id, slot, target.Set.Species));
             return false;
@@ -420,12 +467,21 @@ public sealed class Battle
             return true;
         }
 
+        if (heals)
+        {
+            return HealTarget(user, target, move);
+        }
+
         var physical = move.Category == MoveCategory.Physical;
-        var result = _damage.Calculate(
-            user.Set, target.Set, move, spread, _random,
-            user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
-            target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense),
-            attackerBurned: user.Status == MajorStatus.Burn);
+        var result = move.Ohko
+            ? new DamageResult(target.Set.Stats.Hp, 1, false)
+            : CallbackDamage(move, user, target, retaliation) is { } fixedDamage
+                ? new DamageResult(fixedDamage, 1, false)
+                : _damage.Calculate(
+                    user.Set, target.Set, move with { BasePower = BasePower(move, user, target) }, spread, _random,
+                    user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
+                    target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense),
+                    attackerBurned: user.Status == MajorStatus.Burn);
 
         if (result.Effectiveness != 1)
         {
@@ -439,6 +495,14 @@ public sealed class Battle
 
         var dealt = target.TakeDamage(result.Damage);
         _events.Add(new DamageDealt(side.Id, slot, target.Set.Species, dealt, target.CurrentHp));
+        var (userSide, userSlot) = Locate(user);
+        target.HitsTakenThisTurn.Add(new HitTaken(user, userSide.Id, userSlot, dealt, move.Category));
+        target.HurtThisTurn = true;
+        if (move.Ohko && target.IsFainted)
+        {
+            _events.Add(new OneHitKo(side.Id, slot));
+        }
+
         if (target.IsFainted)
         {
             _events.Add(new Fainted(side.Id, slot, target.Set.Species));
@@ -451,6 +515,23 @@ public sealed class Battle
         return true;
     }
 
+    /// <summary>Present's heal: a quarter of the target's max HP (rounded), failing at full HP.</summary>
+    private bool HealTarget(BattlePokemon user, BattlePokemon target, MoveDefinition move)
+    {
+        var maxHp = target.Set.Stats.Hp;
+        if (target.CurrentHp == maxHp)
+        {
+            var (userSide, userSlot) = Locate(user);
+            _events.Add(new MoveFailed(userSide.Id, userSlot, move.Id, "The target is already at full HP."));
+            return false;
+        }
+
+        var (side, slot) = Locate(target);
+        var healed = target.Heal((maxHp + 2) / 4);
+        _events.Add(new Healed(side.Id, slot, target.Set.Species, healed, target.CurrentHp));
+        return true;
+    }
+
     private bool RollAccuracy(BattlePokemon user, BattlePokemon target, MoveDefinition move)
     {
         // Moves that never miss and status moves aimed at the user skip the check. Gen 6 (from
@@ -459,6 +540,12 @@ public sealed class Battle
             (move.Id == "toxic" && user.Set.Types.Contains(PokemonType.Poison)))
         {
             return true;
+        }
+
+        // One-hit KO moves: 30% plus the level difference, ignoring accuracy and evasion stages.
+        if (move.Ohko)
+        {
+            return RollChance(30 + user.Set.Level - target.Set.Level);
         }
 
         var evasion = move.IgnoreEvasion ? 0 : target.GetStage(BoostStat.Evasion);
@@ -553,6 +640,7 @@ public sealed class Battle
 
             var (side, slot) = Locate(pokemon);
             var dealt = pokemon.TakeDamage(damage);
+            pokemon.HurtThisTurn = true;
             _events.Add(new StatusDamage(side.Id, slot, pokemon.Set.Species, pokemon.Status!.Value, dealt, pokemon.CurrentHp));
             if (pokemon.IsFainted)
             {
@@ -639,6 +727,7 @@ public sealed class Battle
         // Stat stages are lost on leaving the field (fainted Pokémon included).
         current?.ClearStages();
         incoming.ToxicStage = 0;
+        incoming.NewlySwitched = true;
         side.Place(slot, incoming);
         _events.Add(new SwitchedIn(side.Id, slot, incoming.TeamIndex, incoming.Set.Species));
     }

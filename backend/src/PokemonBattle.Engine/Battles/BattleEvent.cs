@@ -54,3 +54,11 @@ public sealed record CantMove(SideId Side, int Slot, string Species, MajorStatus
 /// <summary>End-of-turn damage from burn or poison.</summary>
 public sealed record StatusDamage(SideId Side, int Slot, string Species, MajorStatus Status, int Amount, int RemainingHp)
     : BattleEvent;
+
+/// <summary>A one-hit KO move landed on the Pokémon in this slot.</summary>
+public sealed record OneHitKo(SideId Side, int Slot) : BattleEvent;
+
+public sealed record Healed(SideId Side, int Slot, string Species, int Amount, int RemainingHp) : BattleEvent;
+
+/// <summary>Magnitude rolled its strength (4 to 10), which sets its power.</summary>
+public sealed record MagnitudeActivated(SideId Side, int Slot, int Magnitude) : BattleEvent;
