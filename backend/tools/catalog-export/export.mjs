@@ -70,6 +70,8 @@ const MOVE_KEYS = [
 function exportMoves() {
   return [...gen.moves].sort(byNumThenId).map(m => ({
     ...pick(m, MOVE_KEYS),
+    // The 17 Hidden Power variants share the id "hiddenpower"; derive a unique id from the name.
+    id: m.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
     // Showdown uses `true` for moves that never miss.
     accuracy: m.accuracy === true ? null : m.accuracy,
     flags: Object.keys(m.flags ?? {}).sort(),

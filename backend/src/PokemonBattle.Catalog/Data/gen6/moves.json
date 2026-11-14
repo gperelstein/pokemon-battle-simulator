@@ -6030,7 +6030,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerbug",
     "num": 237,
     "name": "Hidden Power Bug",
     "type": "Bug",
@@ -6050,7 +6050,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerdark",
     "num": 237,
     "name": "Hidden Power Dark",
     "type": "Dark",
@@ -6070,7 +6070,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerdragon",
     "num": 237,
     "name": "Hidden Power Dragon",
     "type": "Dragon",
@@ -6090,7 +6090,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerelectric",
     "num": 237,
     "name": "Hidden Power Electric",
     "type": "Electric",
@@ -6110,7 +6110,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerfighting",
     "num": 237,
     "name": "Hidden Power Fighting",
     "type": "Fighting",
@@ -6130,7 +6130,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerfire",
     "num": 237,
     "name": "Hidden Power Fire",
     "type": "Fire",
@@ -6150,7 +6150,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerflying",
     "num": 237,
     "name": "Hidden Power Flying",
     "type": "Flying",
@@ -6170,7 +6170,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerghost",
     "num": 237,
     "name": "Hidden Power Ghost",
     "type": "Ghost",
@@ -6190,7 +6190,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowergrass",
     "num": 237,
     "name": "Hidden Power Grass",
     "type": "Grass",
@@ -6210,7 +6210,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerground",
     "num": 237,
     "name": "Hidden Power Ground",
     "type": "Ground",
@@ -6230,7 +6230,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerice",
     "num": 237,
     "name": "Hidden Power Ice",
     "type": "Ice",
@@ -6250,7 +6250,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerpoison",
     "num": 237,
     "name": "Hidden Power Poison",
     "type": "Poison",
@@ -6270,7 +6270,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerpsychic",
     "num": 237,
     "name": "Hidden Power Psychic",
     "type": "Psychic",
@@ -6290,7 +6290,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerrock",
     "num": 237,
     "name": "Hidden Power Rock",
     "type": "Rock",
@@ -6310,7 +6310,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowersteel",
     "num": 237,
     "name": "Hidden Power Steel",
     "type": "Steel",
@@ -6330,7 +6330,7 @@
     ]
   },
   {
-    "id": "hiddenpower",
+    "id": "hiddenpowerwater",
     "num": 237,
     "name": "Hidden Power Water",
     "type": "Water",
