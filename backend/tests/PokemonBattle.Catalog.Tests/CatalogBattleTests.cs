@@ -1,0 +1,55 @@
+using PokemonBattle.Engine.Battles;
+
+namespace PokemonBattle.Catalog.Tests;
+
+/// <summary>End-to-end: catalog-built teams fighting with the real Gen 6 type chart.</summary>
+public class CatalogBattleTests
+{
+    private static readonly Gen6Catalog Catalog = Gen6Catalog.Instance;
+    private static readonly TeamBuilder Builder = new(Catalog);
+
+    private static IReadOnlyList<BattleEvent> PlayFirstTurn(PokemonSetSpec p1, PokemonSetSpec p2)
+    {
+        var p1Team = Builder.Build([p1]);
+        var p2Team = Builder.Build([p2]);
+        Assert.Empty(p1Team.Errors.Concat(p2Team.Errors));
+
+        var battle = Battle.Create(BattleFormat.Singles, p1Team.Team, p2Team.Team, Catalog.TypeChart, new SeededBattleRandom(7));
+        battle.Start();
+        battle.Submit(SideId.P1, new Decision(new MoveChoice(0, 0)));
+        return battle.Submit(SideId.P2, new Decision(new MoveChoice(0, 0))).Events;
+    }
+
+    [Fact]
+    public void Electric_move_is_four_times_effective_against_gyarados()
+    {
+        var events = PlayFirstTurn(
+            new PokemonSetSpec("Raichu", ["Thunderbolt"], "Static"),
+            new PokemonSetSpec("Gyarados", ["Waterfall"], "Intimidate"));
+
+        Assert.Contains(new Effectiveness(SideId.P2, 0, 4), events);
+    }
+
+    [Fact]
+    public void Seismic_toss_deals_the_users_level_and_cannot_touch_ghosts()
+    {
+        var vsGyarados = PlayFirstTurn(
+            new PokemonSetSpec("Machamp", ["Seismic Toss"], "Guts"),
+            new PokemonSetSpec("Gyarados", ["Waterfall"], "Intimidate"));
+        var vsGengar = PlayFirstTurn(
+            new PokemonSetSpec("Machamp", ["Seismic Toss"], "Guts"),
+            new PokemonSetSpec("Gengar", ["Shadow Ball"], "Levitate"));
+
+        Assert.Contains(vsGyarados, e => e is DamageDealt { Side: SideId.P2, Amount: 100 });
+        Assert.Contains(new Immune(SideId.P2, 0, "Gengar"), vsGengar);
+    }
+
+    [Fact]
+    public void Builder_maps_crit_stage_and_fixed_damage()
+    {
+        var team = Builder.Build([new PokemonSetSpec("Charizard", ["Slash", "Dragon Rage"], "Blaze")]).Team;
+
+        Assert.Equal(2, team[0].Moves[0].CritRatio);
+        Assert.Equal(40, team[0].Moves[1].FixedDamage);
+    }
+}

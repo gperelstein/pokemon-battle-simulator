@@ -17,6 +17,7 @@ public sealed class Battle
 {
     private readonly Dictionary<SideId, Side> _sides;
     private readonly IBattleRandom _random;
+    private readonly DamageCalculator _damage;
     private readonly List<DecisionRequest> _pending = [];
     private readonly Dictionary<SideId, Decision> _turnDecisions = [];
     private readonly Dictionary<SideId, Decision> _replacements = [];
@@ -25,11 +26,12 @@ public sealed class Battle
     private bool _started;
     private bool _turnInProgress;
 
-    private Battle(BattleFormat format, Side p1, Side p2, IBattleRandom random)
+    private Battle(BattleFormat format, Side p1, Side p2, ITypeChart typeChart, IBattleRandom random)
     {
         Format = format;
         _sides = new() { [SideId.P1] = p1, [SideId.P2] = p2 };
         _random = random;
+        _damage = new DamageCalculator(typeChart);
     }
 
     public BattleFormat Format { get; }
@@ -44,12 +46,14 @@ public sealed class Battle
         BattleFormat format,
         IReadOnlyList<PokemonSet> p1Team,
         IReadOnlyList<PokemonSet> p2Team,
+        ITypeChart typeChart,
         IBattleRandom random)
     {
         var slots = format.ActiveSlots();
         ValidateTeam(p1Team, slots, nameof(p1Team));
         ValidateTeam(p2Team, slots, nameof(p2Team));
-        return new Battle(format, new Side(SideId.P1, p1Team, slots), new Side(SideId.P2, p2Team, slots), random);
+        return new Battle(
+            format, new Side(SideId.P1, p1Team, slots), new Side(SideId.P2, p2Team, slots), typeChart, random);
     }
 
     /// <summary>Sends in the leads and opens the first turn.</summary>
@@ -236,6 +240,12 @@ public sealed class Battle
         var move = user.Set.Moves[action.Choice.MoveIndex];
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
 
+        if (move.HasVariablePower)
+        {
+            _events.Add(new MoveFailed(action.Side.Id, action.Slot, move.Id, "Variable base power is not supported yet."));
+            return;
+        }
+
         var targets = ResolveTargets(move, action);
         if (targets is { Count: 0 })
         {
@@ -243,24 +253,18 @@ public sealed class Battle
             return;
         }
 
-        foreach (var (side, slot) in targets ?? [])
+        // Status moves have no damage step; their effects are not implemented yet.
+        var hitAny = move.Category == MoveCategory.Status;
+        if (move.Category != MoveCategory.Status)
         {
-            var target = side.Active[slot]!;
-            var damage = CalculateDamage(user, target, move, spread: targets!.Count > 1);
-            if (damage == 0)
+            foreach (var (side, slot) in targets ?? [])
             {
-                continue;
-            }
-
-            var dealt = target.TakeDamage(damage);
-            _events.Add(new DamageDealt(side.Id, slot, target.Set.Species, dealt, target.CurrentHp));
-            if (target.IsFainted)
-            {
-                _events.Add(new Fainted(side.Id, slot, target.Set.Species));
+                hitAny |= Hit(user, side, slot, move, spread: targets!.Count > 1);
             }
         }
 
-        if (move.SelfSwitch && !user.IsFainted && action.Side.Bench.Count > 0)
+        // A self-switch move that did not hit anything (immune targets) does not switch out.
+        if (move.SelfSwitch && hitAny && !user.IsFainted && action.Side.Bench.Count > 0)
         {
             Request(new DecisionRequest(action.Side.Id, DecisionKind.MidTurnSwitch, [action.Slot]));
         }
@@ -290,34 +294,35 @@ public sealed class Battle
         };
     }
 
-    /// <summary>
-    /// Core Gen 6 damage formula with spread, random roll and STAB. Type effectiveness, critical
-    /// hits and the remaining modifiers are not applied yet.
-    /// </summary>
-    private int CalculateDamage(BattlePokemon attacker, BattlePokemon defender, MoveDefinition move, bool spread)
+    /// <summary>Applies a damaging move to one target. Returns false when the target is immune.</summary>
+    private bool Hit(BattlePokemon user, Side side, int slot, MoveDefinition move, bool spread)
     {
-        if (move.Category == MoveCategory.Status)
+        var target = side.Active[slot]!;
+        var result = _damage.Calculate(user.Set, target.Set, move, spread, _random);
+        if (result.Effectiveness == 0)
         {
-            return 0;
+            _events.Add(new Immune(side.Id, slot, target.Set.Species));
+            return false;
         }
 
-        var physical = move.Category == MoveCategory.Physical;
-        var attack = physical ? attacker.Set.Stats.Attack : attacker.Set.Stats.SpecialAttack;
-        var defense = physical ? defender.Set.Stats.Defense : defender.Set.Stats.SpecialDefense;
-
-        var damage = (2 * attacker.Set.Level / 5 + 2) * move.BasePower * attack / Math.Max(1, defense) / 50 + 2;
-        if (spread)
+        if (result.Effectiveness != 1)
         {
-            damage = damage * 3 / 4;
+            _events.Add(new Effectiveness(side.Id, slot, result.Effectiveness));
         }
 
-        damage = damage * _random.Next(85, 101) / 100;
-        if (attacker.Set.Types.Contains(move.Type))
+        if (result.Critical)
         {
-            damage = damage * 3 / 2;
+            _events.Add(new CriticalHit(side.Id, slot));
         }
 
-        return Math.Max(1, damage);
+        var dealt = target.TakeDamage(result.Damage);
+        _events.Add(new DamageDealt(side.Id, slot, target.Set.Species, dealt, target.CurrentHp));
+        if (target.IsFainted)
+        {
+            _events.Add(new Fainted(side.Id, slot, target.Set.Species));
+        }
+
+        return true;
     }
 
     private void RequestFaintReplacements()

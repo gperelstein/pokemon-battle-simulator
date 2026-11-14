@@ -13,6 +13,14 @@ public sealed record MoveUsed(SideId Side, int Slot, string Species, string Move
 
 public sealed record MoveFailed(SideId Side, int Slot, string MoveId, string Reason) : BattleEvent;
 
+/// <summary>The move was super effective (&gt; 1) or not very effective (&lt; 1) against the target.</summary>
+public sealed record Effectiveness(SideId Side, int Slot, double Multiplier) : BattleEvent;
+
+public sealed record CriticalHit(SideId Side, int Slot) : BattleEvent;
+
+/// <summary>The target's types make it immune to the move.</summary>
+public sealed record Immune(SideId Side, int Slot, string Species) : BattleEvent;
+
 public sealed record DamageDealt(SideId Side, int Slot, string Species, int Amount, int RemainingHp) : BattleEvent;
 
 public sealed record Fainted(SideId Side, int Slot, string Species) : BattleEvent;

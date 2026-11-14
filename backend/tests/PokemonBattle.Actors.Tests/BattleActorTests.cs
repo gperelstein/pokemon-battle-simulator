@@ -23,7 +23,7 @@ public class BattleActorTests : TestKit
     {
         var p1 = CreateTestProbe();
         var p2 = CreateTestProbe();
-        var battle = Battle.Create(BattleFormat.Singles, p1Team, p2Team, new SeededBattleRandom(1));
+        var battle = Battle.Create(BattleFormat.Singles, p1Team, p2Team, new NeutralTypeChart(), new SeededBattleRandom(1));
         var actor = Sys.ActorOf(BattleActor.Props(battle, new Dictionary<SideId, IActorRef>
         {
             [SideId.P1] = p1.Ref,
@@ -90,5 +90,10 @@ public class BattleActorTests : TestKit
 
         p1.FishForMessage(m => m is BattleUpdate u && u.Events.Any(e => e is BattleEnded { Winner: SideId.P1 }));
         ExpectTerminated(battle);
+    }
+
+    private sealed class NeutralTypeChart : ITypeChart
+    {
+        public double Effectiveness(PokemonType attacking, IReadOnlyList<PokemonType> defending) => 1;
     }
 }

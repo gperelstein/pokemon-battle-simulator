@@ -160,5 +160,9 @@ public sealed class TeamBuilder(Gen6Catalog catalog)
         move.BasePower,
         move.Priority,
         Enum.Parse<MoveTarget>(move.Target, ignoreCase: true),
-        move.SelfSwitchKind != SelfSwitchKind.None);
+        move.SelfSwitchKind != SelfSwitchKind.None,
+        move.CritRatio,
+        move.WillCrit,
+        move.FixedDamage,
+        move.LevelDamage);
 }

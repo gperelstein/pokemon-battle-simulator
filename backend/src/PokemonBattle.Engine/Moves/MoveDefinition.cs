@@ -50,6 +50,10 @@ public enum MoveTarget
 /// Static move data. <see cref="SelfSwitch"/> marks moves such as U-turn or Volt Switch that
 /// force the user's player to pick a replacement in the middle of the turn.
 /// </summary>
+/// <param name="CritRatio">Critical hit stage: 1 = 1/16, 2 = 1/8, 3 = 1/2, 4 or more = always.</param>
+/// <param name="WillCrit">Always lands a critical hit (Storm Throw, Frost Breath).</param>
+/// <param name="FixedDamage">Deals exactly this damage (Dragon Rage, Sonic Boom).</param>
+/// <param name="LevelDamage">Deals damage equal to the user's level (Seismic Toss, Night Shade).</param>
 public sealed record MoveDefinition(
     string Id,
     string Name,
@@ -58,4 +62,16 @@ public sealed record MoveDefinition(
     int BasePower,
     int Priority = 0,
     MoveTarget Target = MoveTarget.AdjacentFoe,
-    bool SelfSwitch = false);
+    bool SelfSwitch = false,
+    int CritRatio = 1,
+    bool WillCrit = false,
+    int? FixedDamage = null,
+    bool LevelDamage = false)
+{
+    /// <summary>
+    /// Damaging move whose power is computed by move-specific logic (Low Kick, Return, OHKO moves,
+    /// Counter...). The engine does not support those yet.
+    /// </summary>
+    public bool HasVariablePower =>
+        Category != MoveCategory.Status && BasePower == 0 && FixedDamage is null && !LevelDamage;
+}

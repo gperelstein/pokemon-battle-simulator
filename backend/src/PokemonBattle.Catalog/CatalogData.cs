@@ -59,6 +59,21 @@ public sealed record MoveData
     public IReadOnlyList<string> Flags { get; init; } = [];
     public string? ShortDesc { get; init; }
 
+    /// <summary>Critical hit stage: 1 = 1/16, 2 = 1/8, 3 = 1/2, 4 or more = always.</summary>
+    public int CritRatio { get; init; } = 1;
+
+    public bool WillCrit { get; init; }
+
+    /// <summary>Fixed damage: a number (Dragon Rage) or the string "level" (Seismic Toss).</summary>
+    [JsonPropertyName("damage")]
+    public JsonElement? Damage { get; init; }
+
+    [JsonIgnore]
+    public int? FixedDamage => Damage is { ValueKind: JsonValueKind.Number } d ? d.GetInt32() : null;
+
+    [JsonIgnore]
+    public bool LevelDamage => Damage is { ValueKind: JsonValueKind.String } d && d.GetString() == "level";
+
     [JsonPropertyName("selfSwitch")]
     public JsonElement? SelfSwitch { get; init; }
 
