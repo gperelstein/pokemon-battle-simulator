@@ -1,0 +1,14 @@
+{
+  "name": "catalog-export",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Exports the Generation 6 catalog (Pokémon Showdown data via @pkmn) to JSON for the .NET backend.",
+  "type": "module",
+  "scripts": {
+    "export": "node export.mjs"
+  },
+  "devDependencies": {
+    "@pkmn/data": "0.11.0",
+    "@pkmn/dex": "0.11.0"
+  }
+}

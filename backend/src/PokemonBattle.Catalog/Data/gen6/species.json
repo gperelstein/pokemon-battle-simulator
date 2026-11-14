@@ -1,0 +1,5367 @@
+[
+  {
+    "id": "bulbasaur",
+    "num": 1,
+    "name": "Bulbasaur",
+    "baseSpecies": "Bulbasaur",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 49,
+      "def": 49,
+      "spa": 65,
+      "spd": 65,
+      "spe": 45
+    },
+    "abilities": {
+      "0": "Overgrow",
+      "H": "Chlorophyll"
+    },
+    "weightkg": 6.9,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "evos": [
+      "Ivysaur"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "ivysaur",
+    "num": 2,
+    "name": "Ivysaur",
+    "baseSpecies": "Ivysaur",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 62,
+      "def": 63,
+      "spa": 80,
+      "spd": 80,
+      "spe": 60
+    },
+    "abilities": {
+      "0": "Overgrow",
+      "H": "Chlorophyll"
+    },
+    "weightkg": 13,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Bulbasaur",
+    "evos": [
+      "Venusaur"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "venusaur",
+    "num": 3,
+    "name": "Venusaur",
+    "baseSpecies": "Venusaur",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 82,
+      "def": 83,
+      "spa": 100,
+      "spd": 100,
+      "spe": 80
+    },
+    "abilities": {
+      "0": "Overgrow",
+      "H": "Chlorophyll"
+    },
+    "weightkg": 100,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Ivysaur",
+    "isMega": false
+  },
+  {
+    "id": "venusaurmega",
+    "num": 3,
+    "name": "Venusaur-Mega",
+    "baseSpecies": "Venusaur",
+    "forme": "Mega",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 100,
+      "def": 123,
+      "spa": 122,
+      "spd": 120,
+      "spe": 80
+    },
+    "abilities": {
+      "0": "Thick Fat"
+    },
+    "weightkg": 155.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "requiredItem": "Venusaurite",
+    "battleOnly": "Venusaur",
+    "isMega": true
+  },
+  {
+    "id": "charmander",
+    "num": 4,
+    "name": "Charmander",
+    "baseSpecies": "Charmander",
+    "forme": "",
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 39,
+      "atk": 52,
+      "def": 43,
+      "spa": 60,
+      "spd": 50,
+      "spe": 65
+    },
+    "abilities": {
+      "0": "Blaze",
+      "H": "Solar Power"
+    },
+    "weightkg": 8.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "evos": [
+      "Charmeleon"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "charmeleon",
+    "num": 5,
+    "name": "Charmeleon",
+    "baseSpecies": "Charmeleon",
+    "forme": "",
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 58,
+      "atk": 64,
+      "def": 58,
+      "spa": 80,
+      "spd": 65,
+      "spe": 80
+    },
+    "abilities": {
+      "0": "Blaze",
+      "H": "Solar Power"
+    },
+    "weightkg": 19,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Charmander",
+    "evos": [
+      "Charizard"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "charizard",
+    "num": 6,
+    "name": "Charizard",
+    "baseSpecies": "Charizard",
+    "forme": "",
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 84,
+      "def": 78,
+      "spa": 109,
+      "spd": 85,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Blaze",
+      "H": "Solar Power"
+    },
+    "weightkg": 90.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Charmeleon",
+    "isMega": false
+  },
+  {
+    "id": "charizardmegax",
+    "num": 6,
+    "name": "Charizard-Mega-X",
+    "baseSpecies": "Charizard",
+    "forme": "Mega-X",
+    "types": [
+      "Fire",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 130,
+      "def": 111,
+      "spa": 130,
+      "spd": 85,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Tough Claws"
+    },
+    "weightkg": 110.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "requiredItem": "Charizardite X",
+    "battleOnly": "Charizard",
+    "isMega": true
+  },
+  {
+    "id": "charizardmegay",
+    "num": 6,
+    "name": "Charizard-Mega-Y",
+    "baseSpecies": "Charizard",
+    "forme": "Mega-Y",
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 104,
+      "def": 78,
+      "spa": 159,
+      "spd": 115,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Drought"
+    },
+    "weightkg": 100.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "requiredItem": "Charizardite Y",
+    "battleOnly": "Charizard",
+    "isMega": true
+  },
+  {
+    "id": "squirtle",
+    "num": 7,
+    "name": "Squirtle",
+    "baseSpecies": "Squirtle",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 44,
+      "atk": 48,
+      "def": 65,
+      "spa": 50,
+      "spd": 64,
+      "spe": 43
+    },
+    "abilities": {
+      "0": "Torrent",
+      "H": "Rain Dish"
+    },
+    "weightkg": 9,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "evos": [
+      "Wartortle"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "wartortle",
+    "num": 8,
+    "name": "Wartortle",
+    "baseSpecies": "Wartortle",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 59,
+      "atk": 63,
+      "def": 80,
+      "spa": 65,
+      "spd": 80,
+      "spe": 58
+    },
+    "abilities": {
+      "0": "Torrent",
+      "H": "Rain Dish"
+    },
+    "weightkg": 22.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Squirtle",
+    "evos": [
+      "Blastoise"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "blastoise",
+    "num": 9,
+    "name": "Blastoise",
+    "baseSpecies": "Blastoise",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 79,
+      "atk": 83,
+      "def": 100,
+      "spa": 85,
+      "spd": 105,
+      "spe": 78
+    },
+    "abilities": {
+      "0": "Torrent",
+      "H": "Rain Dish"
+    },
+    "weightkg": 85.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Wartortle",
+    "isMega": false
+  },
+  {
+    "id": "blastoisemega",
+    "num": 9,
+    "name": "Blastoise-Mega",
+    "baseSpecies": "Blastoise",
+    "forme": "Mega",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 79,
+      "atk": 103,
+      "def": 120,
+      "spa": 135,
+      "spd": 115,
+      "spe": 78
+    },
+    "abilities": {
+      "0": "Mega Launcher"
+    },
+    "weightkg": 101.1,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "requiredItem": "Blastoisinite",
+    "battleOnly": "Blastoise",
+    "isMega": true
+  },
+  {
+    "id": "caterpie",
+    "num": 10,
+    "name": "Caterpie",
+    "baseSpecies": "Caterpie",
+    "forme": "",
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 30,
+      "def": 35,
+      "spa": 20,
+      "spd": 20,
+      "spe": 45
+    },
+    "abilities": {
+      "0": "Shield Dust",
+      "H": "Run Away"
+    },
+    "weightkg": 2.9,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Metapod"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "metapod",
+    "num": 11,
+    "name": "Metapod",
+    "baseSpecies": "Metapod",
+    "forme": "",
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 20,
+      "def": 55,
+      "spa": 25,
+      "spd": 25,
+      "spe": 30
+    },
+    "abilities": {
+      "0": "Shed Skin"
+    },
+    "weightkg": 9.9,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Caterpie",
+    "evos": [
+      "Butterfree"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "butterfree",
+    "num": 12,
+    "name": "Butterfree",
+    "baseSpecies": "Butterfree",
+    "forme": "",
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 45,
+      "def": 50,
+      "spa": 90,
+      "spd": 80,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Compound Eyes",
+      "H": "Tinted Lens"
+    },
+    "weightkg": 32,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Metapod",
+    "isMega": false
+  },
+  {
+    "id": "weedle",
+    "num": 13,
+    "name": "Weedle",
+    "baseSpecies": "Weedle",
+    "forme": "",
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 35,
+      "def": 30,
+      "spa": 20,
+      "spd": 20,
+      "spe": 50
+    },
+    "abilities": {
+      "0": "Shield Dust",
+      "H": "Run Away"
+    },
+    "weightkg": 3.2,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Kakuna"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "kakuna",
+    "num": 14,
+    "name": "Kakuna",
+    "baseSpecies": "Kakuna",
+    "forme": "",
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 25,
+      "def": 50,
+      "spa": 25,
+      "spd": 25,
+      "spe": 35
+    },
+    "abilities": {
+      "0": "Shed Skin"
+    },
+    "weightkg": 10,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Weedle",
+    "evos": [
+      "Beedrill"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "beedrill",
+    "num": 15,
+    "name": "Beedrill",
+    "baseSpecies": "Beedrill",
+    "forme": "",
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 90,
+      "def": 40,
+      "spa": 45,
+      "spd": 80,
+      "spe": 75
+    },
+    "abilities": {
+      "0": "Swarm",
+      "H": "Sniper"
+    },
+    "weightkg": 29.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Kakuna",
+    "isMega": false
+  },
+  {
+    "id": "beedrillmega",
+    "num": 15,
+    "name": "Beedrill-Mega",
+    "baseSpecies": "Beedrill",
+    "forme": "Mega",
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 150,
+      "def": 40,
+      "spa": 15,
+      "spd": 80,
+      "spe": 145
+    },
+    "abilities": {
+      "0": "Adaptability"
+    },
+    "weightkg": 40.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "requiredItem": "Beedrillite",
+    "battleOnly": "Beedrill",
+    "isMega": true
+  },
+  {
+    "id": "pidgey",
+    "num": 16,
+    "name": "Pidgey",
+    "baseSpecies": "Pidgey",
+    "forme": "",
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 40,
+      "spa": 35,
+      "spd": 35,
+      "spe": 56
+    },
+    "abilities": {
+      "0": "Keen Eye",
+      "1": "Tangled Feet",
+      "H": "Big Pecks"
+    },
+    "weightkg": 1.8,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Pidgeotto"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "pidgeotto",
+    "num": 17,
+    "name": "Pidgeotto",
+    "baseSpecies": "Pidgeotto",
+    "forme": "",
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 63,
+      "atk": 60,
+      "def": 55,
+      "spa": 50,
+      "spd": 50,
+      "spe": 71
+    },
+    "abilities": {
+      "0": "Keen Eye",
+      "1": "Tangled Feet",
+      "H": "Big Pecks"
+    },
+    "weightkg": 30,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Pidgey",
+    "evos": [
+      "Pidgeot"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "pidgeot",
+    "num": 18,
+    "name": "Pidgeot",
+    "baseSpecies": "Pidgeot",
+    "forme": "",
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 83,
+      "atk": 80,
+      "def": 75,
+      "spa": 70,
+      "spd": 70,
+      "spe": 101
+    },
+    "abilities": {
+      "0": "Keen Eye",
+      "1": "Tangled Feet",
+      "H": "Big Pecks"
+    },
+    "weightkg": 39.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Pidgeotto",
+    "isMega": false
+  },
+  {
+    "id": "pidgeotmega",
+    "num": 18,
+    "name": "Pidgeot-Mega",
+    "baseSpecies": "Pidgeot",
+    "forme": "Mega",
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 83,
+      "atk": 80,
+      "def": 80,
+      "spa": 135,
+      "spd": 80,
+      "spe": 121
+    },
+    "abilities": {
+      "0": "No Guard"
+    },
+    "weightkg": 50.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "requiredItem": "Pidgeotite",
+    "battleOnly": "Pidgeot",
+    "isMega": true
+  },
+  {
+    "id": "rattata",
+    "num": 19,
+    "name": "Rattata",
+    "baseSpecies": "Rattata",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 56,
+      "def": 35,
+      "spa": 25,
+      "spd": 35,
+      "spe": 72
+    },
+    "abilities": {
+      "0": "Run Away",
+      "1": "Guts",
+      "H": "Hustle"
+    },
+    "weightkg": 3.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Raticate"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "raticate",
+    "num": 20,
+    "name": "Raticate",
+    "baseSpecies": "Raticate",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 81,
+      "def": 60,
+      "spa": 50,
+      "spd": 70,
+      "spe": 97
+    },
+    "abilities": {
+      "0": "Run Away",
+      "1": "Guts",
+      "H": "Hustle"
+    },
+    "weightkg": 18.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Rattata",
+    "isMega": false
+  },
+  {
+    "id": "spearow",
+    "num": 21,
+    "name": "Spearow",
+    "baseSpecies": "Spearow",
+    "forme": "",
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 60,
+      "def": 30,
+      "spa": 31,
+      "spd": 31,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Keen Eye",
+      "H": "Sniper"
+    },
+    "weightkg": 2,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Fearow"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "fearow",
+    "num": 22,
+    "name": "Fearow",
+    "baseSpecies": "Fearow",
+    "forme": "",
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 90,
+      "def": 65,
+      "spa": 61,
+      "spd": 61,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Keen Eye",
+      "H": "Sniper"
+    },
+    "weightkg": 38,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Spearow",
+    "isMega": false
+  },
+  {
+    "id": "ekans",
+    "num": 23,
+    "name": "Ekans",
+    "baseSpecies": "Ekans",
+    "forme": "",
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 60,
+      "def": 44,
+      "spa": 40,
+      "spd": 54,
+      "spe": 55
+    },
+    "abilities": {
+      "0": "Intimidate",
+      "1": "Shed Skin",
+      "H": "Unnerve"
+    },
+    "weightkg": 6.9,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Arbok"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "arbok",
+    "num": 24,
+    "name": "Arbok",
+    "baseSpecies": "Arbok",
+    "forme": "",
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 85,
+      "def": 69,
+      "spa": 65,
+      "spd": 79,
+      "spe": 80
+    },
+    "abilities": {
+      "0": "Intimidate",
+      "1": "Shed Skin",
+      "H": "Unnerve"
+    },
+    "weightkg": 65,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Ekans",
+    "isMega": false
+  },
+  {
+    "id": "pikachu",
+    "num": 25,
+    "name": "Pikachu",
+    "baseSpecies": "Pikachu",
+    "forme": "",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 55,
+      "def": 40,
+      "spa": 50,
+      "spd": 50,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Static",
+      "H": "Lightning Rod"
+    },
+    "weightkg": 6,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Pichu",
+    "evos": [
+      "Raichu"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "pikachubelle",
+    "num": 25,
+    "name": "Pikachu-Belle",
+    "baseSpecies": "Pikachu",
+    "forme": "Belle",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 55,
+      "def": 40,
+      "spa": 50,
+      "spd": 50,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Lightning Rod"
+    },
+    "weightkg": 6,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "isMega": false
+  },
+  {
+    "id": "pikachucosplay",
+    "num": 25,
+    "name": "Pikachu-Cosplay",
+    "baseSpecies": "Pikachu",
+    "forme": "Cosplay",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 55,
+      "def": 40,
+      "spa": 50,
+      "spd": 50,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Lightning Rod"
+    },
+    "weightkg": 6,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "isMega": false
+  },
+  {
+    "id": "pikachulibre",
+    "num": 25,
+    "name": "Pikachu-Libre",
+    "baseSpecies": "Pikachu",
+    "forme": "Libre",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 55,
+      "def": 40,
+      "spa": 50,
+      "spd": 50,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Lightning Rod"
+    },
+    "weightkg": 6,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "isMega": false
+  },
+  {
+    "id": "pikachuphd",
+    "num": 25,
+    "name": "Pikachu-PhD",
+    "baseSpecies": "Pikachu",
+    "forme": "PhD",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 55,
+      "def": 40,
+      "spa": 50,
+      "spd": 50,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Lightning Rod"
+    },
+    "weightkg": 6,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "isMega": false
+  },
+  {
+    "id": "pikachupopstar",
+    "num": 25,
+    "name": "Pikachu-Pop-Star",
+    "baseSpecies": "Pikachu",
+    "forme": "Pop-Star",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 55,
+      "def": 40,
+      "spa": 50,
+      "spd": 50,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Lightning Rod"
+    },
+    "weightkg": 6,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "isMega": false
+  },
+  {
+    "id": "pikachurockstar",
+    "num": 25,
+    "name": "Pikachu-Rock-Star",
+    "baseSpecies": "Pikachu",
+    "forme": "Rock-Star",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 55,
+      "def": 40,
+      "spa": 50,
+      "spd": 50,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Lightning Rod"
+    },
+    "weightkg": 6,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "isMega": false
+  },
+  {
+    "id": "raichu",
+    "num": 26,
+    "name": "Raichu",
+    "baseSpecies": "Raichu",
+    "forme": "",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 90,
+      "def": 55,
+      "spa": 90,
+      "spd": 80,
+      "spe": 110
+    },
+    "abilities": {
+      "0": "Static",
+      "H": "Lightning Rod"
+    },
+    "weightkg": 30,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Pikachu",
+    "isMega": false
+  },
+  {
+    "id": "sandshrew",
+    "num": 27,
+    "name": "Sandshrew",
+    "baseSpecies": "Sandshrew",
+    "forme": "",
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 75,
+      "def": 85,
+      "spa": 20,
+      "spd": 30,
+      "spe": 40
+    },
+    "abilities": {
+      "0": "Sand Veil",
+      "H": "Sand Rush"
+    },
+    "weightkg": 12,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Sandslash"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "sandslash",
+    "num": 28,
+    "name": "Sandslash",
+    "baseSpecies": "Sandslash",
+    "forme": "",
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 100,
+      "def": 110,
+      "spa": 45,
+      "spd": 55,
+      "spe": 65
+    },
+    "abilities": {
+      "0": "Sand Veil",
+      "H": "Sand Rush"
+    },
+    "weightkg": 29.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Sandshrew",
+    "isMega": false
+  },
+  {
+    "id": "nidoranf",
+    "num": 29,
+    "name": "Nidoran-F",
+    "baseSpecies": "Nidoran-F",
+    "forme": "",
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 47,
+      "def": 52,
+      "spa": 40,
+      "spd": 40,
+      "spe": 41
+    },
+    "abilities": {
+      "0": "Poison Point",
+      "1": "Rivalry",
+      "H": "Hustle"
+    },
+    "weightkg": 7,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "evos": [
+      "Nidorina"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "nidorina",
+    "num": 30,
+    "name": "Nidorina",
+    "baseSpecies": "Nidorina",
+    "forme": "",
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 62,
+      "def": 67,
+      "spa": 55,
+      "spd": 55,
+      "spe": 56
+    },
+    "abilities": {
+      "0": "Poison Point",
+      "1": "Rivalry",
+      "H": "Hustle"
+    },
+    "weightkg": 20,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "prevo": "Nidoran-F",
+    "evos": [
+      "Nidoqueen"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "nidoqueen",
+    "num": 31,
+    "name": "Nidoqueen",
+    "baseSpecies": "Nidoqueen",
+    "forme": "",
+    "types": [
+      "Poison",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 92,
+      "def": 87,
+      "spa": 75,
+      "spd": 85,
+      "spe": 76
+    },
+    "abilities": {
+      "0": "Poison Point",
+      "1": "Rivalry",
+      "H": "Sheer Force"
+    },
+    "weightkg": 60,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "prevo": "Nidorina",
+    "isMega": false
+  },
+  {
+    "id": "nidoranm",
+    "num": 32,
+    "name": "Nidoran-M",
+    "baseSpecies": "Nidoran-M",
+    "forme": "",
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 46,
+      "atk": 57,
+      "def": 40,
+      "spa": 40,
+      "spd": 40,
+      "spe": 50
+    },
+    "abilities": {
+      "0": "Poison Point",
+      "1": "Rivalry",
+      "H": "Hustle"
+    },
+    "weightkg": 9,
+    "gender": "M",
+    "genderRatio": {
+      "M": 1,
+      "F": 0
+    },
+    "evos": [
+      "Nidorino"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "nidorino",
+    "num": 33,
+    "name": "Nidorino",
+    "baseSpecies": "Nidorino",
+    "forme": "",
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 61,
+      "atk": 72,
+      "def": 57,
+      "spa": 55,
+      "spd": 55,
+      "spe": 65
+    },
+    "abilities": {
+      "0": "Poison Point",
+      "1": "Rivalry",
+      "H": "Hustle"
+    },
+    "weightkg": 19.5,
+    "gender": "M",
+    "genderRatio": {
+      "M": 1,
+      "F": 0
+    },
+    "prevo": "Nidoran-M",
+    "evos": [
+      "Nidoking"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "nidoking",
+    "num": 34,
+    "name": "Nidoking",
+    "baseSpecies": "Nidoking",
+    "forme": "",
+    "types": [
+      "Poison",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 81,
+      "atk": 102,
+      "def": 77,
+      "spa": 85,
+      "spd": 75,
+      "spe": 85
+    },
+    "abilities": {
+      "0": "Poison Point",
+      "1": "Rivalry",
+      "H": "Sheer Force"
+    },
+    "weightkg": 62,
+    "gender": "M",
+    "genderRatio": {
+      "M": 1,
+      "F": 0
+    },
+    "prevo": "Nidorino",
+    "isMega": false
+  },
+  {
+    "id": "clefairy",
+    "num": 35,
+    "name": "Clefairy",
+    "baseSpecies": "Clefairy",
+    "forme": "",
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 45,
+      "def": 48,
+      "spa": 60,
+      "spd": 65,
+      "spe": 35
+    },
+    "abilities": {
+      "0": "Cute Charm",
+      "1": "Magic Guard",
+      "H": "Friend Guard"
+    },
+    "weightkg": 7.5,
+    "genderRatio": {
+      "M": 0.25,
+      "F": 0.75
+    },
+    "prevo": "Cleffa",
+    "evos": [
+      "Clefable"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "clefable",
+    "num": 36,
+    "name": "Clefable",
+    "baseSpecies": "Clefable",
+    "forme": "",
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 70,
+      "def": 73,
+      "spa": 95,
+      "spd": 90,
+      "spe": 60
+    },
+    "abilities": {
+      "0": "Cute Charm",
+      "1": "Magic Guard",
+      "H": "Unaware"
+    },
+    "weightkg": 40,
+    "genderRatio": {
+      "M": 0.25,
+      "F": 0.75
+    },
+    "prevo": "Clefairy",
+    "isMega": false
+  },
+  {
+    "id": "vulpix",
+    "num": 37,
+    "name": "Vulpix",
+    "baseSpecies": "Vulpix",
+    "forme": "",
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 38,
+      "atk": 41,
+      "def": 40,
+      "spa": 50,
+      "spd": 65,
+      "spe": 65
+    },
+    "abilities": {
+      "0": "Flash Fire",
+      "H": "Drought"
+    },
+    "weightkg": 9.9,
+    "genderRatio": {
+      "M": 0.25,
+      "F": 0.75
+    },
+    "evos": [
+      "Ninetales"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "ninetales",
+    "num": 38,
+    "name": "Ninetales",
+    "baseSpecies": "Ninetales",
+    "forme": "",
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 73,
+      "atk": 76,
+      "def": 75,
+      "spa": 81,
+      "spd": 100,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Flash Fire",
+      "H": "Drought"
+    },
+    "weightkg": 19.9,
+    "genderRatio": {
+      "M": 0.25,
+      "F": 0.75
+    },
+    "prevo": "Vulpix",
+    "isMega": false
+  },
+  {
+    "id": "jigglypuff",
+    "num": 39,
+    "name": "Jigglypuff",
+    "baseSpecies": "Jigglypuff",
+    "forme": "",
+    "types": [
+      "Normal",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 115,
+      "atk": 45,
+      "def": 20,
+      "spa": 45,
+      "spd": 25,
+      "spe": 20
+    },
+    "abilities": {
+      "0": "Cute Charm",
+      "1": "Competitive",
+      "H": "Friend Guard"
+    },
+    "weightkg": 5.5,
+    "genderRatio": {
+      "M": 0.25,
+      "F": 0.75
+    },
+    "prevo": "Igglybuff",
+    "evos": [
+      "Wigglytuff"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "wigglytuff",
+    "num": 40,
+    "name": "Wigglytuff",
+    "baseSpecies": "Wigglytuff",
+    "forme": "",
+    "types": [
+      "Normal",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 140,
+      "atk": 70,
+      "def": 45,
+      "spa": 85,
+      "spd": 50,
+      "spe": 45
+    },
+    "abilities": {
+      "0": "Cute Charm",
+      "1": "Competitive",
+      "H": "Frisk"
+    },
+    "weightkg": 12,
+    "genderRatio": {
+      "M": 0.25,
+      "F": 0.75
+    },
+    "prevo": "Jigglypuff",
+    "isMega": false
+  },
+  {
+    "id": "zubat",
+    "num": 41,
+    "name": "Zubat",
+    "baseSpecies": "Zubat",
+    "forme": "",
+    "types": [
+      "Poison",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 35,
+      "spa": 30,
+      "spd": 40,
+      "spe": 55
+    },
+    "abilities": {
+      "0": "Inner Focus",
+      "H": "Infiltrator"
+    },
+    "weightkg": 7.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Golbat"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "golbat",
+    "num": 42,
+    "name": "Golbat",
+    "baseSpecies": "Golbat",
+    "forme": "",
+    "types": [
+      "Poison",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 80,
+      "def": 70,
+      "spa": 65,
+      "spd": 75,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Inner Focus",
+      "H": "Infiltrator"
+    },
+    "weightkg": 55,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Zubat",
+    "evos": [
+      "Crobat"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "oddish",
+    "num": 43,
+    "name": "Oddish",
+    "baseSpecies": "Oddish",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 50,
+      "def": 55,
+      "spa": 75,
+      "spd": 65,
+      "spe": 30
+    },
+    "abilities": {
+      "0": "Chlorophyll",
+      "H": "Run Away"
+    },
+    "weightkg": 5.4,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Gloom"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "gloom",
+    "num": 44,
+    "name": "Gloom",
+    "baseSpecies": "Gloom",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 65,
+      "def": 70,
+      "spa": 85,
+      "spd": 75,
+      "spe": 40
+    },
+    "abilities": {
+      "0": "Chlorophyll",
+      "H": "Stench"
+    },
+    "weightkg": 8.6,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Oddish",
+    "evos": [
+      "Vileplume",
+      "Bellossom"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "vileplume",
+    "num": 45,
+    "name": "Vileplume",
+    "baseSpecies": "Vileplume",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 80,
+      "def": 85,
+      "spa": 110,
+      "spd": 90,
+      "spe": 50
+    },
+    "abilities": {
+      "0": "Chlorophyll",
+      "H": "Effect Spore"
+    },
+    "weightkg": 18.6,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Gloom",
+    "isMega": false
+  },
+  {
+    "id": "paras",
+    "num": 46,
+    "name": "Paras",
+    "baseSpecies": "Paras",
+    "forme": "",
+    "types": [
+      "Bug",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 70,
+      "def": 55,
+      "spa": 45,
+      "spd": 55,
+      "spe": 25
+    },
+    "abilities": {
+      "0": "Effect Spore",
+      "1": "Dry Skin",
+      "H": "Damp"
+    },
+    "weightkg": 5.4,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Parasect"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "parasect",
+    "num": 47,
+    "name": "Parasect",
+    "baseSpecies": "Parasect",
+    "forme": "",
+    "types": [
+      "Bug",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 95,
+      "def": 80,
+      "spa": 60,
+      "spd": 80,
+      "spe": 30
+    },
+    "abilities": {
+      "0": "Effect Spore",
+      "1": "Dry Skin",
+      "H": "Damp"
+    },
+    "weightkg": 29.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Paras",
+    "isMega": false
+  },
+  {
+    "id": "venonat",
+    "num": 48,
+    "name": "Venonat",
+    "baseSpecies": "Venonat",
+    "forme": "",
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 55,
+      "def": 50,
+      "spa": 40,
+      "spd": 55,
+      "spe": 45
+    },
+    "abilities": {
+      "0": "Compound Eyes",
+      "1": "Tinted Lens",
+      "H": "Run Away"
+    },
+    "weightkg": 30,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Venomoth"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "venomoth",
+    "num": 49,
+    "name": "Venomoth",
+    "baseSpecies": "Venomoth",
+    "forme": "",
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 65,
+      "def": 60,
+      "spa": 90,
+      "spd": 75,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Shield Dust",
+      "1": "Tinted Lens",
+      "H": "Wonder Skin"
+    },
+    "weightkg": 12.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Venonat",
+    "isMega": false
+  },
+  {
+    "id": "diglett",
+    "num": 50,
+    "name": "Diglett",
+    "baseSpecies": "Diglett",
+    "forme": "",
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 10,
+      "atk": 55,
+      "def": 25,
+      "spa": 35,
+      "spd": 45,
+      "spe": 95
+    },
+    "abilities": {
+      "0": "Sand Veil",
+      "1": "Arena Trap",
+      "H": "Sand Force"
+    },
+    "weightkg": 0.8,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Dugtrio"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "dugtrio",
+    "num": 51,
+    "name": "Dugtrio",
+    "baseSpecies": "Dugtrio",
+    "forme": "",
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 80,
+      "def": 50,
+      "spa": 50,
+      "spd": 70,
+      "spe": 120
+    },
+    "abilities": {
+      "0": "Sand Veil",
+      "1": "Arena Trap",
+      "H": "Sand Force"
+    },
+    "weightkg": 33.3,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Diglett",
+    "isMega": false
+  },
+  {
+    "id": "meowth",
+    "num": 52,
+    "name": "Meowth",
+    "baseSpecies": "Meowth",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 35,
+      "spa": 40,
+      "spd": 40,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Pickup",
+      "1": "Technician",
+      "H": "Unnerve"
+    },
+    "weightkg": 4.2,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Persian"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "persian",
+    "num": 53,
+    "name": "Persian",
+    "baseSpecies": "Persian",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 70,
+      "def": 60,
+      "spa": 65,
+      "spd": 65,
+      "spe": 115
+    },
+    "abilities": {
+      "0": "Limber",
+      "1": "Technician",
+      "H": "Unnerve"
+    },
+    "weightkg": 32,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Meowth",
+    "isMega": false
+  },
+  {
+    "id": "psyduck",
+    "num": 54,
+    "name": "Psyduck",
+    "baseSpecies": "Psyduck",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 52,
+      "def": 48,
+      "spa": 65,
+      "spd": 50,
+      "spe": 55
+    },
+    "abilities": {
+      "0": "Damp",
+      "1": "Cloud Nine",
+      "H": "Swift Swim"
+    },
+    "weightkg": 19.6,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Golduck"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "golduck",
+    "num": 55,
+    "name": "Golduck",
+    "baseSpecies": "Golduck",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 82,
+      "def": 78,
+      "spa": 95,
+      "spd": 80,
+      "spe": 85
+    },
+    "abilities": {
+      "0": "Damp",
+      "1": "Cloud Nine",
+      "H": "Swift Swim"
+    },
+    "weightkg": 76.6,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Psyduck",
+    "isMega": false
+  },
+  {
+    "id": "mankey",
+    "num": 56,
+    "name": "Mankey",
+    "baseSpecies": "Mankey",
+    "forme": "",
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 80,
+      "def": 35,
+      "spa": 35,
+      "spd": 45,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Vital Spirit",
+      "1": "Anger Point",
+      "H": "Defiant"
+    },
+    "weightkg": 28,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Primeape"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "primeape",
+    "num": 57,
+    "name": "Primeape",
+    "baseSpecies": "Primeape",
+    "forme": "",
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 105,
+      "def": 60,
+      "spa": 60,
+      "spd": 70,
+      "spe": 95
+    },
+    "abilities": {
+      "0": "Vital Spirit",
+      "1": "Anger Point",
+      "H": "Defiant"
+    },
+    "weightkg": 32,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Mankey",
+    "isMega": false
+  },
+  {
+    "id": "growlithe",
+    "num": 58,
+    "name": "Growlithe",
+    "baseSpecies": "Growlithe",
+    "forme": "",
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 70,
+      "def": 45,
+      "spa": 70,
+      "spd": 50,
+      "spe": 60
+    },
+    "abilities": {
+      "0": "Intimidate",
+      "1": "Flash Fire",
+      "H": "Justified"
+    },
+    "weightkg": 19,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "evos": [
+      "Arcanine"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "arcanine",
+    "num": 59,
+    "name": "Arcanine",
+    "baseSpecies": "Arcanine",
+    "forme": "",
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 110,
+      "def": 80,
+      "spa": 100,
+      "spd": 80,
+      "spe": 95
+    },
+    "abilities": {
+      "0": "Intimidate",
+      "1": "Flash Fire",
+      "H": "Justified"
+    },
+    "weightkg": 155,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "prevo": "Growlithe",
+    "isMega": false
+  },
+  {
+    "id": "poliwag",
+    "num": 60,
+    "name": "Poliwag",
+    "baseSpecies": "Poliwag",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 50,
+      "def": 40,
+      "spa": 40,
+      "spd": 40,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Water Absorb",
+      "1": "Damp",
+      "H": "Swift Swim"
+    },
+    "weightkg": 12.4,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Poliwhirl"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "poliwhirl",
+    "num": 61,
+    "name": "Poliwhirl",
+    "baseSpecies": "Poliwhirl",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 65,
+      "def": 65,
+      "spa": 50,
+      "spd": 50,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Water Absorb",
+      "1": "Damp",
+      "H": "Swift Swim"
+    },
+    "weightkg": 20,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Poliwag",
+    "evos": [
+      "Poliwrath",
+      "Politoed"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "poliwrath",
+    "num": 62,
+    "name": "Poliwrath",
+    "baseSpecies": "Poliwrath",
+    "forme": "",
+    "types": [
+      "Water",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 95,
+      "def": 95,
+      "spa": 70,
+      "spd": 90,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Water Absorb",
+      "1": "Damp",
+      "H": "Swift Swim"
+    },
+    "weightkg": 54,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Poliwhirl",
+    "isMega": false
+  },
+  {
+    "id": "abra",
+    "num": 63,
+    "name": "Abra",
+    "baseSpecies": "Abra",
+    "forme": "",
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 25,
+      "atk": 20,
+      "def": 15,
+      "spa": 105,
+      "spd": 55,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Synchronize",
+      "1": "Inner Focus",
+      "H": "Magic Guard"
+    },
+    "weightkg": 19.5,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "evos": [
+      "Kadabra"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "kadabra",
+    "num": 64,
+    "name": "Kadabra",
+    "baseSpecies": "Kadabra",
+    "forme": "",
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 35,
+      "def": 30,
+      "spa": 120,
+      "spd": 70,
+      "spe": 105
+    },
+    "abilities": {
+      "0": "Synchronize",
+      "1": "Inner Focus",
+      "H": "Magic Guard"
+    },
+    "weightkg": 56.5,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "prevo": "Abra",
+    "evos": [
+      "Alakazam"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "alakazam",
+    "num": 65,
+    "name": "Alakazam",
+    "baseSpecies": "Alakazam",
+    "forme": "",
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 50,
+      "def": 45,
+      "spa": 135,
+      "spd": 95,
+      "spe": 120
+    },
+    "abilities": {
+      "0": "Synchronize",
+      "1": "Inner Focus",
+      "H": "Magic Guard"
+    },
+    "weightkg": 48,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "prevo": "Kadabra",
+    "isMega": false
+  },
+  {
+    "id": "alakazammega",
+    "num": 65,
+    "name": "Alakazam-Mega",
+    "baseSpecies": "Alakazam",
+    "forme": "Mega",
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 50,
+      "def": 65,
+      "spa": 175,
+      "spd": 95,
+      "spe": 150
+    },
+    "abilities": {
+      "0": "Trace"
+    },
+    "weightkg": 48,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "requiredItem": "Alakazite",
+    "battleOnly": "Alakazam",
+    "isMega": true
+  },
+  {
+    "id": "machop",
+    "num": 66,
+    "name": "Machop",
+    "baseSpecies": "Machop",
+    "forme": "",
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 80,
+      "def": 50,
+      "spa": 35,
+      "spd": 35,
+      "spe": 35
+    },
+    "abilities": {
+      "0": "Guts",
+      "1": "No Guard",
+      "H": "Steadfast"
+    },
+    "weightkg": 19.5,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "evos": [
+      "Machoke"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "machoke",
+    "num": 67,
+    "name": "Machoke",
+    "baseSpecies": "Machoke",
+    "forme": "",
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 100,
+      "def": 70,
+      "spa": 50,
+      "spd": 60,
+      "spe": 45
+    },
+    "abilities": {
+      "0": "Guts",
+      "1": "No Guard",
+      "H": "Steadfast"
+    },
+    "weightkg": 70.5,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "prevo": "Machop",
+    "evos": [
+      "Machamp"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "machamp",
+    "num": 68,
+    "name": "Machamp",
+    "baseSpecies": "Machamp",
+    "forme": "",
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 130,
+      "def": 80,
+      "spa": 65,
+      "spd": 85,
+      "spe": 55
+    },
+    "abilities": {
+      "0": "Guts",
+      "1": "No Guard",
+      "H": "Steadfast"
+    },
+    "weightkg": 130,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "prevo": "Machoke",
+    "isMega": false
+  },
+  {
+    "id": "bellsprout",
+    "num": 69,
+    "name": "Bellsprout",
+    "baseSpecies": "Bellsprout",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 75,
+      "def": 35,
+      "spa": 70,
+      "spd": 30,
+      "spe": 40
+    },
+    "abilities": {
+      "0": "Chlorophyll",
+      "H": "Gluttony"
+    },
+    "weightkg": 4,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Weepinbell"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "weepinbell",
+    "num": 70,
+    "name": "Weepinbell",
+    "baseSpecies": "Weepinbell",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 90,
+      "def": 50,
+      "spa": 85,
+      "spd": 45,
+      "spe": 55
+    },
+    "abilities": {
+      "0": "Chlorophyll",
+      "H": "Gluttony"
+    },
+    "weightkg": 6.4,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Bellsprout",
+    "evos": [
+      "Victreebel"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "victreebel",
+    "num": 71,
+    "name": "Victreebel",
+    "baseSpecies": "Victreebel",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 105,
+      "def": 65,
+      "spa": 100,
+      "spd": 70,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Chlorophyll",
+      "H": "Gluttony"
+    },
+    "weightkg": 15.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Weepinbell",
+    "isMega": false
+  },
+  {
+    "id": "tentacool",
+    "num": 72,
+    "name": "Tentacool",
+    "baseSpecies": "Tentacool",
+    "forme": "",
+    "types": [
+      "Water",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 40,
+      "def": 35,
+      "spa": 50,
+      "spd": 100,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Clear Body",
+      "1": "Liquid Ooze",
+      "H": "Rain Dish"
+    },
+    "weightkg": 45.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Tentacruel"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "tentacruel",
+    "num": 73,
+    "name": "Tentacruel",
+    "baseSpecies": "Tentacruel",
+    "forme": "",
+    "types": [
+      "Water",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 70,
+      "def": 65,
+      "spa": 80,
+      "spd": 120,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Clear Body",
+      "1": "Liquid Ooze",
+      "H": "Rain Dish"
+    },
+    "weightkg": 55,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Tentacool",
+    "isMega": false
+  },
+  {
+    "id": "geodude",
+    "num": 74,
+    "name": "Geodude",
+    "baseSpecies": "Geodude",
+    "forme": "",
+    "types": [
+      "Rock",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 80,
+      "def": 100,
+      "spa": 30,
+      "spd": 30,
+      "spe": 20
+    },
+    "abilities": {
+      "0": "Rock Head",
+      "1": "Sturdy",
+      "H": "Sand Veil"
+    },
+    "weightkg": 20,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Graveler"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "graveler",
+    "num": 75,
+    "name": "Graveler",
+    "baseSpecies": "Graveler",
+    "forme": "",
+    "types": [
+      "Rock",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 95,
+      "def": 115,
+      "spa": 45,
+      "spd": 45,
+      "spe": 35
+    },
+    "abilities": {
+      "0": "Rock Head",
+      "1": "Sturdy",
+      "H": "Sand Veil"
+    },
+    "weightkg": 105,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Geodude",
+    "evos": [
+      "Golem"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "golem",
+    "num": 76,
+    "name": "Golem",
+    "baseSpecies": "Golem",
+    "forme": "",
+    "types": [
+      "Rock",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 120,
+      "def": 130,
+      "spa": 55,
+      "spd": 65,
+      "spe": 45
+    },
+    "abilities": {
+      "0": "Rock Head",
+      "1": "Sturdy",
+      "H": "Sand Veil"
+    },
+    "weightkg": 300,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Graveler",
+    "isMega": false
+  },
+  {
+    "id": "ponyta",
+    "num": 77,
+    "name": "Ponyta",
+    "baseSpecies": "Ponyta",
+    "forme": "",
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 85,
+      "def": 55,
+      "spa": 65,
+      "spd": 65,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Run Away",
+      "1": "Flash Fire",
+      "H": "Flame Body"
+    },
+    "weightkg": 30,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Rapidash"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "rapidash",
+    "num": 78,
+    "name": "Rapidash",
+    "baseSpecies": "Rapidash",
+    "forme": "",
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 100,
+      "def": 70,
+      "spa": 80,
+      "spd": 80,
+      "spe": 105
+    },
+    "abilities": {
+      "0": "Run Away",
+      "1": "Flash Fire",
+      "H": "Flame Body"
+    },
+    "weightkg": 95,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Ponyta",
+    "isMega": false
+  },
+  {
+    "id": "slowpoke",
+    "num": 79,
+    "name": "Slowpoke",
+    "baseSpecies": "Slowpoke",
+    "forme": "",
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 65,
+      "def": 65,
+      "spa": 40,
+      "spd": 40,
+      "spe": 15
+    },
+    "abilities": {
+      "0": "Oblivious",
+      "1": "Own Tempo",
+      "H": "Regenerator"
+    },
+    "weightkg": 36,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Slowbro",
+      "Slowking"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "slowbro",
+    "num": 80,
+    "name": "Slowbro",
+    "baseSpecies": "Slowbro",
+    "forme": "",
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 75,
+      "def": 110,
+      "spa": 100,
+      "spd": 80,
+      "spe": 30
+    },
+    "abilities": {
+      "0": "Oblivious",
+      "1": "Own Tempo",
+      "H": "Regenerator"
+    },
+    "weightkg": 78.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Slowpoke",
+    "isMega": false
+  },
+  {
+    "id": "slowbromega",
+    "num": 80,
+    "name": "Slowbro-Mega",
+    "baseSpecies": "Slowbro",
+    "forme": "Mega",
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 75,
+      "def": 180,
+      "spa": 130,
+      "spd": 80,
+      "spe": 30
+    },
+    "abilities": {
+      "0": "Shell Armor"
+    },
+    "weightkg": 120,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "requiredItem": "Slowbronite",
+    "battleOnly": "Slowbro",
+    "isMega": true
+  },
+  {
+    "id": "magnemite",
+    "num": 81,
+    "name": "Magnemite",
+    "baseSpecies": "Magnemite",
+    "forme": "",
+    "types": [
+      "Electric",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 25,
+      "atk": 35,
+      "def": 70,
+      "spa": 95,
+      "spd": 55,
+      "spe": 45
+    },
+    "abilities": {
+      "0": "Magnet Pull",
+      "1": "Sturdy",
+      "H": "Analytic"
+    },
+    "weightkg": 6,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "evos": [
+      "Magneton"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "magneton",
+    "num": 82,
+    "name": "Magneton",
+    "baseSpecies": "Magneton",
+    "forme": "",
+    "types": [
+      "Electric",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 60,
+      "def": 95,
+      "spa": 120,
+      "spd": 70,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Magnet Pull",
+      "1": "Sturdy",
+      "H": "Analytic"
+    },
+    "weightkg": 60,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "prevo": "Magnemite",
+    "evos": [
+      "Magnezone"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "farfetchd",
+    "num": 83,
+    "name": "Farfetch’d",
+    "baseSpecies": "Farfetch’d",
+    "forme": "",
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 52,
+      "atk": 65,
+      "def": 55,
+      "spa": 58,
+      "spd": 62,
+      "spe": 60
+    },
+    "abilities": {
+      "0": "Keen Eye",
+      "1": "Inner Focus",
+      "H": "Defiant"
+    },
+    "weightkg": 15,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "isMega": false
+  },
+  {
+    "id": "doduo",
+    "num": 84,
+    "name": "Doduo",
+    "baseSpecies": "Doduo",
+    "forme": "",
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 85,
+      "def": 45,
+      "spa": 35,
+      "spd": 35,
+      "spe": 75
+    },
+    "abilities": {
+      "0": "Run Away",
+      "1": "Early Bird",
+      "H": "Tangled Feet"
+    },
+    "weightkg": 39.2,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Dodrio"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "dodrio",
+    "num": 85,
+    "name": "Dodrio",
+    "baseSpecies": "Dodrio",
+    "forme": "",
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 110,
+      "def": 70,
+      "spa": 60,
+      "spd": 60,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Run Away",
+      "1": "Early Bird",
+      "H": "Tangled Feet"
+    },
+    "weightkg": 85.2,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Doduo",
+    "isMega": false
+  },
+  {
+    "id": "seel",
+    "num": 86,
+    "name": "Seel",
+    "baseSpecies": "Seel",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 45,
+      "def": 55,
+      "spa": 45,
+      "spd": 70,
+      "spe": 45
+    },
+    "abilities": {
+      "0": "Thick Fat",
+      "1": "Hydration",
+      "H": "Ice Body"
+    },
+    "weightkg": 90,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Dewgong"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "dewgong",
+    "num": 87,
+    "name": "Dewgong",
+    "baseSpecies": "Dewgong",
+    "forme": "",
+    "types": [
+      "Water",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 70,
+      "def": 80,
+      "spa": 70,
+      "spd": 95,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Thick Fat",
+      "1": "Hydration",
+      "H": "Ice Body"
+    },
+    "weightkg": 120,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Seel",
+    "isMega": false
+  },
+  {
+    "id": "grimer",
+    "num": 88,
+    "name": "Grimer",
+    "baseSpecies": "Grimer",
+    "forme": "",
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 80,
+      "def": 50,
+      "spa": 40,
+      "spd": 50,
+      "spe": 25
+    },
+    "abilities": {
+      "0": "Stench",
+      "1": "Sticky Hold",
+      "H": "Poison Touch"
+    },
+    "weightkg": 30,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Muk"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "muk",
+    "num": 89,
+    "name": "Muk",
+    "baseSpecies": "Muk",
+    "forme": "",
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 105,
+      "def": 75,
+      "spa": 65,
+      "spd": 100,
+      "spe": 50
+    },
+    "abilities": {
+      "0": "Stench",
+      "1": "Sticky Hold",
+      "H": "Poison Touch"
+    },
+    "weightkg": 30,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Grimer",
+    "isMega": false
+  },
+  {
+    "id": "shellder",
+    "num": 90,
+    "name": "Shellder",
+    "baseSpecies": "Shellder",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 65,
+      "def": 100,
+      "spa": 45,
+      "spd": 25,
+      "spe": 40
+    },
+    "abilities": {
+      "0": "Shell Armor",
+      "1": "Skill Link",
+      "H": "Overcoat"
+    },
+    "weightkg": 4,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Cloyster"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "cloyster",
+    "num": 91,
+    "name": "Cloyster",
+    "baseSpecies": "Cloyster",
+    "forme": "",
+    "types": [
+      "Water",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 95,
+      "def": 180,
+      "spa": 85,
+      "spd": 45,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Shell Armor",
+      "1": "Skill Link",
+      "H": "Overcoat"
+    },
+    "weightkg": 132.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Shellder",
+    "isMega": false
+  },
+  {
+    "id": "gastly",
+    "num": 92,
+    "name": "Gastly",
+    "baseSpecies": "Gastly",
+    "forme": "",
+    "types": [
+      "Ghost",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 35,
+      "def": 30,
+      "spa": 100,
+      "spd": 35,
+      "spe": 80
+    },
+    "abilities": {
+      "0": "Levitate"
+    },
+    "weightkg": 0.1,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Haunter"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "haunter",
+    "num": 93,
+    "name": "Haunter",
+    "baseSpecies": "Haunter",
+    "forme": "",
+    "types": [
+      "Ghost",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 50,
+      "def": 45,
+      "spa": 115,
+      "spd": 55,
+      "spe": 95
+    },
+    "abilities": {
+      "0": "Levitate"
+    },
+    "weightkg": 0.1,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Gastly",
+    "evos": [
+      "Gengar"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "gengar",
+    "num": 94,
+    "name": "Gengar",
+    "baseSpecies": "Gengar",
+    "forme": "",
+    "types": [
+      "Ghost",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 65,
+      "def": 60,
+      "spa": 130,
+      "spd": 75,
+      "spe": 110
+    },
+    "abilities": {
+      "0": "Levitate"
+    },
+    "weightkg": 40.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Haunter",
+    "isMega": false
+  },
+  {
+    "id": "gengarmega",
+    "num": 94,
+    "name": "Gengar-Mega",
+    "baseSpecies": "Gengar",
+    "forme": "Mega",
+    "types": [
+      "Ghost",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 65,
+      "def": 80,
+      "spa": 170,
+      "spd": 95,
+      "spe": 130
+    },
+    "abilities": {
+      "0": "Shadow Tag"
+    },
+    "weightkg": 40.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "requiredItem": "Gengarite",
+    "battleOnly": "Gengar",
+    "isMega": true
+  },
+  {
+    "id": "onix",
+    "num": 95,
+    "name": "Onix",
+    "baseSpecies": "Onix",
+    "forme": "",
+    "types": [
+      "Rock",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 45,
+      "def": 160,
+      "spa": 30,
+      "spd": 45,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Rock Head",
+      "1": "Sturdy",
+      "H": "Weak Armor"
+    },
+    "weightkg": 210,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Steelix"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "drowzee",
+    "num": 96,
+    "name": "Drowzee",
+    "baseSpecies": "Drowzee",
+    "forme": "",
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 48,
+      "def": 45,
+      "spa": 43,
+      "spd": 90,
+      "spe": 42
+    },
+    "abilities": {
+      "0": "Insomnia",
+      "1": "Forewarn",
+      "H": "Inner Focus"
+    },
+    "weightkg": 32.4,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Hypno"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "hypno",
+    "num": 97,
+    "name": "Hypno",
+    "baseSpecies": "Hypno",
+    "forme": "",
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 73,
+      "def": 70,
+      "spa": 73,
+      "spd": 115,
+      "spe": 67
+    },
+    "abilities": {
+      "0": "Insomnia",
+      "1": "Forewarn",
+      "H": "Inner Focus"
+    },
+    "weightkg": 75.6,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Drowzee",
+    "isMega": false
+  },
+  {
+    "id": "krabby",
+    "num": 98,
+    "name": "Krabby",
+    "baseSpecies": "Krabby",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 105,
+      "def": 90,
+      "spa": 25,
+      "spd": 25,
+      "spe": 50
+    },
+    "abilities": {
+      "0": "Hyper Cutter",
+      "1": "Shell Armor",
+      "H": "Sheer Force"
+    },
+    "weightkg": 6.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Kingler"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "kingler",
+    "num": 99,
+    "name": "Kingler",
+    "baseSpecies": "Kingler",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 130,
+      "def": 115,
+      "spa": 50,
+      "spd": 50,
+      "spe": 75
+    },
+    "abilities": {
+      "0": "Hyper Cutter",
+      "1": "Shell Armor",
+      "H": "Sheer Force"
+    },
+    "weightkg": 60,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Krabby",
+    "isMega": false
+  },
+  {
+    "id": "voltorb",
+    "num": 100,
+    "name": "Voltorb",
+    "baseSpecies": "Voltorb",
+    "forme": "",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 30,
+      "def": 50,
+      "spa": 55,
+      "spd": 55,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Soundproof",
+      "1": "Static",
+      "H": "Aftermath"
+    },
+    "weightkg": 10.4,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "evos": [
+      "Electrode"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "electrode",
+    "num": 101,
+    "name": "Electrode",
+    "baseSpecies": "Electrode",
+    "forme": "",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 50,
+      "def": 70,
+      "spa": 80,
+      "spd": 80,
+      "spe": 140
+    },
+    "abilities": {
+      "0": "Soundproof",
+      "1": "Static",
+      "H": "Aftermath"
+    },
+    "weightkg": 66.6,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "prevo": "Voltorb",
+    "isMega": false
+  },
+  {
+    "id": "exeggcute",
+    "num": 102,
+    "name": "Exeggcute",
+    "baseSpecies": "Exeggcute",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 40,
+      "def": 80,
+      "spa": 60,
+      "spd": 45,
+      "spe": 40
+    },
+    "abilities": {
+      "0": "Chlorophyll",
+      "H": "Harvest"
+    },
+    "weightkg": 2.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Exeggutor"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "exeggutor",
+    "num": 103,
+    "name": "Exeggutor",
+    "baseSpecies": "Exeggutor",
+    "forme": "",
+    "types": [
+      "Grass",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 95,
+      "def": 85,
+      "spa": 125,
+      "spd": 65,
+      "spe": 55
+    },
+    "abilities": {
+      "0": "Chlorophyll",
+      "H": "Harvest"
+    },
+    "weightkg": 120,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Exeggcute",
+    "isMega": false
+  },
+  {
+    "id": "cubone",
+    "num": 104,
+    "name": "Cubone",
+    "baseSpecies": "Cubone",
+    "forme": "",
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 50,
+      "def": 95,
+      "spa": 40,
+      "spd": 50,
+      "spe": 35
+    },
+    "abilities": {
+      "0": "Rock Head",
+      "1": "Lightning Rod",
+      "H": "Battle Armor"
+    },
+    "weightkg": 6.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Marowak"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "marowak",
+    "num": 105,
+    "name": "Marowak",
+    "baseSpecies": "Marowak",
+    "forme": "",
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 80,
+      "def": 110,
+      "spa": 50,
+      "spd": 80,
+      "spe": 45
+    },
+    "abilities": {
+      "0": "Rock Head",
+      "1": "Lightning Rod",
+      "H": "Battle Armor"
+    },
+    "weightkg": 45,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Cubone",
+    "isMega": false
+  },
+  {
+    "id": "hitmonlee",
+    "num": 106,
+    "name": "Hitmonlee",
+    "baseSpecies": "Hitmonlee",
+    "forme": "",
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 120,
+      "def": 53,
+      "spa": 35,
+      "spd": 110,
+      "spe": 87
+    },
+    "abilities": {
+      "0": "Limber",
+      "1": "Reckless",
+      "H": "Unburden"
+    },
+    "weightkg": 49.8,
+    "gender": "M",
+    "genderRatio": {
+      "M": 1,
+      "F": 0
+    },
+    "prevo": "Tyrogue",
+    "isMega": false
+  },
+  {
+    "id": "hitmonchan",
+    "num": 107,
+    "name": "Hitmonchan",
+    "baseSpecies": "Hitmonchan",
+    "forme": "",
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 105,
+      "def": 79,
+      "spa": 35,
+      "spd": 110,
+      "spe": 76
+    },
+    "abilities": {
+      "0": "Keen Eye",
+      "1": "Iron Fist",
+      "H": "Inner Focus"
+    },
+    "weightkg": 50.2,
+    "gender": "M",
+    "genderRatio": {
+      "M": 1,
+      "F": 0
+    },
+    "prevo": "Tyrogue",
+    "isMega": false
+  },
+  {
+    "id": "lickitung",
+    "num": 108,
+    "name": "Lickitung",
+    "baseSpecies": "Lickitung",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 55,
+      "def": 75,
+      "spa": 60,
+      "spd": 75,
+      "spe": 30
+    },
+    "abilities": {
+      "0": "Own Tempo",
+      "1": "Oblivious",
+      "H": "Cloud Nine"
+    },
+    "weightkg": 65.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Lickilicky"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "koffing",
+    "num": 109,
+    "name": "Koffing",
+    "baseSpecies": "Koffing",
+    "forme": "",
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 65,
+      "def": 95,
+      "spa": 60,
+      "spd": 45,
+      "spe": 35
+    },
+    "abilities": {
+      "0": "Levitate"
+    },
+    "weightkg": 1,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Weezing"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "weezing",
+    "num": 110,
+    "name": "Weezing",
+    "baseSpecies": "Weezing",
+    "forme": "",
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 90,
+      "def": 120,
+      "spa": 85,
+      "spd": 70,
+      "spe": 60
+    },
+    "abilities": {
+      "0": "Levitate"
+    },
+    "weightkg": 9.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Koffing",
+    "isMega": false
+  },
+  {
+    "id": "rhyhorn",
+    "num": 111,
+    "name": "Rhyhorn",
+    "baseSpecies": "Rhyhorn",
+    "forme": "",
+    "types": [
+      "Ground",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 85,
+      "def": 95,
+      "spa": 30,
+      "spd": 30,
+      "spe": 25
+    },
+    "abilities": {
+      "0": "Lightning Rod",
+      "1": "Rock Head",
+      "H": "Reckless"
+    },
+    "weightkg": 115,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Rhydon"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "rhydon",
+    "num": 112,
+    "name": "Rhydon",
+    "baseSpecies": "Rhydon",
+    "forme": "",
+    "types": [
+      "Ground",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 130,
+      "def": 120,
+      "spa": 45,
+      "spd": 45,
+      "spe": 40
+    },
+    "abilities": {
+      "0": "Lightning Rod",
+      "1": "Rock Head",
+      "H": "Reckless"
+    },
+    "weightkg": 120,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Rhyhorn",
+    "evos": [
+      "Rhyperior"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "chansey",
+    "num": 113,
+    "name": "Chansey",
+    "baseSpecies": "Chansey",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 250,
+      "atk": 5,
+      "def": 5,
+      "spa": 35,
+      "spd": 105,
+      "spe": 50
+    },
+    "abilities": {
+      "0": "Natural Cure",
+      "1": "Serene Grace",
+      "H": "Healer"
+    },
+    "weightkg": 34.6,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "prevo": "Happiny",
+    "evos": [
+      "Blissey"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "tangela",
+    "num": 114,
+    "name": "Tangela",
+    "baseSpecies": "Tangela",
+    "forme": "",
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 55,
+      "def": 115,
+      "spa": 100,
+      "spd": 40,
+      "spe": 60
+    },
+    "abilities": {
+      "0": "Chlorophyll",
+      "1": "Leaf Guard",
+      "H": "Regenerator"
+    },
+    "weightkg": 35,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Tangrowth"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "kangaskhan",
+    "num": 115,
+    "name": "Kangaskhan",
+    "baseSpecies": "Kangaskhan",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 95,
+      "def": 80,
+      "spa": 40,
+      "spd": 80,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Early Bird",
+      "1": "Scrappy",
+      "H": "Inner Focus"
+    },
+    "weightkg": 80,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "isMega": false
+  },
+  {
+    "id": "kangaskhanmega",
+    "num": 115,
+    "name": "Kangaskhan-Mega",
+    "baseSpecies": "Kangaskhan",
+    "forme": "Mega",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 125,
+      "def": 100,
+      "spa": 60,
+      "spd": 100,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Parental Bond"
+    },
+    "weightkg": 100,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "requiredItem": "Kangaskhanite",
+    "battleOnly": "Kangaskhan",
+    "isMega": true
+  },
+  {
+    "id": "horsea",
+    "num": 116,
+    "name": "Horsea",
+    "baseSpecies": "Horsea",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 40,
+      "def": 70,
+      "spa": 70,
+      "spd": 25,
+      "spe": 60
+    },
+    "abilities": {
+      "0": "Swift Swim",
+      "1": "Sniper",
+      "H": "Damp"
+    },
+    "weightkg": 8,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Seadra"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "seadra",
+    "num": 117,
+    "name": "Seadra",
+    "baseSpecies": "Seadra",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 65,
+      "def": 95,
+      "spa": 95,
+      "spd": 45,
+      "spe": 85
+    },
+    "abilities": {
+      "0": "Poison Point",
+      "1": "Sniper",
+      "H": "Damp"
+    },
+    "weightkg": 25,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Horsea",
+    "evos": [
+      "Kingdra"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "goldeen",
+    "num": 118,
+    "name": "Goldeen",
+    "baseSpecies": "Goldeen",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 67,
+      "def": 60,
+      "spa": 35,
+      "spd": 50,
+      "spe": 63
+    },
+    "abilities": {
+      "0": "Swift Swim",
+      "1": "Water Veil",
+      "H": "Lightning Rod"
+    },
+    "weightkg": 15,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Seaking"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "seaking",
+    "num": 119,
+    "name": "Seaking",
+    "baseSpecies": "Seaking",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 92,
+      "def": 65,
+      "spa": 65,
+      "spd": 80,
+      "spe": 68
+    },
+    "abilities": {
+      "0": "Swift Swim",
+      "1": "Water Veil",
+      "H": "Lightning Rod"
+    },
+    "weightkg": 39,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Goldeen",
+    "isMega": false
+  },
+  {
+    "id": "staryu",
+    "num": 120,
+    "name": "Staryu",
+    "baseSpecies": "Staryu",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 45,
+      "def": 55,
+      "spa": 70,
+      "spd": 55,
+      "spe": 85
+    },
+    "abilities": {
+      "0": "Illuminate",
+      "1": "Natural Cure",
+      "H": "Analytic"
+    },
+    "weightkg": 34.5,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "evos": [
+      "Starmie"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "starmie",
+    "num": 121,
+    "name": "Starmie",
+    "baseSpecies": "Starmie",
+    "forme": "",
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 75,
+      "def": 85,
+      "spa": 100,
+      "spd": 85,
+      "spe": 115
+    },
+    "abilities": {
+      "0": "Illuminate",
+      "1": "Natural Cure",
+      "H": "Analytic"
+    },
+    "weightkg": 80,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "prevo": "Staryu",
+    "isMega": false
+  },
+  {
+    "id": "mrmime",
+    "num": 122,
+    "name": "Mr. Mime",
+    "baseSpecies": "Mr. Mime",
+    "forme": "",
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 65,
+      "spa": 100,
+      "spd": 120,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Soundproof",
+      "1": "Filter",
+      "H": "Technician"
+    },
+    "weightkg": 54.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Mime Jr.",
+    "isMega": false
+  },
+  {
+    "id": "scyther",
+    "num": 123,
+    "name": "Scyther",
+    "baseSpecies": "Scyther",
+    "forme": "",
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 110,
+      "def": 80,
+      "spa": 55,
+      "spd": 80,
+      "spe": 105
+    },
+    "abilities": {
+      "0": "Swarm",
+      "1": "Technician",
+      "H": "Steadfast"
+    },
+    "weightkg": 56,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Scizor"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "jynx",
+    "num": 124,
+    "name": "Jynx",
+    "baseSpecies": "Jynx",
+    "forme": "",
+    "types": [
+      "Ice",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 50,
+      "def": 35,
+      "spa": 115,
+      "spd": 95,
+      "spe": 95
+    },
+    "abilities": {
+      "0": "Oblivious",
+      "1": "Forewarn",
+      "H": "Dry Skin"
+    },
+    "weightkg": 40.6,
+    "gender": "F",
+    "genderRatio": {
+      "M": 0,
+      "F": 1
+    },
+    "prevo": "Smoochum",
+    "isMega": false
+  },
+  {
+    "id": "electabuzz",
+    "num": 125,
+    "name": "Electabuzz",
+    "baseSpecies": "Electabuzz",
+    "forme": "",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 83,
+      "def": 57,
+      "spa": 95,
+      "spd": 85,
+      "spe": 105
+    },
+    "abilities": {
+      "0": "Static",
+      "H": "Vital Spirit"
+    },
+    "weightkg": 30,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "prevo": "Elekid",
+    "evos": [
+      "Electivire"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "magmar",
+    "num": 126,
+    "name": "Magmar",
+    "baseSpecies": "Magmar",
+    "forme": "",
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 95,
+      "def": 57,
+      "spa": 100,
+      "spd": 85,
+      "spe": 93
+    },
+    "abilities": {
+      "0": "Flame Body",
+      "H": "Vital Spirit"
+    },
+    "weightkg": 44.5,
+    "genderRatio": {
+      "M": 0.75,
+      "F": 0.25
+    },
+    "prevo": "Magby",
+    "evos": [
+      "Magmortar"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "pinsir",
+    "num": 127,
+    "name": "Pinsir",
+    "baseSpecies": "Pinsir",
+    "forme": "",
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 125,
+      "def": 100,
+      "spa": 55,
+      "spd": 70,
+      "spe": 85
+    },
+    "abilities": {
+      "0": "Hyper Cutter",
+      "1": "Mold Breaker",
+      "H": "Moxie"
+    },
+    "weightkg": 55,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "isMega": false
+  },
+  {
+    "id": "pinsirmega",
+    "num": 127,
+    "name": "Pinsir-Mega",
+    "baseSpecies": "Pinsir",
+    "forme": "Mega",
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 155,
+      "def": 120,
+      "spa": 65,
+      "spd": 90,
+      "spe": 105
+    },
+    "abilities": {
+      "0": "Aerilate"
+    },
+    "weightkg": 59,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "requiredItem": "Pinsirite",
+    "battleOnly": "Pinsir",
+    "isMega": true
+  },
+  {
+    "id": "tauros",
+    "num": 128,
+    "name": "Tauros",
+    "baseSpecies": "Tauros",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 100,
+      "def": 95,
+      "spa": 40,
+      "spd": 70,
+      "spe": 110
+    },
+    "abilities": {
+      "0": "Intimidate",
+      "1": "Anger Point",
+      "H": "Sheer Force"
+    },
+    "weightkg": 88.4,
+    "gender": "M",
+    "genderRatio": {
+      "M": 1,
+      "F": 0
+    },
+    "isMega": false
+  },
+  {
+    "id": "magikarp",
+    "num": 129,
+    "name": "Magikarp",
+    "baseSpecies": "Magikarp",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 20,
+      "atk": 10,
+      "def": 55,
+      "spa": 15,
+      "spd": 20,
+      "spe": 80
+    },
+    "abilities": {
+      "0": "Swift Swim",
+      "H": "Rattled"
+    },
+    "weightkg": 10,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Gyarados"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "gyarados",
+    "num": 130,
+    "name": "Gyarados",
+    "baseSpecies": "Gyarados",
+    "forme": "",
+    "types": [
+      "Water",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 125,
+      "def": 79,
+      "spa": 60,
+      "spd": 100,
+      "spe": 81
+    },
+    "abilities": {
+      "0": "Intimidate",
+      "H": "Moxie"
+    },
+    "weightkg": 235,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Magikarp",
+    "isMega": false
+  },
+  {
+    "id": "gyaradosmega",
+    "num": 130,
+    "name": "Gyarados-Mega",
+    "baseSpecies": "Gyarados",
+    "forme": "Mega",
+    "types": [
+      "Water",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 155,
+      "def": 109,
+      "spa": 70,
+      "spd": 130,
+      "spe": 81
+    },
+    "abilities": {
+      "0": "Mold Breaker"
+    },
+    "weightkg": 305,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "requiredItem": "Gyaradosite",
+    "battleOnly": "Gyarados",
+    "isMega": true
+  },
+  {
+    "id": "lapras",
+    "num": 131,
+    "name": "Lapras",
+    "baseSpecies": "Lapras",
+    "forme": "",
+    "types": [
+      "Water",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 130,
+      "atk": 85,
+      "def": 80,
+      "spa": 85,
+      "spd": 95,
+      "spe": 60
+    },
+    "abilities": {
+      "0": "Water Absorb",
+      "1": "Shell Armor",
+      "H": "Hydration"
+    },
+    "weightkg": 220,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "isMega": false
+  },
+  {
+    "id": "ditto",
+    "num": 132,
+    "name": "Ditto",
+    "baseSpecies": "Ditto",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 48,
+      "atk": 48,
+      "def": 48,
+      "spa": 48,
+      "spd": 48,
+      "spe": 48
+    },
+    "abilities": {
+      "0": "Limber",
+      "H": "Imposter"
+    },
+    "weightkg": 4,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "isMega": false
+  },
+  {
+    "id": "eevee",
+    "num": 133,
+    "name": "Eevee",
+    "baseSpecies": "Eevee",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 55,
+      "def": 50,
+      "spa": 45,
+      "spd": 65,
+      "spe": 55
+    },
+    "abilities": {
+      "0": "Run Away",
+      "1": "Adaptability",
+      "H": "Anticipation"
+    },
+    "weightkg": 6.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "evos": [
+      "Vaporeon",
+      "Jolteon",
+      "Flareon",
+      "Espeon",
+      "Umbreon",
+      "Leafeon",
+      "Glaceon",
+      "Sylveon"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "vaporeon",
+    "num": 134,
+    "name": "Vaporeon",
+    "baseSpecies": "Vaporeon",
+    "forme": "",
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 130,
+      "atk": 65,
+      "def": 60,
+      "spa": 110,
+      "spd": 95,
+      "spe": 65
+    },
+    "abilities": {
+      "0": "Water Absorb",
+      "H": "Hydration"
+    },
+    "weightkg": 29,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Eevee",
+    "isMega": false
+  },
+  {
+    "id": "jolteon",
+    "num": 135,
+    "name": "Jolteon",
+    "baseSpecies": "Jolteon",
+    "forme": "",
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 65,
+      "def": 60,
+      "spa": 110,
+      "spd": 95,
+      "spe": 130
+    },
+    "abilities": {
+      "0": "Volt Absorb",
+      "H": "Quick Feet"
+    },
+    "weightkg": 24.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Eevee",
+    "isMega": false
+  },
+  {
+    "id": "flareon",
+    "num": 136,
+    "name": "Flareon",
+    "baseSpecies": "Flareon",
+    "forme": "",
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 130,
+      "def": 60,
+      "spa": 95,
+      "spd": 110,
+      "spe": 65
+    },
+    "abilities": {
+      "0": "Flash Fire",
+      "H": "Guts"
+    },
+    "weightkg": 25,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Eevee",
+    "isMega": false
+  },
+  {
+    "id": "porygon",
+    "num": 137,
+    "name": "Porygon",
+    "baseSpecies": "Porygon",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 60,
+      "def": 70,
+      "spa": 85,
+      "spd": 75,
+      "spe": 40
+    },
+    "abilities": {
+      "0": "Trace",
+      "1": "Download",
+      "H": "Analytic"
+    },
+    "weightkg": 36.5,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "evos": [
+      "Porygon2"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "omanyte",
+    "num": 138,
+    "name": "Omanyte",
+    "baseSpecies": "Omanyte",
+    "forme": "",
+    "types": [
+      "Rock",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 40,
+      "def": 100,
+      "spa": 90,
+      "spd": 55,
+      "spe": 35
+    },
+    "abilities": {
+      "0": "Swift Swim",
+      "1": "Shell Armor",
+      "H": "Weak Armor"
+    },
+    "weightkg": 7.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "evos": [
+      "Omastar"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "omastar",
+    "num": 139,
+    "name": "Omastar",
+    "baseSpecies": "Omastar",
+    "forme": "",
+    "types": [
+      "Rock",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 60,
+      "def": 125,
+      "spa": 115,
+      "spd": 70,
+      "spe": 55
+    },
+    "abilities": {
+      "0": "Swift Swim",
+      "1": "Shell Armor",
+      "H": "Weak Armor"
+    },
+    "weightkg": 35,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Omanyte",
+    "isMega": false
+  },
+  {
+    "id": "kabuto",
+    "num": 140,
+    "name": "Kabuto",
+    "baseSpecies": "Kabuto",
+    "forme": "",
+    "types": [
+      "Rock",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 80,
+      "def": 90,
+      "spa": 55,
+      "spd": 45,
+      "spe": 55
+    },
+    "abilities": {
+      "0": "Swift Swim",
+      "1": "Battle Armor",
+      "H": "Weak Armor"
+    },
+    "weightkg": 11.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "evos": [
+      "Kabutops"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "kabutops",
+    "num": 141,
+    "name": "Kabutops",
+    "baseSpecies": "Kabutops",
+    "forme": "",
+    "types": [
+      "Rock",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 115,
+      "def": 105,
+      "spa": 65,
+      "spd": 70,
+      "spe": 80
+    },
+    "abilities": {
+      "0": "Swift Swim",
+      "1": "Battle Armor",
+      "H": "Weak Armor"
+    },
+    "weightkg": 40.5,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Kabuto",
+    "isMega": false
+  },
+  {
+    "id": "aerodactyl",
+    "num": 142,
+    "name": "Aerodactyl",
+    "baseSpecies": "Aerodactyl",
+    "forme": "",
+    "types": [
+      "Rock",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 105,
+      "def": 65,
+      "spa": 60,
+      "spd": 75,
+      "spe": 130
+    },
+    "abilities": {
+      "0": "Rock Head",
+      "1": "Pressure",
+      "H": "Unnerve"
+    },
+    "weightkg": 59,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "isMega": false
+  },
+  {
+    "id": "aerodactylmega",
+    "num": 142,
+    "name": "Aerodactyl-Mega",
+    "baseSpecies": "Aerodactyl",
+    "forme": "Mega",
+    "types": [
+      "Rock",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 135,
+      "def": 85,
+      "spa": 70,
+      "spd": 95,
+      "spe": 150
+    },
+    "abilities": {
+      "0": "Tough Claws"
+    },
+    "weightkg": 79,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "requiredItem": "Aerodactylite",
+    "battleOnly": "Aerodactyl",
+    "isMega": true
+  },
+  {
+    "id": "snorlax",
+    "num": 143,
+    "name": "Snorlax",
+    "baseSpecies": "Snorlax",
+    "forme": "",
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 160,
+      "atk": 110,
+      "def": 65,
+      "spa": 65,
+      "spd": 110,
+      "spe": 30
+    },
+    "abilities": {
+      "0": "Immunity",
+      "1": "Thick Fat",
+      "H": "Gluttony"
+    },
+    "weightkg": 460,
+    "genderRatio": {
+      "M": 0.875,
+      "F": 0.125
+    },
+    "prevo": "Munchlax",
+    "isMega": false
+  },
+  {
+    "id": "articuno",
+    "num": 144,
+    "name": "Articuno",
+    "baseSpecies": "Articuno",
+    "forme": "",
+    "types": [
+      "Ice",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 85,
+      "def": 100,
+      "spa": 95,
+      "spd": 125,
+      "spe": 85
+    },
+    "abilities": {
+      "0": "Pressure",
+      "H": "Snow Cloak"
+    },
+    "weightkg": 55.4,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "isMega": false
+  },
+  {
+    "id": "zapdos",
+    "num": 145,
+    "name": "Zapdos",
+    "baseSpecies": "Zapdos",
+    "forme": "",
+    "types": [
+      "Electric",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 90,
+      "def": 85,
+      "spa": 125,
+      "spd": 90,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Pressure",
+      "H": "Static"
+    },
+    "weightkg": 52.6,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "isMega": false
+  },
+  {
+    "id": "moltres",
+    "num": 146,
+    "name": "Moltres",
+    "baseSpecies": "Moltres",
+    "forme": "",
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 100,
+      "def": 90,
+      "spa": 125,
+      "spd": 85,
+      "spe": 90
+    },
+    "abilities": {
+      "0": "Pressure",
+      "H": "Flame Body"
+    },
+    "weightkg": 60,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "isMega": false
+  },
+  {
+    "id": "dratini",
+    "num": 147,
+    "name": "Dratini",
+    "baseSpecies": "Dratini",
+    "forme": "",
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 41,
+      "atk": 64,
+      "def": 45,
+      "spa": 50,
+      "spd": 50,
+      "spe": 50
+    },
+    "abilities": {
+      "0": "Shed Skin",
+      "H": "Marvel Scale"
+    },
+    "weightkg": 3.3,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "evos": [
+      "Dragonair"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "dragonair",
+    "num": 148,
+    "name": "Dragonair",
+    "baseSpecies": "Dragonair",
+    "forme": "",
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 61,
+      "atk": 84,
+      "def": 65,
+      "spa": 70,
+      "spd": 70,
+      "spe": 70
+    },
+    "abilities": {
+      "0": "Shed Skin",
+      "H": "Marvel Scale"
+    },
+    "weightkg": 16.5,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Dratini",
+    "evos": [
+      "Dragonite"
+    ],
+    "isMega": false
+  },
+  {
+    "id": "dragonite",
+    "num": 149,
+    "name": "Dragonite",
+    "baseSpecies": "Dragonite",
+    "forme": "",
+    "types": [
+      "Dragon",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 91,
+      "atk": 134,
+      "def": 95,
+      "spa": 100,
+      "spd": 100,
+      "spe": 80
+    },
+    "abilities": {
+      "0": "Inner Focus",
+      "H": "Multiscale"
+    },
+    "weightkg": 210,
+    "genderRatio": {
+      "M": 0.5,
+      "F": 0.5
+    },
+    "prevo": "Dragonair",
+    "isMega": false
+  },
+  {
+    "id": "mewtwo",
+    "num": 150,
+    "name": "Mewtwo",
+    "baseSpecies": "Mewtwo",
+    "forme": "",
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 106,
+      "atk": 110,
+      "def": 90,
+      "spa": 154,
+      "spd": 90,
+      "spe": 130
+    },
+    "abilities": {
+      "0": "Pressure",
+      "H": "Unnerve"
+    },
+    "weightkg": 122,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "isMega": false
+  },
+  {
+    "id": "mewtwomegax",
+    "num": 150,
+    "name": "Mewtwo-Mega-X",
+    "baseSpecies": "Mewtwo",
+    "forme": "Mega-X",
+    "types": [
+      "Psychic",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 106,
+      "atk": 190,
+      "def": 100,
+      "spa": 154,
+      "spd": 100,
+      "spe": 130
+    },
+    "abilities": {
+      "0": "Steadfast"
+    },
+    "weightkg": 127,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "requiredItem": "Mewtwonite X",
+    "battleOnly": "Mewtwo",
+    "isMega": true
+  },
+  {
+    "id": "mewtwomegay",
+    "num": 150,
+    "name": "Mewtwo-Mega-Y",
+    "baseSpecies": "Mewtwo",
+    "forme": "Mega-Y",
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 106,
+      "atk": 150,
+      "def": 70,
+      "spa": 194,
+      "spd": 120,
+      "spe": 140
+    },
+    "abilities": {
+      "0": "Insomnia"
+    },
+    "weightkg": 33,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "requiredItem": "Mewtwonite Y",
+    "battleOnly": "Mewtwo",
+    "isMega": true
+  },
+  {
+    "id": "mew",
+    "num": 151,
+    "name": "Mew",
+    "baseSpecies": "Mew",
+    "forme": "",
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 100,
+      "spa": 100,
+      "spd": 100,
+      "spe": 100
+    },
+    "abilities": {
+      "0": "Synchronize"
+    },
+    "weightkg": 4,
+    "gender": "N",
+    "genderRatio": {
+      "M": 0,
+      "F": 0
+    },
+    "isMega": false
+  }
+]
