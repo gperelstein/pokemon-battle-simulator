@@ -106,6 +106,11 @@ public sealed partial class Battle
         var error = Validate(request, decision, _sides[side]);
         if (error is not null)
         {
+            if (error == TrappedError)
+            {
+                RevealTrap(request, decision);
+            }
+
             return SubmitResult.Reject(error);
         }
 
@@ -187,9 +192,9 @@ public sealed partial class Battle
             var slots = side.LiveSlots.Where(slot => !side.Active[slot]!.IsLocked).ToArray();
             if (slots.Length > 0)
             {
-                var trapped = slots.Where(slot => IsTrapped(side.Active[slot]!)).ToArray();
+                var maybeTrapped = slots.Where(slot => IsMaybeTrapped(side.Active[slot]!)).ToArray();
                 var mega = slots.Where(slot => side.Active[slot]!.CanMegaEvolve).ToArray();
-                Request(new DecisionRequest(side.Id, DecisionKind.Turn, slots, trapped, DisabledMoves(side, slots), mega));
+                Request(new DecisionRequest(side.Id, DecisionKind.Turn, slots, null, DisabledMoves(side, slots), mega, maybeTrapped));
             }
         }
 
@@ -1207,7 +1212,7 @@ public sealed partial class Battle
         _events.Add(new BattleEnded(Winner));
     }
 
-    private static string? Validate(DecisionRequest request, Decision decision, Side side)
+    private string? Validate(DecisionRequest request, Decision decision, Side side)
     {
         var chosenSlots = decision.Choices.Select(c => c.Slot).Order();
         if (!chosenSlots.SequenceEqual(request.Slots.Order()))
@@ -1256,8 +1261,9 @@ public sealed partial class Battle
                     megaRequested |= move.MegaEvolve;
                     break;
 
-                case SwitchChoice sw when request.Kind == DecisionKind.Turn && request.TrappedSlots.Contains(sw.Slot):
-                    return "Can't switch: the active Pokémon is trapped.";
+                case SwitchChoice sw when request.Kind == DecisionKind.Turn &&
+                                          (request.TrappedSlots.Contains(sw.Slot) || IsTrapped(side.Active[sw.Slot]!)):
+                    return TrappedError;
 
                 case SwitchChoice sw:
                     if (sw.TeamIndex < 0 || sw.TeamIndex >= side.Team.Count || !side.Bench.Contains(side.Team[sw.TeamIndex]))

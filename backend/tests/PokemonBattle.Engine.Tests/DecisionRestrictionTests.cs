@@ -158,7 +158,7 @@ public class DecisionRestrictionTests
         var battle = Singles([Holding(Mon("Holder", 100, moves: [Splash]), "shedshell"), Mon("Bench", 10)], [trapper]);
         battle.Start();
 
-        Assert.Empty(Request(battle, SideId.P1).TrappedSlots);
+        Assert.Empty(Request(battle, SideId.P1).MaybeTrappedSlots);
         Assert.True(battle.Submit(SideId.P1, Switch(0, 1)).Accepted);
     }
 
@@ -169,6 +169,6 @@ public class DecisionRestrictionTests
         var battle = Singles([Holding(Mon("Holder", 100, moves: [Splash]), "leftovers"), Mon("Bench", 10)], [trapper]);
         battle.Start();
 
-        Assert.Equal([0], Request(battle, SideId.P1).TrappedSlots);
+        Assert.Equal([0], Request(battle, SideId.P1).MaybeTrappedSlots);
     }
 }

@@ -132,7 +132,8 @@ public sealed class TeamBuilder(Gen6Catalog catalog)
             species.Evos.Count > 0,
             item?.OnPlate,
             item?.ToDefinition(),
-            MegaFormeOf(species, item, spec.Level, ivs, evs, nature!));
+            MegaFormeOf(species, item, spec.Level, ivs, evs, nature!),
+            species.Abilities.Values.Select(CatalogId.From).ToArray());
     }
 
     /// <summary>

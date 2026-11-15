@@ -401,7 +401,7 @@ public class HeldItemTriggerTests
             [WithAbility(Mon("Trapper", 50, moves: [Splash]), "arenatrap")]);
         battle.Start();
 
-        Assert.Empty(battle.PendingRequests.Single(r => r.Side == SideId.P1).TrappedSlots);
+        Assert.Empty(battle.PendingRequests.Single(r => r.Side == SideId.P1).MaybeTrappedSlots);
     }
 
     [Fact]

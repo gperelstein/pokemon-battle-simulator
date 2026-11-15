@@ -163,6 +163,19 @@ public class TeamBuilderTests
     }
 
     [Fact]
+    public void Lists_every_ability_the_species_can_have_for_hidden_trapping()
+    {
+        var team = Builder.Build(
+        [
+            new PokemonSetSpec("Dugtrio", ["Earthquake"], "Sand Veil"),
+            new PokemonSetSpec("Gengar", ["Shadow Ball"], "Levitate"),
+        ]).Team;
+
+        Assert.Equal(["sandveil", "arenatrap", "sandforce"], team[0].SpeciesAbilities);
+        Assert.Equal(["levitate"], team[1].SpeciesAbilities);
+    }
+
+    [Fact]
     public void Builds_weight_in_hectograms_and_happiness_defaulting_to_255()
     {
         var team = Builder.Build(

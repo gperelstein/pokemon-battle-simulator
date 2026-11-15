@@ -346,7 +346,7 @@ public class HeldItemBattleTests
         var battle = Singles([target, Mon("Bench", 10)], [WithAbility(Mon("Trapper", 50, moves: [Splash]), "arenatrap")]);
         battle.Start();
 
-        Assert.Equal([0], battle.PendingRequests.Single(r => r.Side == SideId.P1).TrappedSlots);
+        Assert.Equal([0], battle.PendingRequests.Single(r => r.Side == SideId.P1).MaybeTrappedSlots);
     }
 
     [Fact]

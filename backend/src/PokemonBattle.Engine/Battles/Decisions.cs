@@ -19,7 +19,9 @@ public enum DecisionKind
 
 /// <summary>What the engine is waiting for from one player.</summary>
 /// <param name="TrappedSlots">
-/// Requested slots whose Pokémon cannot choose to switch (Arena Trap, Magnet Pull, Shadow Tag).
+/// Requested slots known to be unable to switch (Showdown's "trapped" request flag). Trapping
+/// abilities stay hidden, so a slot only appears here after a switch from it was rejected; the
+/// pending request is then replaced with this slot moved out of <paramref name="MaybeTrappedSlots"/>.
 /// </param>
 /// <param name="DisabledMoves">
 /// For each requested slot with restrictions, the indexes of the moves its Pokémon cannot choose
@@ -30,15 +32,23 @@ public enum DecisionKind
 /// Requested slots whose Pokémon may Mega Evolve this turn (Showdown's canMegaEvo request flag):
 /// it holds its own Mega Stone and its side has not Mega Evolved yet. Only one of them may ask for it.
 /// </param>
+/// <param name="MaybeTrappedSlots">
+/// Requested slots that may be trapped (Showdown's "maybeTrapped" request flag): an adjacent foe has,
+/// or its species could have, Arena Trap, Magnet Pull or Shadow Tag, and that ability would trap this
+/// Pokémon. A switch from such a slot is accepted unless the trap is real.
+/// </param>
 public sealed record DecisionRequest(
     SideId Side,
     DecisionKind Kind,
     IReadOnlyList<int> Slots,
     IReadOnlyList<int>? TrappedSlots = null,
     IReadOnlyDictionary<int, IReadOnlyList<int>>? DisabledMoves = null,
-    IReadOnlyList<int>? MegaSlots = null)
+    IReadOnlyList<int>? MegaSlots = null,
+    IReadOnlyList<int>? MaybeTrappedSlots = null)
 {
     public IReadOnlyList<int> TrappedSlots { get; init; } = TrappedSlots ?? [];
+
+    public IReadOnlyList<int> MaybeTrappedSlots { get; init; } = MaybeTrappedSlots ?? [];
 
     public IReadOnlyList<int> MegaSlots { get; init; } = MegaSlots ?? [];
 

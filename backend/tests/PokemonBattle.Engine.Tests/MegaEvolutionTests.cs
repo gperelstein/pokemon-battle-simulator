@@ -266,11 +266,25 @@ public class MegaEvolutionTests
         var shadowTag = Forme("Gengar", "shadowtag", PokemonType.Ghost, PokemonType.Poison) with { AbilityBreakable = false };
         var battle = Singles([Megaable("Gengar", 100, shadowTag)], [Mon("Foe", 50, moves: [Splash]), Mon("Bench", 10)]);
         battle.Start();
-        Assert.Empty(Request(battle, SideId.P2).TrappedSlots);
+        Assert.Empty(Request(battle, SideId.P2).MaybeTrappedSlots);
 
         Turn(battle, MegaMove(), Move());
 
-        Assert.Equal([0], Request(battle, SideId.P2).TrappedSlots);
+        Assert.Equal([0], Request(battle, SideId.P2).MaybeTrappedSlots);
+    }
+
+    [Fact]
+    public void A_mega_forme_only_can_have_its_own_ability()
+    {
+        // Showdown reads the abilities of the current species: the forme's single ability.
+        var dugtrio = Megaable("Dugtrio", 100) with { Ability = "sandveil", SpeciesAbilities = ["sandveil", "arenatrap", "sandforce"] };
+        var battle = Singles([dugtrio], [Mon("Foe", 50, moves: [Splash]), Mon("Bench", 10)]);
+        battle.Start();
+        Assert.Equal([0], Request(battle, SideId.P2).MaybeTrappedSlots);
+
+        Turn(battle, MegaMove(), Move());
+
+        Assert.Empty(Request(battle, SideId.P2).MaybeTrappedSlots);
     }
 
     [Fact]

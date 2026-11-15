@@ -62,6 +62,7 @@ public sealed class BattlePokemon
             Ability = mega.Ability,
             AbilityBreakable = mega.AbilityBreakable,
             AbilityTraceable = mega.AbilityTraceable,
+            SpeciesAbilities = [mega.Ability],
             CanEvolve = false,
         };
         TraceSeeking = false;

@@ -21,6 +21,11 @@ namespace PokemonBattle.Engine.Pokemon;
 /// The Mega Evolution its held Mega Stone allows (Showdown's canMegaEvo); it is only available while
 /// the set holds <see cref="MegaForme.Item"/> and the stone is bound to the set's base species.
 /// </param>
+/// <param name="SpeciesAbilities">
+/// Ids of every ability the species can have (Showdown's species.abilities). Foes read it to mark a
+/// slot as maybe trapped without revealing which ability this Pokémon really has. Null means only
+/// <paramref name="Ability"/>.
+/// </param>
 public sealed record PokemonSet(
     string Species,
     IReadOnlyList<PokemonType> Types,
@@ -37,7 +42,8 @@ public sealed record PokemonSet(
     bool CanEvolve = false,
     PokemonType? PlateType = null,
     ItemDefinition? ItemData = null,
-    MegaForme? Mega = null)
+    MegaForme? Mega = null,
+    IReadOnlyList<string>? SpeciesAbilities = null)
 {
     public const int MaxMoves = 4;
 }
