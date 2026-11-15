@@ -92,6 +92,39 @@ public class BattleActorTests : TestKit
         ExpectTerminated(battle);
     }
 
+    [Fact]
+    public void A_rejection_carries_the_pending_request()
+    {
+        var (battle, p1, p2) = StartBattle([Mon("Pikachu", 90)], [Mon("Onix", 70)]);
+        var start = p1.ExpectMsg<BattleUpdate>();
+        p2.ExpectMsg<BattleUpdate>();
+
+        battle.Tell(new SubmitDecision(SideId.P1, new Decision(new MoveChoice(0, 3))), p1.Ref);
+
+        var rejected = p1.ExpectMsg<DecisionRejected>();
+        Assert.Equal("Move 3 does not exist.", rejected.Reason);
+        Assert.Same(start.Request, rejected.Request);
+        p1.ExpectNoMsg(TimeSpan.FromMilliseconds(100));
+    }
+
+    [Fact]
+    public void A_revealed_trap_sends_the_updated_request_only_to_its_player()
+    {
+        var trapper = Mon("Dugtrio", 120) with { Ability = "arenatrap" };
+        var (battle, p1, p2) = StartBattle([Mon("Pikachu", 90), Mon("Bench", 10)], [trapper]);
+        Assert.Equal([0], p1.ExpectMsg<BattleUpdate>().Request!.MaybeTrappedSlots);
+        p2.ExpectMsg<BattleUpdate>();
+
+        battle.Tell(new SubmitDecision(SideId.P1, new Decision(new SwitchChoice(0, 1))), p1.Ref);
+
+        var rejected = p1.ExpectMsg<DecisionRejected>();
+        Assert.Equal([0], rejected.Request!.TrappedSlots);
+        var update = p1.ExpectMsg<BattleUpdate>();
+        Assert.Empty(update.Events);
+        Assert.Same(rejected.Request, update.Request);
+        p2.ExpectNoMsg(TimeSpan.FromMilliseconds(100));
+    }
+
     private sealed class NeutralTypeChart : ITypeChart
     {
         public double Effectiveness(PokemonType attacking, IReadOnlyList<PokemonType> defending) => 1;

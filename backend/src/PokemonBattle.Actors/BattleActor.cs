@@ -28,10 +28,18 @@ public sealed class BattleActor : ReceiveActor
 
     private void Handle(SubmitDecision message)
     {
+        var before = PendingRequestOf(message.Side);
         var result = _battle.Submit(message.Side, message.Decision);
         if (!result.Accepted)
         {
-            Sender.Tell(new DecisionRejected(message.Side, result.Error!));
+            var after = PendingRequestOf(message.Side);
+            Sender.Tell(new DecisionRejected(message.Side, result.Error!, after));
+            if (!ReferenceEquals(before, after) && _players.TryGetValue(message.Side, out var player))
+            {
+                // The rejection changed the request (a revealed trap): only that player is told.
+                player.Tell(new BattleUpdate([], after));
+            }
+
             return;
         }
 
@@ -42,12 +50,13 @@ public sealed class BattleActor : ReceiveActor
         }
     }
 
+    private DecisionRequest? PendingRequestOf(SideId side) => _battle.PendingRequests.FirstOrDefault(r => r.Side == side);
+
     private void Publish(IReadOnlyList<BattleEvent> events)
     {
         foreach (var (side, player) in _players)
         {
-            var request = _battle.PendingRequests.FirstOrDefault(r => r.Side == side);
-            player.Tell(new BattleUpdate(events, request));
+            player.Tell(new BattleUpdate(events, PendingRequestOf(side)));
         }
 
         if (_battle.IsOver)
