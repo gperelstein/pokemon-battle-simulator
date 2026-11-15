@@ -45,6 +45,15 @@ public class Gen6CatalogTests
     }
 
     [Fact]
+    public void The_engine_knows_every_gen_6_berry()
+    {
+        var berries = Catalog.Items.Values.Where(i => i.IsBerry).Select(i => i.Id).Order().ToArray();
+
+        Assert.Equal(67, berries.Length);
+        Assert.Equal(berries, PokemonBattle.Engine.Battles.Berries.All.Order());
+    }
+
+    [Fact]
     public void Exposes_self_switch_kinds()
     {
         Assert.Equal(SelfSwitchKind.Switch, Catalog.FindMove("Volt Switch")!.SelfSwitchKind);

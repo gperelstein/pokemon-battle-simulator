@@ -453,10 +453,12 @@ public sealed partial class Battle
             }
         }
 
-        // Sticky Barb's onHit (after the primary effects), including from a holder just knocked out.
+        // The target's onHit items (after the primary effects): Sticky Barb, including from a holder
+        // just knocked out, and Enigma Berry.
         foreach (var target in hit)
         {
             PassStickyBarb(user, target, move);
+            EnigmaOnHit(target);
         }
 
         // Sheer Force drops the secondary effects (and the user's own changes) of moves that have
@@ -527,7 +529,7 @@ public sealed partial class Battle
             // move's secondaries.
             if (!sheerForce)
             {
-                ItemsAfterMoveSecondary(user, move, hit);
+                ItemsAfterMoveSecondary(user, move, hit, heals);
             }
         }
 
@@ -720,7 +722,8 @@ public sealed partial class Battle
                         new Combatant(CombatSet(user), user.CurrentHp, user.Status,
                             AttackStage: user.GetStage(physical ? BoostStat.Attack : BoostStat.SpecialAttack),
                             FlashFire: user.FlashFireActive && AbilityOf(user) == "flashfire",
-                            ConsecutiveUses: user.MetronomeCount),
+                            ConsecutiveUses: user.MetronomeCount,
+                            FocusEnergy: user.FocusEnergy),
                         new Combatant(CombatSet(target), target.CurrentHp, target.Status,
                             DefenseStage: target.GetStage(physical ? BoostStat.Defense : BoostStat.SpecialDefense),
                             AbilitySuppressed: AbilityOf(target) is null),
@@ -729,6 +732,7 @@ public sealed partial class Battle
                         Spread = spread,
                         Weather = EffectiveWeather,
                         FinalModifiers = BattleDamageModifiers(target, move),
+                        DefenderUnnerved = IsUnnerved(target),
                     },
                     _random);
 
@@ -741,6 +745,12 @@ public sealed partial class Battle
         {
             _events.Add(new CriticalHit(side.Id, slot));
             _criticalTargets.Add(target);
+        }
+
+        // A type-resist berry or Chilan Berry halved the hit: it is eaten during the calculation.
+        if (result.ResistBerryEaten)
+        {
+            EatItem(target);
         }
 
         // Damage event handlers: Sturdy (priority -30), then Focus Sash / Focus Band (-40).
@@ -794,6 +804,9 @@ public sealed partial class Battle
         // Moves that never miss and status moves aimed at the user skip the check. Gen 6 (from
         // Showdown's gen7 mod): Toxic never misses when used by a Poison type.
         // No Guard on either side makes every move hit (its onAnyAccuracy returns true).
+        // An eaten Micle Berry's onSourceAccuracy runs for every move reaching the Accuracy event,
+        // never-missing ones included; it only changes a numeric accuracy.
+        var micle = UseMicleBoost(user, move);
         if (move.Accuracy is not { } accuracy || move.Target == MoveTarget.Self ||
             (move.Id == "toxic" && user.Set.Types.Contains(PokemonType.Poison)) || HasNoGuard(user, target))
         {
@@ -839,7 +852,8 @@ public sealed partial class Battle
         var accuracyStage = targetAbility == "unaware" ? 0 : user.GetStage(BoostStat.Accuracy);
         var ignoresEvasion = move.IgnoreEvasion || user.Ability is "keeneye" or "unaware";
         var evasion = ignoresEvasion ? 0 : target.GetStage(BoostStat.Evasion);
-        return RollChance(StatStages.ApplyToAccuracy(chain.Apply(accuracy), accuracyStage, evasion));
+        var stagedAccuracy = StatStages.ApplyToAccuracy(chain.Apply(accuracy), accuracyStage, evasion);
+        return RollChance(micle ? new ModifierChain().Chain(4915, 4096).Apply(stagedAccuracy) : stagedAccuracy);
     }
 
     private static bool HasNoGuard(BattlePokemon user, BattlePokemon target) =>
@@ -933,6 +947,12 @@ public sealed partial class Battle
             SetStatus(source, status, target, primary: null, viaAbility: null);
         }
 
+        // Lum Berry's onAfterSetStatus (priority -1, after Synchronize's).
+        if (target.Item == Berries.Lum)
+        {
+            EatItem(target);
+        }
+
         return true;
     }
 
@@ -1002,6 +1022,7 @@ public sealed partial class Battle
         }
 
         ApplyLateItemResiduals(bySpeed);
+        ApplyMicleResidual(bySpeed);
         UpdateItems();
     }
 

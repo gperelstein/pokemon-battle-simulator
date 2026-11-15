@@ -4,7 +4,11 @@ using PokemonBattle.Engine.Pokemon;
 namespace PokemonBattle.Engine.Battles;
 
 /// <param name="Effectiveness">Type multiplier (0 when the target is immune).</param>
-public sealed record DamageResult(int Damage, double Effectiveness, bool Critical);
+/// <param name="ResistBerryEaten">
+/// The defender's type-resist berry or Chilan Berry halved the hit and must be eaten (Showdown's
+/// onSourceModifyDamage calls eatItem while the damage is calculated).
+/// </param>
+public sealed record DamageResult(int Damage, double Effectiveness, bool Critical, bool ResistBerryEaten = false);
 
 /// <summary>A Pokémon's battle state as far as the damage formula is concerned.</summary>
 /// <param name="CurrentHp">Current HP; null means full HP.</param>
@@ -13,6 +17,7 @@ public sealed record DamageResult(int Damage, double Effectiveness, bool Critica
 /// <param name="AbilitySuppressed">Its ability is ignored (for instance by Mold Breaker).</param>
 /// <param name="FlashFire">Flash Fire has been activated: its Fire moves use x1.5 Attack or Special Attack.</param>
 /// <param name="ConsecutiveUses">Consecutive uses counted by a held Metronome (x1.2 per use, up to x2).</param>
+/// <param name="FocusEnergy">The Focus Energy effect (Lansat Berry): critical hit ratio +2.</param>
 public sealed record Combatant(
     PokemonSet Set,
     int? CurrentHp = null,
@@ -21,7 +26,8 @@ public sealed record Combatant(
     int DefenseStage = 0,
     bool AbilitySuppressed = false,
     bool FlashFire = false,
-    int ConsecutiveUses = 0)
+    int ConsecutiveUses = 0,
+    bool FocusEnergy = false)
 {
     public int Hp => CurrentHp ?? Set.Stats.Hp;
     public string? Ability => AbilitySuppressed ? null : Set.Ability;
@@ -40,6 +46,9 @@ public sealed record DamageInput(Combatant Attacker, Combatant Defender, MoveDef
     /// Pokémon's abilities): Earthquake against a digging target, an ally's Friend Guard...
     /// </summary>
     public ModifierChain FinalModifiers { get; init; }
+
+    /// <summary>A foe of the defender has Unnerve: its berries cannot be eaten (onFoeTryEatItem).</summary>
+    public bool DefenderUnnerved { get; init; }
 }
 
 /// <summary>
@@ -95,7 +104,7 @@ public sealed class DamageCalculator(ITypeChart typeChart)
         }
 
         // The roll happens even against Battle Armor / Shell Armor, which then cancel the crit.
-        var critical = IsCritical(move, attacker.Set, random) && defender.Ability is not ("battlearmor" or "shellarmor");
+        var critical = IsCritical(move, attacker, random) && defender.Ability is not ("battlearmor" or "shellarmor");
         var physical = move.Category == MoveCategory.Physical;
 
         var attack = AttackStat(input, critical, physical);
@@ -147,8 +156,9 @@ public sealed class DamageCalculator(ITypeChart typeChart)
             damage = Modify(damage, 1, 2);
         }
 
-        damage = FinalModifiers(input, effectiveness, critical).Apply(damage);
-        return new DamageResult(Math.Max(1, damage), effectiveness, critical);
+        var (modifiers, berryEaten) = FinalModifiers(input, effectiveness, critical);
+        damage = modifiers.Apply(damage);
+        return new DamageResult(Math.Max(1, damage), effectiveness, critical, berryEaten);
     }
 
     /// <summary>
@@ -244,9 +254,10 @@ public sealed class DamageCalculator(ITypeChart typeChart)
 
     /// <summary>
     /// Showdown's ModifyDamage handlers: the attacker's (its Metronome condition, then its abilities,
-    /// then its item, following Showdown's subOrder), the defender's and the battle's.
+    /// then its item, following Showdown's subOrder), the defender's (abilities, then its type-resist
+    /// berry or Chilan Berry, x0.5) and the battle's. Also says whether the defender's berry was eaten.
     /// </summary>
-    private static ModifierChain FinalModifiers(DamageInput input, double effectiveness, bool critical)
+    private static (ModifierChain Chain, bool BerryEaten) FinalModifiers(DamageInput input, double effectiveness, bool critical)
     {
         var chain = HeldItems.ChainMetronome(new ModifierChain(), input.Attacker.Set, input.Attacker.ConsecutiveUses);
         if (input.Attacker.Ability == "tintedlens" && effectiveness < 1)
@@ -271,13 +282,19 @@ public sealed class DamageCalculator(ITypeChart typeChart)
             chain = chain.Chain(1, 2);
         }
 
-        return chain.Chain(input.FinalModifiers.Modifier, 4096);
+        var berryEaten = !input.DefenderUnnerved && HeldItems.HalvesHit(input.Defender.Set.Item, input.Move.Type, effectiveness);
+        if (berryEaten)
+        {
+            chain = chain.Chain(1, 2);
+        }
+
+        return (chain.Chain(input.FinalModifiers.Modifier, 4096), berryEaten);
     }
 
-    /// <summary>Critical hit roll; the attacker's item can raise the stage (ModifyCritRatio).</summary>
-    private static bool IsCritical(MoveDefinition move, PokemonSet attacker, IBattleRandom random)
+    /// <summary>Critical hit roll; the attacker's item and Focus Energy (+2) can raise the stage (ModifyCritRatio).</summary>
+    private static bool IsCritical(MoveDefinition move, Combatant attacker, IBattleRandom random)
     {
-        var stage = move.CritRatio + HeldItems.CritStageBonus(attacker);
+        var stage = move.CritRatio + HeldItems.CritStageBonus(attacker.Set) + (attacker.FocusEnergy ? 2 : 0);
         if (move.WillCrit || stage >= CritOdds.Length)
         {
             return true;

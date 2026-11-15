@@ -130,3 +130,12 @@ public sealed record ForcedOut(SideId Side, int Slot, string Species) : BattleEv
 
 /// <summary>White Herb reset the Pokémon's lowered stat stages to 0 (Showdown's "-clearnegativeboost").</summary>
 public sealed record NegativeStagesCleared(SideId Side, int Slot, string Species) : BattleEvent;
+
+/// <summary>
+/// A volatile condition started on the Pokémon (Showdown's "-start"), such as the Focus Energy effect
+/// a Lansat Berry gives.
+/// </summary>
+public sealed record ConditionStarted(SideId Side, int Slot, string Species, string Condition) : BattleEvent;
+
+/// <summary>The Pokémon got an item back (Showdown's "-item"), such as the berry Harvest restores.</summary>
+public sealed record ItemReceived(SideId Side, int Slot, string Species, string Item) : BattleEvent;

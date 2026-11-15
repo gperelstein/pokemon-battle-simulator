@@ -84,6 +84,8 @@ internal static class Fixtures
         ItemDamage d => $"{d.Side}.{d.Slot} {d.Species} hurt by {d.Item} {d.Amount}",
         NegativeStagesCleared n => $"{n.Side}.{n.Slot} {n.Species} negative stages cleared",
         ForcedOut f => $"{f.Side}.{f.Slot} {f.Species} dragged out",
+        ConditionStarted c => $"{c.Side}.{c.Slot} {c.Species} {c.Condition} starts",
+        ItemReceived i => $"{i.Side}.{i.Slot} {i.Species} receives {i.Item}",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,

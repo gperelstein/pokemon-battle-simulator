@@ -94,7 +94,7 @@ public sealed partial class Battle
 
                 return;
 
-            case "cloudnine" or "moldbreaker":
+            case "cloudnine" or "moldbreaker" or "unnerve":
                 AbilityActivation(pokemon, pokemon.Ability);
                 return;
 

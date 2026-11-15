@@ -79,8 +79,12 @@ public sealed partial class Battle
         }
     }
 
-    /// <summary>Eject Button (priority 2), then Red Card (priority 0), each by descending holder speed.</summary>
-    private void ItemsAfterMoveSecondary(BattlePokemon user, MoveDefinition move, IReadOnlyList<BattlePokemon> hit)
+    /// <summary>
+    /// Eject Button (priority 2), then Red Card and the Kee / Maranga Berries (priority 0), each by
+    /// descending holder speed.
+    /// </summary>
+    /// <param name="heals">Present rolled its heal (Kee Berry ignores it).</param>
+    private void ItemsAfterMoveSecondary(BattlePokemon user, MoveDefinition move, IReadOnlyList<BattlePokemon> hit, bool heals)
     {
         if (move.Category == MoveCategory.Status)
         {
@@ -101,8 +105,14 @@ public sealed partial class Battle
             _switchFlag = new SwitchFlag(holder, FromItem: true);
         }
 
-        foreach (var holder in holders.Where(h => h.Item == HeldItems.RedCard))
+        foreach (var holder in holders)
         {
+            if (holder.Item != HeldItems.RedCard)
+            {
+                DefenseBerryAfterHit(holder, move, heals);
+                continue;
+            }
+
             if (holder.IsFainted || user.IsFainted || Locate(user).Slot < 0 || _sides[user.Side].Bench.Count == 0 ||
                 _forcedOut.Contains(user) || _forcedOut.Contains(holder))
             {

@@ -228,6 +228,15 @@ internal static class HeldItems
             ? reaction.Stat
             : null;
 
+    /// <summary>
+    /// Type-resist berries halve a super-effective hit of their type, Chilan Berry any Normal hit
+    /// (onSourceModifyDamage, x0.5, then eaten).
+    /// </summary>
+    public static bool HalvesHit(string? item, PokemonType moveType, double effectiveness) =>
+        item == Berries.Chilan
+            ? moveType == PokemonType.Normal
+            : item is not null && Berries.TypeResist.TryGetValue(item, out var type) && type == moveType && effectiveness > 1;
+
     /// <summary>Whether a weather started by the holder of <paramref name="item"/> lasts 8 turns.</summary>
     public static bool ExtendsWeather(string? item, Weather weather) =>
         item is not null && WeatherRocks.TryGetValue(item, out var extended) && extended == weather;

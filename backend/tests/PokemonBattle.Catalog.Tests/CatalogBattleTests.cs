@@ -106,6 +106,16 @@ public class CatalogBattleTests
     }
 
     [Fact]
+    public void Catalog_teams_eat_type_resist_berries_against_super_effective_hits()
+    {
+        var events = PlayFirstTurn(
+            new PokemonSetSpec("Raichu", ["Thunderbolt"], "Static"),
+            new PokemonSetSpec("Gyarados", ["Waterfall"], "Intimidate", Item: "Wacan Berry"));
+
+        Assert.Contains(new ItemConsumed(SideId.P2, 0, "Gyarados", "wacanberry"), events);
+    }
+
+    [Fact]
     public void Catalog_teams_with_red_card_drag_out_the_attacker()
     {
         var p1 = Builder.Build([new PokemonSetSpec("Machamp", ["Close Combat"], "Guts"), new PokemonSetSpec("Pidgey", ["Tackle"], "Keen Eye")]);

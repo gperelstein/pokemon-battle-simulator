@@ -73,7 +73,7 @@ public sealed partial class Battle
                 break;
         }
 
-        ItemReactionToDamagingHit(target, moveType);
+        ItemReactionToDamagingHit(attacker, target, move, moveType);
 
         // Poison Touch: the attacker's contact moves poison 3 times in 10, except through Shield Dust.
         if (attacker.Ability == "poisontouch" && contact && AbilityOf(target) != "shielddust" &&

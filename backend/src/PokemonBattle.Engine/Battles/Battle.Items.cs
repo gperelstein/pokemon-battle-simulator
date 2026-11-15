@@ -80,10 +80,16 @@ public sealed partial class Battle
 
     /// <summary>
     /// Fractional priority of a move action inside its priority bracket: Quick Claw rolls 1 in 5 to
-    /// move first (announced when it works), Lagging Tail and Full Incense move last.
+    /// move first (announced when it works), Custap Berry is eaten at the pinch threshold to move first,
+    /// Lagging Tail and Full Incense move last.
     /// </summary>
     private int FractionalPriority(Side side, int slot, BattlePokemon actor)
     {
+        if (CustapActivates(actor))
+        {
+            return 1;
+        }
+
         if (actor.Item != HeldItems.QuickClaw)
         {
             return HeldItems.FractionalPriority(actor.Item);

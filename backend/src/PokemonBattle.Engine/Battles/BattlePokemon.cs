@@ -45,10 +45,41 @@ public sealed class BattlePokemon
     /// </summary>
     public string? Item { get; private set; }
 
-    internal void ConsumeItem() => Item = null;
+    /// <summary>
+    /// The last item it used up or ate (Showdown's lastItem), which Harvest (and Recycle) can give
+    /// back. Items lost without being used (a popped Air Balloon, a Sticky Barb passed on) are not
+    /// recorded. It stays when the Pokémon switches out (Gen 5+).
+    /// </summary>
+    internal string? LastItem { get; private set; }
+
+    /// <summary>The held item is used up or eaten (Showdown's useItem / eatItem): it becomes the last item.</summary>
+    internal void ConsumeItem()
+    {
+        LastItem = Item;
+        Item = null;
+    }
+
+    /// <summary>The held item is gone without being used (a popped Air Balloon, a Sticky Barb passed on).</summary>
+    internal void LoseItem() => Item = null;
 
     /// <summary>Receives an item (a Sticky Barb passed on by contact).</summary>
     internal void SetItem(string item) => Item = item;
+
+    /// <summary>Holds its last used item again (Harvest's setItem(lastItem); lastItem is cleared).</summary>
+    internal void RestoreLastItem()
+    {
+        Item = LastItem;
+        LastItem = null;
+    }
+
+    /// <summary>The Focus Energy effect (critical hit ratio +2) until it leaves the field (Lansat Berry).</summary>
+    internal bool FocusEnergy { get; set; }
+
+    /// <summary>
+    /// Turns left of the eaten Micle Berry's boost to its next move's accuracy (Showdown's micleberry
+    /// volatile, duration 2), 0 when none.
+    /// </summary>
+    internal int MicleTurns { get; set; }
 
     /// <summary>Whether any stat stage is below 0 (White Herb's trigger).</summary>
     internal bool HasNegativeStages => _stages.Any(stage => stage < 0);
@@ -176,6 +207,8 @@ public sealed class BattlePokemon
         TraceSeeking = false;
         MetronomeMove = null;
         MetronomeCount = 0;
+        FocusEnergy = false;
+        MicleTurns = 0;
         MoveSucceededThisTurn = false;
         MoveSucceededLastTurn = false;
         RestoreAbility();

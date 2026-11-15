@@ -26,10 +26,19 @@ public sealed partial class Battle
         _events.Add(new ItemActivated(side.Id, slot, pokemon.Set.Species, item));
     }
 
-    /// <summary>The holder's item is used up or lost (Showdown's useItem / "-enditem").</summary>
-    private void ItemConsumption(BattlePokemon pokemon, string item)
+    /// <summary>The holder's item is used up, eaten or lost (Showdown's useItem / eatItem / "-enditem").</summary>
+    /// <param name="used">Used up or eaten, so it becomes the holder's last item (false for a popped Air Balloon).</param>
+    private void ItemConsumption(BattlePokemon pokemon, string item, bool used = true)
     {
-        pokemon.ConsumeItem();
+        if (used)
+        {
+            pokemon.ConsumeItem();
+        }
+        else
+        {
+            pokemon.LoseItem();
+        }
+
         var (side, slot) = Locate(pokemon);
         _events.Add(new ItemConsumed(side.Id, slot, pokemon.Set.Species, item));
     }
@@ -89,13 +98,16 @@ public sealed partial class Battle
     /// <summary>
     /// Residual order 28 (sub-order 3), after poison and burn: Sticky Barb hurts its holder 1/8,
     /// Toxic Orb and Flame Orb afflict it (trySetStatus: silent when it already has a status or is
-    /// immune). Then order 29: White Herb. Fainted holders are skipped, as in fieldEvent.
+    /// immune), each after its holder's Harvest (sub-order 2). Then order 29: White Herb. Fainted
+    /// holders are skipped, as in fieldEvent.
     /// </summary>
     /// <param name="bySpeed">Active Pokémon sorted when the residual phase started (handler speeds).</param>
     private void ApplyLateItemResiduals(IReadOnlyList<BattlePokemon> bySpeed)
     {
         foreach (var pokemon in bySpeed.Where(p => !p.IsFainted))
         {
+            // Harvest (order 28, sub-order 2) before its holder's own order-28 items.
+            Harvest(pokemon);
             switch (pokemon.Item)
             {
                 case HeldItems.StickyBarb:
@@ -155,13 +167,18 @@ public sealed partial class Battle
 
     /// <summary>
     /// Items of Showdown's Update event, run after every action, after each hit and after the end of
-    /// the turn: Berry Juice heals 20 HP, once, when its holder is at half HP or less.
+    /// the turn: Berry Juice heals 20 HP, once, when its holder is at half HP or less; status, HP and pinch berries
+    /// are eaten once their condition holds (see <see cref="EatsOnUpdate"/>).
     /// </summary>
     private void UpdateItems()
     {
         foreach (var pokemon in ActivePokemon().OrderByDescending(p => p.Speed).ToArray())
         {
-            if (pokemon.Item == HeldItems.BerryJuice && !pokemon.IsFainted && pokemon.CurrentHp * 2 <= pokemon.Set.Stats.Hp)
+            if (EatsOnUpdate(pokemon))
+            {
+                EatItem(pokemon);
+            }
+            else if (pokemon.Item == HeldItems.BerryJuice && !pokemon.IsFainted && pokemon.CurrentHp * 2 <= pokemon.Set.Stats.Hp)
             {
                 ItemConsumption(pokemon, HeldItems.BerryJuice);
                 var (side, slot) = Locate(pokemon);
@@ -235,7 +252,7 @@ public sealed partial class Battle
             return;
         }
 
-        holder.ConsumeItem();
+        holder.LoseItem();
         if (!attacker.IsFainted)
         {
             attacker.SetItem(HeldItems.StickyBarb);
@@ -259,12 +276,19 @@ public sealed partial class Battle
     /// Balloon pops (even on a fainted holder); Weakness Policy (+2 Attack and Special Attack after a
     /// super-effective hit whose damage is calculated) and Absorb Bulb, Cell Battery, Luminous Moss,
     /// Snowball (+1 to their stat after a hit of their type) are used up by a holder still standing.
+    /// Jaboca and Rowap Berries are eaten even by a holder the hit knocked out.
     /// </summary>
-    private void ItemReactionToDamagingHit(BattlePokemon target, PokemonType moveType)
+    private void ItemReactionToDamagingHit(BattlePokemon attacker, BattlePokemon target, MoveDefinition move, PokemonType moveType)
     {
         if (target.Item == HeldItems.AirBalloon)
         {
-            ItemConsumption(target, HeldItems.AirBalloon);
+            // Showdown clears the item without useItem, so it is not the last item.
+            ItemConsumption(target, HeldItems.AirBalloon, used: false);
+            return;
+        }
+
+        if (RetaliatingBerry(attacker, target, move))
+        {
             return;
         }
 
