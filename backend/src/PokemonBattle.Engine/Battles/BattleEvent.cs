@@ -139,3 +139,32 @@ public sealed record ConditionStarted(SideId Side, int Slot, string Species, str
 
 /// <summary>The Pokémon got an item back (Showdown's "-item"), such as the berry Harvest restores.</summary>
 public sealed record ItemReceived(SideId Side, int Slot, string Species, string Item) : BattleEvent;
+
+/// <summary>
+/// The held item was taken away by another Pokémon's move without going to it: knocked off (Knock
+/// Off), burnt up (Incinerate) or eaten by the attacker (Bug Bite, Pluck). Showdown's "-enditem ...
+/// [from] move". It is not the holder's last item, so Recycle and Harvest cannot bring it back.
+/// </summary>
+public sealed record ItemRemoved(SideId Side, int Slot, string Species, string Item, string MoveId) : BattleEvent;
+
+/// <summary>
+/// The Pokémon in this slot took the item of the foe in (<paramref name="FromSide"/>,
+/// <paramref name="FromSlot"/>) with Thief or Covet (Showdown's "-item ... [from] move: Thief").
+/// </summary>
+public sealed record ItemStolen(SideId Side, int Slot, string Species, string Item, SideId FromSide, int FromSlot, string MoveId)
+    : BattleEvent;
+
+/// <summary>
+/// Trick or Switcheroo swapped the held items of the user (now holding <paramref name="Item"/>) and
+/// the target (now holding <paramref name="TargetItem"/>); null when it ends up with nothing.
+/// </summary>
+public sealed record ItemsSwapped(
+    SideId Side, int Slot, string Species, string? Item, SideId TargetSide, int TargetSlot, string TargetSpecies,
+    string? TargetItem, string MoveId) : BattleEvent;
+
+/// <summary>
+/// Frisk revealed, on switch-in, the item held by the foe in (<paramref name="FoeSide"/>,
+/// <paramref name="FoeSlot"/>) (Showdown's "-item ... [from] ability: Frisk").
+/// </summary>
+public sealed record ItemFrisked(SideId Side, int Slot, string Species, string Item, SideId FoeSide, int FoeSlot)
+    : BattleEvent;

@@ -203,7 +203,7 @@ public sealed partial class Battle
         // Turn-scoped memory (hits taken, newly switched) used by Counter, Payback, Assurance...
         foreach (var pokemon in _sides.Values.SelectMany(s => s.Team))
         {
-            pokemon.ResetTurnState();
+            pokemon.ResetTurnState(itemUse: Turn != 1);
         }
 
         var chosen = _turnDecisions.SelectMany(entry => entry.Value.Choices.Select(choice => (Side: _sides[entry.Key], Choice: choice)));
@@ -324,6 +324,7 @@ public sealed partial class Battle
         _superEffectiveTargets.Clear();
         _moveDamageDealt = 0;
         _gemUser = null;
+        _flungItem = null;
         var (rolled, magnitude, heals, typeBoosted) = ModifyMove(move, user);
         _events.Add(new MoveUsed(action.Side.Id, action.Slot, user.Set.Species, move.Id));
         if (magnitude is { } strength)
@@ -406,6 +407,12 @@ public sealed partial class Battle
             return;
         }
 
+        // PrepareHit, before any hit check: Fling and Natural Gift need an item they can use.
+        if (!PrepareItemMove(action, move))
+        {
+            return;
+        }
+
         var hit = targets
             .Where(t => Hit(user, t.Side, t.Slot, new MoveUse(rolled, targets.Count > 1, heals, retaliation, typeBoosted)))
             .Select(t => t.Side.Active[t.Slot]!)
@@ -453,10 +460,12 @@ public sealed partial class Battle
             }
         }
 
-        // The target's onHit items (after the primary effects): Sticky Barb, including from a holder
-        // just knocked out, and Enigma Berry.
+        // The move's own onHit (Bug Bite, Trick, Recycle, a flung berry...), then the target's onHit
+        // items (after the primary effects): Sticky Barb, including from a holder just knocked out,
+        // and Enigma Berry.
         foreach (var target in hit)
         {
+            ItemMoveOnHit(action, move, target);
             PassStickyBarb(user, target, move);
             EnigmaOnHit(target);
         }
@@ -488,6 +497,13 @@ public sealed partial class Battle
                 ChangeStages(user, secondary.SelfBoosts, announceLimit: false);
             }
 
+            // A flung item's status is added to the secondaries in onPrepareHit, after Sheer Force
+            // looked at them, so only Shield Dust stops it.
+            if (_flungItem?.FlingStatus is { } flungStatus && AbilityOf(target) != "shielddust")
+            {
+                TrySetStatus(target, flungStatus, action, move, primary: false);
+            }
+
             if (move.ThawsTarget && target.Status == MajorStatus.Freeze && !target.IsFainted)
             {
                 Cure(target);
@@ -515,6 +531,10 @@ public sealed partial class Battle
         {
             AfterDamagingHit(user, target, move, rolled.Type);
         }
+
+        // AfterHit (Knock Off, Thief, Covet), then the Update in which Fling drops its item.
+        ItemMovesAfterHit(user, move, damaged);
+        UseUpFlungItem(user);
 
         // The Update event after a move that hit something (Berry Juice).
         if (hit.Length > 0)
@@ -685,7 +705,9 @@ public sealed partial class Battle
         var powderImmune = move.Powder && target != user && _typeChart.IsImmune(target.Set.Types, TypeCondition.Powder);
         // Endeavor needs a target with more HP; OHKO moves cannot affect a higher-level target.
         var moveImmune = (move.Id == "endeavor" && user.CurrentHp >= target.CurrentHp) ||
-            (move.Ohko && user.Set.Level < target.Set.Level);
+            (move.Ohko && user.Set.Level < target.Set.Level) ||
+            // Trick and Switcheroo's onTryImmunity uses hasAbility, which Mold Breaker does not affect.
+            (move.Id is "trick" or "switcheroo" && target.Ability == "stickyhold");
         if (powderImmune || moveImmune)
         {
             _events.Add(new Immune(side.Id, slot, target.Set.Species));
@@ -1233,6 +1255,11 @@ public sealed partial class Battle
         if (team.Any(p => p.Moves.Count is 0 or > PokemonSet.MaxMoves))
         {
             throw new ArgumentException($"Every Pokémon must know between 1 and {PokemonSet.MaxMoves} moves.", paramName);
+        }
+
+        if (team.Any(p => p.ItemData is not null && p.ItemData.Id != p.Item))
+        {
+            throw new ArgumentException("A set's item data must describe the item it holds.", paramName);
         }
     }
 

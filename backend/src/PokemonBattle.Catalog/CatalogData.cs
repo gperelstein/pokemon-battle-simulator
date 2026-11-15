@@ -214,7 +214,7 @@ public sealed record MoveData
         _ => throw new InvalidOperationException($"Unknown weather '{id}'."),
     };
 
-    private static MajorStatus? ToMajorStatus(string? id) => id switch
+    internal static MajorStatus? ToMajorStatus(string? id) => id switch
     {
         null => null,
         "brn" => MajorStatus.Burn,
@@ -294,8 +294,59 @@ public sealed record ItemData
     /// <summary>For Plates, the type they boost (Showdown's "onPlate").</summary>
     public PokemonType? OnPlate { get; init; }
 
+    /// <summary>For Drives, the type Techno Blast takes (Showdown's "onDrive").</summary>
+    public PokemonType? OnDrive { get; init; }
+
+    /// <summary>What Fling does with the item; null when Fling fails with it (Poké Balls, Normal Gem...).</summary>
+    public FlingData? Fling { get; init; }
+
+    /// <summary>Natural Gift's type and power with the berry; null for other items.</summary>
+    public NaturalGiftData? NaturalGift { get; init; }
+
     [JsonExtensionData]
     public Dictionary<string, JsonElement> Effects { get; init; } = [];
+
+    /// <summary>
+    /// Species whose holder can neither lose nor receive the item, from Showdown's onTakeItem: Mega
+    /// Stones (their megaStone species), Plates (Arceus, num 493), Drives (Genesect, 649), the Griseous
+    /// Orb (Giratina, 487, data/mods/gen8/items.ts) and the Primal orbs (Kyogre, Groudon).
+    /// </summary>
+    private IReadOnlyList<string> BoundSpecies() => MegaStone is { } stone ? stone.Keys.ToArray()
+        : OnPlate is not null ? ["Arceus"]
+        : OnDrive is not null ? ["Genesect"]
+        : Id switch
+        {
+            "griseousorb" => ["Giratina"],
+            "blueorb" => ["Kyogre"],
+            "redorb" => ["Groudon"],
+            _ => [],
+        };
+
+    /// <summary>Engine view of the item: the battle data that moves with it when it changes hands.</summary>
+    public ItemDefinition ToDefinition() => new(
+        Id,
+        OnPlate,
+        Fling?.BasePower ?? 0,
+        MoveData.ToMajorStatus(Fling?.Status),
+        Fling?.VolatileStatus == "flinch",
+        NaturalGift?.Type,
+        NaturalGift?.BasePower ?? 0,
+        BoundSpecies());
+}
+
+/// <summary>Showdown's item "fling" data: base power and the status or volatile it inflicts.</summary>
+public sealed record FlingData
+{
+    public int BasePower { get; init; }
+    public string? Status { get; init; }
+    public string? VolatileStatus { get; init; }
+}
+
+/// <summary>Showdown's berry "naturalGift" data.</summary>
+public sealed record NaturalGiftData
+{
+    public int BasePower { get; init; }
+    public PokemonType Type { get; init; }
 }
 
 public sealed record NatureData

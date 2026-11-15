@@ -16,6 +16,7 @@ public sealed partial class Battle
         "lowkick", "grassknot", "heavyslam", "heatcrash", "flail", "reversal", "wringout", "crushgrip",
         "gyroball", "electroball", "punishment", "return", "frustration", "magnitude", "present",
         "superfang", "endeavor", "finalgambit", "psywave", "counter", "mirrorcoat", "metalburst",
+        "fling", "naturalgift",
     ];
 
     private static bool IsSupported(MoveDefinition move) =>
@@ -33,6 +34,7 @@ public sealed partial class Battle
         MoveDefinition move, BattlePokemon user)
     {
         var (modified, magnitude, heals) = ModifyMoveItself(move);
+        modified = ItemPoweredMove(modified, user);
         if (user.Ability == "aerilate" && modified.Type == PokemonType.Normal && !TypeLockedMoves.Contains(move.Id))
         {
             return (modified with { Type = PokemonType.Flying }, magnitude, heals, true);
@@ -190,6 +192,7 @@ public sealed partial class Battle
                 move.BasePower * 2,
             "payback" when !target.NewlySwitched && !WillMove(target) => move.BasePower * 2,
             "assurance" when target.HurtThisTurn => move.BasePower * 2,
+            "acrobatics" when user.Item is null => move.BasePower * 2,
             _ => move.BasePower,
         };
         power = Math.Max(1, power);
@@ -244,6 +247,9 @@ public sealed partial class Battle
             "solarbeam" when EffectiveWeather is { } weather && weather != Battles.Weather.Sun => (1, 2),
             // Bounce doubles the base power of Gust and Twister (onSourceBasePower).
             "gust" or "twister" when target.ChargingMoveId == "bounce" => (2, 1),
+            // Knock Off (onBasePower, priority 0): x1.5 when the target's item could be taken by
+            // its onTakeItem (Sticky Hold does not matter here: data/moves.ts knockoff).
+            "knockoff" when target.HeldItem is { } item && !IsBound(item, target) => (3, 2),
             _ => (1, 1),
         };
         chain = chain.Chain(moveModifier.Item1, moveModifier.Item2);

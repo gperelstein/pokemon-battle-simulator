@@ -13,9 +13,9 @@ public class BattleDamageTests
     private static readonly MoveDefinition StormThrow =
         new("stormthrow", "Storm Throw", PokemonType.Fighting, MoveCategory.Physical, 60, WillCrit: true);
 
-    // Fling depends on the held item (T6f), so it stays unsupported for now.
-    private static readonly MoveDefinition Fling =
-        new("fling", "Fling", PokemonType.Dark, MoveCategory.Physical, 0);
+    // Trump Card depends on the PP left, which the engine does not track yet, so it stays unsupported.
+    private static readonly MoveDefinition TrumpCard =
+        new("trumpcard", "Trump Card", PokemonType.Normal, MoveCategory.Special, 0);
 
     private static PokemonSet Typed(PokemonSet set, params PokemonType[] types) => set with { Types = types };
 
@@ -79,8 +79,8 @@ public class BattleDamageTests
     [Fact]
     public void Variable_power_moves_fail_until_their_logic_exists()
     {
-        var events = PlayTurn(Mon("Machamp", 55, moves: [Fling]), Mon("Snorlax", 30));
+        var events = PlayTurn(Mon("Machamp", 55, moves: [TrumpCard]), Mon("Snorlax", 30));
 
-        Assert.Equal(["P1.0 Machamp uses fling", "P1.0 fling failed"], events.Take(2));
+        Assert.Equal(["P1.0 Machamp uses trumpcard", "P1.0 trumpcard failed"], events.Take(2));
     }
 }

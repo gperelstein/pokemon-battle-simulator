@@ -86,6 +86,11 @@ internal static class Fixtures
         ForcedOut f => $"{f.Side}.{f.Slot} {f.Species} dragged out",
         ConditionStarted c => $"{c.Side}.{c.Slot} {c.Species} {c.Condition} starts",
         ItemReceived i => $"{i.Side}.{i.Slot} {i.Species} receives {i.Item}",
+        ItemRemoved r => $"{r.Side}.{r.Slot} {r.Species} {r.Item} removed by {r.MoveId}",
+        ItemStolen s => $"{s.Side}.{s.Slot} {s.Species} steals {s.Item} from {s.FromSide}.{s.FromSlot} ({s.MoveId})",
+        ItemsSwapped s =>
+            $"{s.Side}.{s.Slot} {s.Species} {s.MoveId}: holds {s.Item ?? "nothing"}, {s.TargetSide}.{s.TargetSlot} {s.TargetSpecies} holds {s.TargetItem ?? "nothing"}",
+        ItemFrisked f => $"{f.Side}.{f.Slot} {f.Species} frisks {f.Item} of {f.FoeSide}.{f.FoeSlot}",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,

@@ -16,7 +16,7 @@ public sealed class BattlePokemon
         TeamIndex = teamIndex;
         Set = set;
         CurrentHp = set.Stats.Hp;
-        Item = set.Item;
+        _item = set.ItemData ?? (set.Item is null ? null : new ItemDefinition(set.Item, set.PlateType));
         _field = field;
         RestoreAbility();
     }
@@ -39,37 +39,82 @@ public sealed class BattlePokemon
 
     private void RestoreAbility() => ChangeAbility(Set.Ability, Set.AbilityBreakable, Set.AbilityTraceable);
 
-    /// <summary>
-    /// Held item right now: the set's until it is used up (Normal Gem, Focus Sash...) or passed on
-    /// (Sticky Barb). A consumed item stays gone after switching out, as in Showdown.
-    /// </summary>
-    public string? Item { get; private set; }
+    private ItemDefinition? _item;
+    private ItemDefinition? _lastItem;
 
     /// <summary>
-    /// The last item it used up or ate (Showdown's lastItem), which Harvest (and Recycle) can give
-    /// back. Items lost without being used (a popped Air Balloon, a Sticky Barb passed on) are not
-    /// recorded. It stays when the Pokémon switches out (Gen 5+).
+    /// Held item right now: the set's until it is used up (Normal Gem, Focus Sash...), taken (Knock
+    /// Off, Thief) or passed on (Sticky Barb, Trick). A lost item stays gone after switching out, as
+    /// in Showdown.
     /// </summary>
-    internal string? LastItem { get; private set; }
+    public string? Item => _item?.Id;
 
-    /// <summary>The held item is used up or eaten (Showdown's useItem / eatItem): it becomes the last item.</summary>
+    /// <summary>The held item with its battle data (Plate type, Fling, Natural Gift...), or null.</summary>
+    internal ItemDefinition? HeldItem => _item;
+
+    /// <summary>
+    /// The last item it used up or ate (Showdown's lastItem), which Harvest and Recycle can give back
+    /// and Pickup can take. Items lost without being used (a popped Air Balloon, a Sticky Barb passed
+    /// on, a knocked-off or stolen item) are not recorded. It stays when the Pokémon switches out (Gen 5+).
+    /// </summary>
+    internal string? LastItem => _lastItem?.Id;
+
+    /// <summary>Used up or ate an item this turn (Showdown's usedItemThisTurn, which Pickup reads).</summary>
+    internal bool UsedItemThisTurn { get; private set; }
+
+    /// <summary>
+    /// The unburden volatile: added when an Unburden holder loses its item (onAfterUseItem,
+    /// onTakeItem); it doubles Speed while the holder has no item, until it leaves the field.
+    /// </summary>
+    internal bool UnburdenActive { get; private set; }
+
+    /// <summary>
+    /// The held item is used up or eaten (Showdown's useItem / eatItem, Fling, Natural Gift): it
+    /// becomes the last item.
+    /// </summary>
     internal void ConsumeItem()
     {
-        LastItem = Item;
-        Item = null;
+        _lastItem = _item;
+        UsedItemThisTurn = true;
+        DropItem();
     }
 
-    /// <summary>The held item is gone without being used (a popped Air Balloon, a Sticky Barb passed on).</summary>
-    internal void LoseItem() => Item = null;
+    /// <summary>
+    /// The held item is gone without being used (a popped Air Balloon, a Sticky Barb passed on, Knock
+    /// Off, Thief, Trick: Showdown's takeItem). Returns it.
+    /// </summary>
+    internal ItemDefinition? LoseItem()
+    {
+        var item = _item;
+        DropItem();
+        return item;
+    }
 
-    /// <summary>Receives an item (a Sticky Barb passed on by contact).</summary>
-    internal void SetItem(string item) => Item = item;
+    private void DropItem()
+    {
+        _item = null;
+        if (Ability == "unburden")
+        {
+            UnburdenActive = true;
+        }
+    }
 
-    /// <summary>Holds its last used item again (Harvest's setItem(lastItem); lastItem is cleared).</summary>
+    /// <summary>Receives an item (Sticky Barb, Thief, Trick, Pickup: Showdown's setItem).</summary>
+    internal void SetItem(ItemDefinition item) => _item = item;
+
+    /// <summary>Holds its last used item again (Harvest's and Recycle's setItem(lastItem); lastItem is cleared).</summary>
     internal void RestoreLastItem()
     {
-        Item = LastItem;
-        LastItem = null;
+        _item = _lastItem;
+        _lastItem = null;
+    }
+
+    /// <summary>Gives its last item away (Pickup clears the lastItem it takes).</summary>
+    internal ItemDefinition? TakeLastItem()
+    {
+        var item = _lastItem;
+        _lastItem = null;
+        return item;
     }
 
     /// <summary>The Focus Energy effect (critical hit ratio +2) until it leaves the field (Lansat Berry).</summary>
@@ -130,6 +175,9 @@ public sealed class BattlePokemon
                     break;
                 case "quickfeet" when Status is not null:
                     chain = chain.Chain(3, 2);
+                    break;
+                case "unburden" when UnburdenActive && _item is null:
+                    chain = chain.Chain(2);
                     break;
             }
 
@@ -211,11 +259,22 @@ public sealed class BattlePokemon
         MicleTurns = 0;
         MoveSucceededThisTurn = false;
         MoveSucceededLastTurn = false;
+        UsedItemThisTurn = false;
+        UnburdenActive = false;
         RestoreAbility();
     }
 
-    internal void ResetTurnState()
+    /// <param name="itemUse">
+    /// Also forget the items used this turn; false on turn 1, when items used by the leads on
+    /// switch-in still count (sim/battle.ts skips the reset while turn is 1).
+    /// </param>
+    internal void ResetTurnState(bool itemUse = true)
     {
+        if (itemUse)
+        {
+            UsedItemThisTurn = false;
+        }
+
         HitsTakenThisTurn.Clear();
         HurtThisTurn = false;
         NewlySwitched = false;

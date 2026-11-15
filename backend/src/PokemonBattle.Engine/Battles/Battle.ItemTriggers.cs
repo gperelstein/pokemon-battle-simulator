@@ -106,8 +106,9 @@ public sealed partial class Battle
     {
         foreach (var pokemon in bySpeed.Where(p => !p.IsFainted))
         {
-            // Harvest (order 28, sub-order 2) before its holder's own order-28 items.
+            // Harvest and Pickup (order 28, sub-order 2) before their holder's own order-28 items.
             Harvest(pokemon);
+            Pickup(pokemon);
             switch (pokemon.Item)
             {
                 case HeldItems.StickyBarb:
@@ -252,10 +253,10 @@ public sealed partial class Battle
             return;
         }
 
-        holder.LoseItem();
+        var barb = holder.LoseItem()!;
         if (!attacker.IsFainted)
         {
-            attacker.SetItem(HeldItems.StickyBarb);
+            attacker.SetItem(barb);
         }
     }
 

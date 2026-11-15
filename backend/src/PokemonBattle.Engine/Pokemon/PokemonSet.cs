@@ -13,6 +13,10 @@ namespace PokemonBattle.Engine.Pokemon;
 /// </param>
 /// <param name="CanEvolve">The species can still evolve (Showdown's "nfe"); Eviolite reads it.</param>
 /// <param name="PlateType">Type of the held Plate (the catalog's "onPlate"), which it boosts; null for other items.</param>
+/// <param name="ItemData">
+/// Battle data of <paramref name="Item"/> (Fling, Natural Gift, Mega Stone binding, Plate type),
+/// which moves with the item in battle. Null gives the item only its id and <paramref name="PlateType"/>.
+/// </param>
 public sealed record PokemonSet(
     string Species,
     IReadOnlyList<PokemonType> Types,
@@ -27,7 +31,8 @@ public sealed record PokemonSet(
     bool AbilityTraceable = true,
     string? BaseSpecies = null,
     bool CanEvolve = false,
-    PokemonType? PlateType = null)
+    PokemonType? PlateType = null,
+    ItemDefinition? ItemData = null)
 {
     public const int MaxMoves = 4;
 }

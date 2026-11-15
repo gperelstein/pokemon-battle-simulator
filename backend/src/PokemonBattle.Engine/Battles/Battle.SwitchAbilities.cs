@@ -14,14 +14,16 @@ public sealed partial class Battle
 
     /// <summary>
     /// The set as the damage formula must see it: with the current (possibly traced) ability and the
-    /// current held item (none once used up).
+    /// current held item (none once used up) with its Plate type, which moves with the item.
     /// </summary>
     private static PokemonSet CombatSet(BattlePokemon pokemon) =>
-        pokemon.Ability == pokemon.Set.Ability && pokemon.Item == pokemon.Set.Item
+        pokemon.Ability == pokemon.Set.Ability && pokemon.Item == pokemon.Set.Item &&
+        pokemon.HeldItem?.PlateType == pokemon.Set.PlateType
             ? pokemon.Set
             : pokemon.Set with
             {
                 Ability = pokemon.Ability, AbilityBreakable = pokemon.AbilityBreakable, Item = pokemon.Item,
+                PlateType = pokemon.HeldItem?.PlateType, ItemData = pokemon.HeldItem,
             };
 
     private IEnumerable<BattlePokemon> ActivePokemon() =>
@@ -111,6 +113,10 @@ public sealed partial class Battle
 
             case "forewarn":
                 Forewarn(pokemon);
+                return;
+
+            case "frisk":
+                Frisk(pokemon);
                 return;
 
             case "trace":

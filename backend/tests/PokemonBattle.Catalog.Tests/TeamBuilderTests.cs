@@ -224,3 +224,58 @@ public class TeamBuilderTests
         Assert.Equal(plateType, team[0].PlateType);
     }
 }
+
+public class TeamBuilderItemDataTests
+{
+    private static readonly TeamBuilder Builder = new(Gen6Catalog.Instance);
+
+    private static ItemDefinition? ItemOf(string item) =>
+        Builder.Build([new PokemonSetSpec("Charizard", ["Flare Blitz"], "Blaze", Item: item)]).Team[0].ItemData;
+
+    [Fact]
+    public void Item_data_carries_the_fling_and_natural_gift_values_of_the_catalog()
+    {
+        var oran = ItemOf("Oran Berry")!;
+        Assert.Equal("oranberry", oran.Id);
+        Assert.Equal(10, oran.FlingPower);
+        Assert.Equal(PokemonType.Poison, oran.NaturalGiftType);
+        Assert.Equal(80, oran.NaturalGiftPower);
+
+        var ironBall = ItemOf("Iron Ball")!;
+        Assert.Equal(130, ironBall.FlingPower);
+        Assert.Null(ironBall.NaturalGiftType);
+        Assert.Empty(ironBall.BoundSpecies);
+    }
+
+    [Theory]
+    [InlineData("Toxic Orb", MajorStatus.Toxic)]
+    [InlineData("Flame Orb", MajorStatus.Burn)]
+    [InlineData("Light Ball", MajorStatus.Paralysis)]
+    [InlineData("Poison Barb", MajorStatus.Poison)]
+    public void Item_data_carries_the_status_fling_inflicts(string item, MajorStatus status) =>
+        Assert.Equal(status, ItemOf(item)!.FlingStatus);
+
+    [Theory]
+    [InlineData("King's Rock")]
+    [InlineData("Razor Fang")]
+    public void Item_data_marks_the_items_that_make_fling_flinch(string item) => Assert.True(ItemOf(item)!.FlingFlinches);
+
+    [Fact]
+    public void Items_without_fling_data_have_no_fling_power() => Assert.Equal(0, ItemOf("Normal Gem")!.FlingPower);
+
+    [Theory]
+    [InlineData("Charizardite X", "Charizard")]
+    [InlineData("Mewtwonite Y", "Mewtwo")]
+    [InlineData("Flame Plate", "Arceus")]
+    [InlineData("Griseous Orb", "Giratina")]
+    [InlineData("Blue Orb", "Kyogre")]
+    public void Item_data_binds_mega_stones_and_form_items_to_their_species(string item, string species) =>
+        Assert.Equal([species], ItemOf(item)!.BoundSpecies);
+
+    [Fact]
+    public void Item_data_keeps_the_plate_type() => Assert.Equal(PokemonType.Fire, ItemOf("Flame Plate")!.PlateType);
+
+    [Fact]
+    public void Sets_without_an_item_have_no_item_data() =>
+        Assert.Null(Builder.Build([new PokemonSetSpec("Charizard", ["Flare Blitz"], "Blaze")]).Team[0].ItemData);
+}

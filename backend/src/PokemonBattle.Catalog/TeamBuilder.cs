@@ -130,7 +130,8 @@ public sealed class TeamBuilder(Gen6Catalog catalog)
             !ability.Flags.Contains("notrace"),
             species.BaseSpecies,
             species.Evos.Count > 0,
-            item?.OnPlate);
+            item?.OnPlate,
+            item?.ToDefinition());
     }
 
     private List<MoveData> ValidateMoves(PokemonSetSpec spec, SpeciesData species, string label, List<string> errors)
