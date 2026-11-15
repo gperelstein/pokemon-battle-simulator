@@ -89,6 +89,40 @@ public class CatalogBattleTests
     }
 
     [Fact]
+    public void Forced_switch_moves_map_from_gen_6_data()
+    {
+        MoveDefinition Move(string id) => Catalog.FindMove(id)!.ToDefinition();
+
+        foreach (var id in new[] { "roar", "whirlwind", "dragontail", "circlethrow" })
+        {
+            Assert.True(Move(id).ForceSwitch, id);
+            Assert.Equal(-6, Move(id).Priority);
+        }
+
+        Assert.Equal(MoveCategory.Status, Move("roar").Category);
+        Assert.Equal(MoveCategory.Physical, Move("dragontail").Category);
+        Assert.False(Move("tackle").ForceSwitch);
+        Assert.False(Move("uturn").ForceSwitch);
+    }
+
+    [Fact]
+    public void Catalog_teams_with_red_card_drag_out_the_attacker()
+    {
+        var p1 = Builder.Build([new PokemonSetSpec("Machamp", ["Close Combat"], "Guts"), new PokemonSetSpec("Pidgey", ["Tackle"], "Keen Eye")]);
+        var p2 = Builder.Build([new PokemonSetSpec("Snorlax", ["Rest"], "Thick Fat", Item: "Red Card")]);
+        Assert.Empty(p1.Errors.Concat(p2.Errors));
+        var battle = Battle.Create(BattleFormat.Singles, p1.Team, p2.Team, Catalog.TypeChart, new SeededBattleRandom(7));
+        battle.Start();
+
+        battle.Submit(SideId.P1, new Decision(new MoveChoice(0, 0)));
+        var events = battle.Submit(SideId.P2, new Decision(new MoveChoice(0, 0))).Events;
+
+        Assert.Contains(new ItemConsumed(SideId.P2, 0, "Snorlax", "redcard"), events);
+        Assert.Contains(new ForcedOut(SideId.P1, 0, "Machamp"), events);
+        Assert.Equal("Pidgey", battle.GetSide(SideId.P1).Active[0]!.Set.Species);
+    }
+
+    [Fact]
     public void Moves_map_status_effects_from_gen_6_data()
     {
         MoveDefinition Move(string id) => Catalog.FindMove(id)!.ToDefinition();

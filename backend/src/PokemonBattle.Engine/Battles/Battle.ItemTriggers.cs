@@ -292,7 +292,9 @@ public sealed partial class Battle
     /// </summary>
     private void ApplyShellBell(BattlePokemon user, bool sheerForce)
     {
-        if (user.Item == HeldItems.ShellBell && _moveDamageDealt > 0 && !sheerForce)
+        // Showdown: `move.totalDamage && !pokemon.forceSwitchFlag`, so no heal for a user that Red Card
+        // (or a forced-switch move) is about to drag out.
+        if (user.Item == HeldItems.ShellBell && _moveDamageDealt > 0 && !sheerForce && !_forcedOut.Contains(user))
         {
             HealByItem(user, HeldItems.ShellBell, _moveDamageDealt / 8);
         }

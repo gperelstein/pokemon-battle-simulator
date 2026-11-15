@@ -144,6 +144,12 @@ public sealed class BattlePokemon
 
     internal bool MoveSucceededLastTurn { get; private set; }
 
+    /// <summary>
+    /// Move a Choice item locked it into (Showdown's choicelock volatile), or null. Unlike
+    /// <see cref="IsLocked"/>, its player still chooses, among the moves the lock allows.
+    /// </summary>
+    internal string? ChoiceLockedMoveId { get; set; }
+
     /// <summary>Its next action is fixed, so its player is not asked for a decision.</summary>
     internal bool IsLocked => ChargedChoice is not null || MustRecharge;
 
@@ -165,6 +171,7 @@ public sealed class BattlePokemon
         Array.Clear(_stages);
         StopCharging();
         MustRecharge = false;
+        ChoiceLockedMoveId = null;
         FlashFireActive = false;
         TraceSeeking = false;
         MetronomeMove = null;

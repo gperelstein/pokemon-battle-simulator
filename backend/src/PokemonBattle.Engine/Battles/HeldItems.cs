@@ -33,6 +33,9 @@ internal static class HeldItems
     public const string BerryJuice = "berryjuice";
     public const string SafetyGoggles = "safetygoggles";
     public const string RingTarget = "ringtarget";
+    public const string EjectButton = "ejectbutton";
+    public const string RedCard = "redcard";
+    public const string ShedShell = "shedshell";
 
     /// <summary>
     /// Single-use items that raise a stat by 1 when a damaging move of their type hits the holder

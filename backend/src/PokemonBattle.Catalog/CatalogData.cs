@@ -135,6 +135,9 @@ public sealed record MoveData
     /// <summary>The user is hurt when the move misses (Jump Kick, High Jump Kick).</summary>
     public bool HasCrashDamage { get; init; }
 
+    /// <summary>Drags the target out for a random ally (Roar, Whirlwind, Dragon Tail, Circle Throw).</summary>
+    public bool ForceSwitch { get; init; }
+
     /// <summary>Remaining declarative mechanics (status, drain, recoil...) kept raw.</summary>
     [JsonExtensionData]
     public Dictionary<string, JsonElement> Effects { get; init; } = [];
@@ -187,7 +190,8 @@ public sealed record MoveData
             "ifHit" => SelfDestruct.IfHit,
             _ => throw new InvalidOperationException($"Unknown selfdestruct '{SelfDestructValue}'."),
         },
-        Secondaries is { Count: > 0 });
+        Secondaries is { Count: > 0 },
+        ForceSwitch);
 
     private static MoveFlags ToMoveFlags(IReadOnlyList<string> flags) => flags.Aggregate(MoveFlags.None, (all, flag) => all | flag switch
     {

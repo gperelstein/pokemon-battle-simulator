@@ -121,5 +121,12 @@ public sealed record ItemConsumed(SideId Side, int Slot, string Species, string 
 public sealed record ItemDamage(SideId Side, int Slot, string Species, string Item, int Amount, int RemainingHp)
     : BattleEvent;
 
+/// <summary>
+/// The Pokémon in this slot is forced out (Roar, Dragon Tail, Red Card) and replaced by a random
+/// healthy ally without asking its player (Showdown's "drag"). The usual <see cref="SwitchedOut"/>
+/// and <see cref="SwitchedIn"/> follow.
+/// </summary>
+public sealed record ForcedOut(SideId Side, int Slot, string Species) : BattleEvent;
+
 /// <summary>White Herb reset the Pokémon's lowered stat stages to 0 (Showdown's "-clearnegativeboost").</summary>
 public sealed record NegativeStagesCleared(SideId Side, int Slot, string Species) : BattleEvent;

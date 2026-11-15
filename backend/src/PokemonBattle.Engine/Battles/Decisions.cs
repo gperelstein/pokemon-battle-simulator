@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace PokemonBattle.Engine.Battles;
 
 public enum DecisionKind
@@ -19,10 +21,22 @@ public enum DecisionKind
 /// <param name="TrappedSlots">
 /// Requested slots whose Pokémon cannot choose to switch (Arena Trap, Magnet Pull, Shadow Tag).
 /// </param>
+/// <param name="DisabledMoves">
+/// For each requested slot with restrictions, the indexes of the moves its Pokémon cannot choose
+/// (Showdown's per-move "disabled" request flag): a Choice item lock, Assault Vest. Slots without
+/// restrictions are absent.
+/// </param>
 public sealed record DecisionRequest(
-    SideId Side, DecisionKind Kind, IReadOnlyList<int> Slots, IReadOnlyList<int>? TrappedSlots = null)
+    SideId Side,
+    DecisionKind Kind,
+    IReadOnlyList<int> Slots,
+    IReadOnlyList<int>? TrappedSlots = null,
+    IReadOnlyDictionary<int, IReadOnlyList<int>>? DisabledMoves = null)
 {
     public IReadOnlyList<int> TrappedSlots { get; init; } = TrappedSlots ?? [];
+
+    public IReadOnlyDictionary<int, IReadOnlyList<int>> DisabledMoves { get; init; } =
+        DisabledMoves ?? ReadOnlyDictionary<int, IReadOnlyList<int>>.Empty;
 }
 
 public abstract record SlotChoice(int Slot);

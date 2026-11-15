@@ -83,6 +83,10 @@ public enum MoveTarget
 /// The move has secondary effects in the data, including ones the engine does not model yet (flinch);
 /// Sheer Force reads it.
 /// </param>
+/// <param name="ForceSwitch">
+/// Drags each target it hits out for a random healthy ally (Roar, Whirlwind, Dragon Tail, Circle
+/// Throw: Showdown's forceSwitch).
+/// </param>
 public sealed record MoveDefinition(
     string Id,
     string Name,
@@ -117,7 +121,8 @@ public sealed record MoveDefinition(
     MoveFlags Flags = MoveFlags.None,
     bool HasRecoil = false,
     SelfDestruct? SelfDestruct = null,
-    bool HasSecondaryEffects = false)
+    bool HasSecondaryEffects = false,
+    bool ForceSwitch = false)
 {
     /// <summary>Whether a target the move's type cannot affect is still hit.</summary>
     public bool IgnoresTypeImmunity => IgnoreImmunity ?? Category == MoveCategory.Status;

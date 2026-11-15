@@ -6,13 +6,14 @@ namespace PokemonBattle.Engine.Battles;
 /// Trapping abilities, following Showdown's data/abilities.ts (Gen 6) and sim/pokemon.ts: a foe of
 /// an Arena Trap holder that is grounded, a Steel-type foe of a Magnet Pull holder, or any foe of a
 /// Shadow Tag holder that does not have Shadow Tag itself cannot choose to switch. Ghost types are
-/// immune to trapping (their "trapped" type immunity). Self-switch moves still work.
+/// immune to trapping (their "trapped" type immunity). Self-switch moves still work. A Shed Shell
+/// holder can always switch (data/items.ts shedshell: onTrapPokemon, priority -10, clears trapped).
 /// </summary>
 public sealed partial class Battle
 {
     private bool IsTrapped(BattlePokemon pokemon)
     {
-        if (_typeChart.IsImmune(pokemon.Set.Types, TypeCondition.Trapped))
+        if (pokemon.Item == HeldItems.ShedShell || _typeChart.IsImmune(pokemon.Set.Types, TypeCondition.Trapped))
         {
             return false;
         }

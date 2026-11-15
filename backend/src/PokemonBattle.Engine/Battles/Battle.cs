@@ -188,7 +188,7 @@ public sealed partial class Battle
             if (slots.Length > 0)
             {
                 var trapped = slots.Where(slot => IsTrapped(side.Active[slot]!)).ToArray();
-                Request(new DecisionRequest(side.Id, DecisionKind.Turn, slots, trapped));
+                Request(new DecisionRequest(side.Id, DecisionKind.Turn, slots, trapped, DisabledMoves(side, slots)));
             }
         }
 
@@ -294,6 +294,10 @@ public sealed partial class Battle
             return;
         }
 
+        // A Choice item locks the move in once it is used (its onModifyMove).
+        LockChoice(user, move);
+        ClearSwitchFlags();
+
         // Mold Breaker sets ignoreAbility while its move runs (Showdown's onModifyMove).
         _moldBreakerUser = user.Ability == "moldbreaker" ? user : null;
         try
@@ -307,6 +311,9 @@ public sealed partial class Battle
 
         // White Herb's onAnyAfterMove: any holder whose stats the move lowered restores them now.
         RestoreLoweredStagesOfActivePokemon();
+
+        // End of the action (runAction): forced switches first, then a mid-turn switch request.
+        ResolveSwitchFlags();
     }
 
     private void RunMove(MoveAction action, MoveDefinition move, bool releasingCharge)
@@ -403,6 +410,7 @@ public sealed partial class Battle
             .Where(t => Hit(user, t.Side, t.Slot, new MoveUse(rolled, targets.Count > 1, heals, retaliation, typeBoosted)))
             .Select(t => t.Side.Active[t.Slot]!)
             .ToArray();
+        hit = WithoutFailedDrags(action, move, hit);
         user.MoveSucceededThisTurn = hit.Length > 0;
 
         // Final Gambit and Memento: the user faints once the move has hit.
@@ -484,6 +492,9 @@ public sealed partial class Battle
             }
         }
 
+        // Force switch (step 6, after the secondaries and before DamagingHit).
+        FlagForcedSwitches(user, move, hit);
+
         // DamagingHit, in Showdown's left-to-right order: Aftermath (order 1) and Rocky Helmet (order
         // 2) for every damaged target, then each target's other ability and item reactions and the
         // attacker's Poison Touch.
@@ -507,6 +518,17 @@ public sealed partial class Battle
         if (hit.Length > 0)
         {
             UpdateItems();
+
+            // A self-switch move that did not hit anything (immune targets, misses) does not switch
+            // out. Showdown sets the flag while running the move's effects, before the items below.
+            RequestSelfSwitch(action, move);
+
+            // AfterMoveSecondary (Eject Button, Red Card), skipped when Sheer Force removed the
+            // move's secondaries.
+            if (!sheerForce)
+            {
+                ItemsAfterMoveSecondary(user, move, hit);
+            }
         }
 
         // Life Orb and Shell Bell (AfterMoveSecondarySelf) run before the faints are processed (Moxie).
@@ -528,19 +550,17 @@ public sealed partial class Battle
         {
             user.MustRecharge = true;
         }
-
-        // A self-switch move that did not hit anything (immune targets, misses) does not switch out.
-        if (hit.Length > 0)
-        {
-            RequestSelfSwitch(action, move);
-        }
     }
 
+    /// <summary>
+    /// A self-switch move (U-turn, Volt Switch) flags its user; the replacement is requested once the
+    /// action ends (<see cref="ResolveSwitchFlags"/>), if the user is still standing on the field.
+    /// </summary>
     private void RequestSelfSwitch(MoveAction action, MoveDefinition move)
     {
         if (move.SelfSwitch && !action.Actor.IsFainted && action.Side.Bench.Count > 0)
         {
-            Request(new DecisionRequest(action.Side.Id, DecisionKind.MidTurnSwitch, [action.Slot]));
+            _switchFlag = new SwitchFlag(action.Actor, FromItem: false);
         }
     }
 
@@ -1146,10 +1166,16 @@ public sealed partial class Battle
             switch (choice)
             {
                 case MoveChoice move:
-                    var moves = side.Active[move.Slot]!.Set.Moves;
+                    var mover = side.Active[move.Slot]!;
+                    var moves = mover.Set.Moves;
                     if (move.MoveIndex < 0 || move.MoveIndex >= moves.Count)
                     {
                         return $"Move {move.MoveIndex} does not exist.";
+                    }
+
+                    if (request.DisabledMoves.TryGetValue(move.Slot, out var disabled) && disabled.Contains(move.MoveIndex))
+                    {
+                        return $"Can't move: {mover.Set.Species}'s {moves[move.MoveIndex].Name} is disabled.";
                     }
 
                     if (move.TargetSlot < 0 || move.TargetSlot >= side.Active.Count)
