@@ -157,9 +157,12 @@ public sealed class BattleSession
 
     private Task OnUpdate(SideId side, BattleUpdate update)
     {
+        PlayerUpdate visible;
         lock (_gate)
         {
-            _events[side].AddRange(update.Events);
+            var events = update.Events.Where(e => e is not DecisionRequested requested || requested.Request.Side == side).ToArray();
+            visible = new PlayerUpdate(_events[side].Count, events, update.Request);
+            _events[side].AddRange(events);
             _requests[side] = update.Request;
             if (update.Events.Any(e => e is BattleEnded))
             {
@@ -167,7 +170,7 @@ public sealed class BattleSession
             }
         }
 
-        return _notifier.NotifyAsync(Id, side, update);
+        return _notifier.NotifyAsync(Id, side, visible);
     }
 
     private static string NewToken() => Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(32));

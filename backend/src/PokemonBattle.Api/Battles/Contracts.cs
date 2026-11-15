@@ -18,8 +18,19 @@ public sealed record PlayerTicket(Guid BattleId, SideId Side, string Token);
 /// <summary>Public state of a battle (<c>GET /battles/{id}</c>): no tokens and no teams.</summary>
 public sealed record BattleSummary(Guid BattleId, BattleFormat Format, string Status);
 
-/// <summary>What one player sees: every event so far and its own pending request, if any.</summary>
+/// <summary>
+/// What one player sees: every event so far and its own pending request, if any. The opponent's
+/// <see cref="DecisionRequested"/> events are left out: they would reveal its options (Mega
+/// Evolution, disabled moves).
+/// </summary>
 public sealed record PlayerView(IReadOnlyList<BattleEvent> Events, DecisionRequest? Request);
+
+/// <summary>
+/// New events for one player, starting at index <paramref name="FirstEventIndex"/> of its event
+/// history, plus its pending request after them (null while it waits). An update with no events
+/// only replaces the request (a revealed trap).
+/// </summary>
+public sealed record PlayerUpdate(int FirstEventIndex, IReadOnlyList<BattleEvent> Events, DecisionRequest? Request);
 
 /// <summary>
 /// The result of a decision. A rejection carries the player's pending request, which may have

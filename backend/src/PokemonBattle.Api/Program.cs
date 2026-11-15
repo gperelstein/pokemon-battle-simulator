@@ -6,6 +6,7 @@ builder.Services.AddBattles();
 
 var app = builder.Build();
 app.MapLobby();
+app.MapHub<BattleHub>("/hubs/battle");
 app.Run();
 
 /// <summary>Entry point, public for the integration tests' WebApplicationFactory.</summary>
