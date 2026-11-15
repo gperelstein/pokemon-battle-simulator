@@ -18,7 +18,55 @@ public sealed class BattlePokemon
         CurrentHp = set.Stats.Hp;
         _item = set.ItemData ?? (set.Item is null ? null : new ItemDefinition(set.Item, set.PlateType));
         _field = field;
+        CanMegaEvolve = HoldsOwnMegaStone(set);
         RestoreAbility();
+    }
+
+    /// <summary>
+    /// It can still Mega Evolve (Showdown's canMegaEvo): decided once from the set's held Mega Stone,
+    /// which cannot leave its own species; cleared for the whole side once one of them Mega Evolves.
+    /// </summary>
+    internal bool CanMegaEvolve { get; set; }
+
+    /// <summary>
+    /// canMegaEvo: the held item is the forme's stone, bound to the set's base species (the stone's
+    /// megaStone key), and the set is not that forme already.
+    /// </summary>
+    private static bool HoldsOwnMegaStone(PokemonSet set)
+    {
+        if (set.Mega is not { } mega || set.Item != mega.Item || set.Species == mega.Species)
+        {
+            return false;
+        }
+
+        var bound = set.ItemData?.BoundSpecies ?? [];
+        return bound.Count == 0 || bound.Contains(set.BaseSpecies ?? set.Species);
+    }
+
+    /// <summary>
+    /// Takes its Mega forme for the rest of the battle (Showdown's formeChange with isPermanent):
+    /// species, types, stats (HP unchanged), weight and ability change at once; the ability becomes its
+    /// base ability, so it is the one restored on switching out. Returns the species it had before.
+    /// </summary>
+    internal string MegaEvolve()
+    {
+        var mega = Set.Mega!;
+        var before = Set.Species;
+        Set = Set with
+        {
+            Species = mega.Species,
+            BaseSpecies = Set.BaseSpecies ?? Set.Species,
+            Types = mega.Types,
+            Stats = mega.Stats with { Hp = Set.Stats.Hp },
+            WeightHg = mega.WeightHg,
+            Ability = mega.Ability,
+            AbilityBreakable = mega.AbilityBreakable,
+            AbilityTraceable = mega.AbilityTraceable,
+            CanEvolve = false,
+        };
+        TraceSeeking = false;
+        RestoreAbility();
+        return before;
     }
 
     /// <summary>Current ability: the set's, unless Trace replaced it while on the field.</summary>
@@ -140,7 +188,8 @@ public sealed class BattlePokemon
 
     public SideId Side { get; }
     public int TeamIndex { get; }
-    public PokemonSet Set { get; }
+    /// <summary>The set as it is now: the Mega forme's once it Mega Evolved.</summary>
+    public PokemonSet Set { get; private set; }
     public int CurrentHp { get; private set; }
     public bool IsFainted => CurrentHp == 0;
 

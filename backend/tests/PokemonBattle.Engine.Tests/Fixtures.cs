@@ -91,6 +91,7 @@ internal static class Fixtures
         ItemsSwapped s =>
             $"{s.Side}.{s.Slot} {s.Species} {s.MoveId}: holds {s.Item ?? "nothing"}, {s.TargetSide}.{s.TargetSlot} {s.TargetSpecies} holds {s.TargetItem ?? "nothing"}",
         ItemFrisked f => $"{f.Side}.{f.Slot} {f.Species} frisks {f.Item} of {f.FoeSide}.{f.FoeSlot}",
+        MegaEvolved m => $"{m.Side}.{m.Slot} {m.Species} mega evolves into {m.Forme}",
         DecisionRequested r => $"request {r.Request.Side} {r.Request.Kind} [{string.Join(",", r.Request.Slots)}]",
         BattleEnded b => $"winner {b.Winner?.ToString() ?? "none"}",
         _ => e.ToString()!,

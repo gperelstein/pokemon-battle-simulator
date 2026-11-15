@@ -26,14 +26,21 @@ public enum DecisionKind
 /// (Showdown's per-move "disabled" request flag): a Choice item lock, Assault Vest. Slots without
 /// restrictions are absent.
 /// </param>
+/// <param name="MegaSlots">
+/// Requested slots whose Pokémon may Mega Evolve this turn (Showdown's canMegaEvo request flag):
+/// it holds its own Mega Stone and its side has not Mega Evolved yet. Only one of them may ask for it.
+/// </param>
 public sealed record DecisionRequest(
     SideId Side,
     DecisionKind Kind,
     IReadOnlyList<int> Slots,
     IReadOnlyList<int>? TrappedSlots = null,
-    IReadOnlyDictionary<int, IReadOnlyList<int>>? DisabledMoves = null)
+    IReadOnlyDictionary<int, IReadOnlyList<int>>? DisabledMoves = null,
+    IReadOnlyList<int>? MegaSlots = null)
 {
     public IReadOnlyList<int> TrappedSlots { get; init; } = TrappedSlots ?? [];
+
+    public IReadOnlyList<int> MegaSlots { get; init; } = MegaSlots ?? [];
 
     public IReadOnlyDictionary<int, IReadOnlyList<int>> DisabledMoves { get; init; } =
         DisabledMoves ?? ReadOnlyDictionary<int, IReadOnlyList<int>>.Empty;
@@ -42,7 +49,11 @@ public sealed record DecisionRequest(
 public abstract record SlotChoice(int Slot);
 
 /// <param name="TargetSlot">Opposing slot to target. Ignored for spread moves; defaults to 0.</param>
-public sealed record MoveChoice(int Slot, int MoveIndex, int TargetSlot = 0) : SlotChoice(Slot);
+/// <param name="MegaEvolve">
+/// Mega Evolve before moving (only for a slot in <see cref="DecisionRequest.MegaSlots"/>): it happens
+/// at the start of the turn, after switches and before every move.
+/// </param>
+public sealed record MoveChoice(int Slot, int MoveIndex, int TargetSlot = 0, bool MegaEvolve = false) : SlotChoice(Slot);
 
 public sealed record SwitchChoice(int Slot, int TeamIndex) : SlotChoice(Slot);
 

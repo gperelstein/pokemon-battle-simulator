@@ -131,7 +131,32 @@ public sealed class TeamBuilder(Gen6Catalog catalog)
             species.BaseSpecies,
             species.Evos.Count > 0,
             item?.OnPlate,
-            item?.ToDefinition());
+            item?.ToDefinition(),
+            MegaFormeOf(species, item, spec.Level, ivs, evs, nature!));
+    }
+
+    /// <summary>
+    /// The Mega Evolution the held item allows (Showdown's canMegaEvo: item.megaStone keyed by the
+    /// holder's base species), with stats from the same level, IVs, EVs and nature; null otherwise.
+    /// </summary>
+    private MegaForme? MegaFormeOf(SpeciesData species, ItemData? item, int level, StatSpread ivs, StatSpread evs, NatureData nature)
+    {
+        if (item?.MegaStone is not { } stone || !stone.TryGetValue(species.BaseSpecies, out var megaName) ||
+            megaName == species.Name || catalog.FindSpecies(megaName) is not { } mega ||
+            catalog.FindAbility(mega.Abilities["0"]) is not { } ability)
+        {
+            return null;
+        }
+
+        return new MegaForme(
+            mega.Name,
+            item.Id,
+            mega.Types,
+            StatCalculator.Calculate(mega.BaseStats, level, ivs, evs, nature),
+            ability.Id,
+            (int)Math.Round(mega.Weightkg * 10),
+            ability.Flags.Contains("breakable"),
+            !ability.Flags.Contains("notrace"));
     }
 
     private List<MoveData> ValidateMoves(PokemonSetSpec spec, SpeciesData species, string label, List<string> errors)

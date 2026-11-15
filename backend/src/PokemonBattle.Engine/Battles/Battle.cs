@@ -188,7 +188,8 @@ public sealed partial class Battle
             if (slots.Length > 0)
             {
                 var trapped = slots.Where(slot => IsTrapped(side.Active[slot]!)).ToArray();
-                Request(new DecisionRequest(side.Id, DecisionKind.Turn, slots, trapped, DisabledMoves(side, slots)));
+                var mega = slots.Where(slot => side.Active[slot]!.CanMegaEvolve).ToArray();
+                Request(new DecisionRequest(side.Id, DecisionKind.Turn, slots, trapped, DisabledMoves(side, slots), mega));
             }
         }
 
@@ -213,6 +214,7 @@ public sealed partial class Battle
             .Select(actor => (Side: side, Choice: LockedChoice(side, actor))));
 
         var actions = new List<(BattleAction Action, int Bracket, int Priority, int Fraction, int Speed, int TieBreak)>();
+        var megaEvolutions = new List<(BattleAction Action, int Bracket, int Priority, int Fraction, int Speed, int TieBreak)>();
         foreach (var (side, choice) in chosen.Concat(locked))
         {
             var actor = side.Active[choice.Slot]!;
@@ -222,16 +224,26 @@ public sealed partial class Battle
             var tieBreak = _random.Next(0, int.MaxValue);
             actions.Add(choice switch
             {
-                SwitchChoice s => (new SwitchAction(side, s.Slot, actor, s.TeamIndex), 1, 0, 0, speed, tieBreak),
+                SwitchChoice s => (new SwitchAction(side, s.Slot, actor, s.TeamIndex), SwitchBracket, 0, 0, speed, tieBreak),
                 // Recharging is a move-bracket action with priority 0, like Showdown's "recharge".
                 RechargeChoice r => (new RechargeAction(side, r.Slot, actor), 0, 0, fraction, speed, tieBreak),
                 MoveChoice m => (new MoveAction(side, m.Slot, actor, m), 0,
                     actor.Set.Moves[m.MoveIndex].Priority, fraction, speed, tieBreak),
                 _ => throw new InvalidOperationException($"Unknown choice {choice}."),
             });
+
+            // Mega Evolution is its own action (order 104), with the speed the turn was ordered with:
+            // Gen 6 does not re-sort the queue once the forme changes (only Gen 7+ does).
+            if (choice is MoveChoice { MegaEvolve: true })
+            {
+                megaEvolutions.Add((new MegaEvolutionAction(side, choice.Slot, actor), MegaBracket, 0, 0, speed,
+                    _random.Next(0, int.MaxValue)));
+            }
         }
 
-        // Switches always go first; then priority bracket, fractional priority (items), speed and a
+        actions.AddRange(megaEvolutions);
+
+        // Switches always go first, then Mega Evolutions; then priority bracket, fractional priority (items), speed and a
         // random tie-break.
         foreach (var entry in actions
                      .OrderByDescending(a => a.Bracket)
@@ -267,6 +279,10 @@ public sealed partial class Battle
 
             case MoveAction m:
                 UseMove(m);
+                break;
+
+            case MegaEvolutionAction mega:
+                RunMegaEvolution(mega.Side, mega.Slot, mega.Actor);
                 break;
 
             case RechargeAction r:
@@ -1204,6 +1220,7 @@ public sealed partial class Battle
             return $"Only switches are allowed for {request.Kind}.";
         }
 
+        var megaRequested = false;
         foreach (var choice in decision.Choices)
         {
             switch (choice)
@@ -1225,6 +1242,18 @@ public sealed partial class Battle
                     {
                         return $"Target slot {move.TargetSlot} does not exist.";
                     }
+
+                    if (move.MegaEvolve && !request.MegaSlots.Contains(move.Slot))
+                    {
+                        return $"Can't move: {mover.Set.Species} can't Mega Evolve.";
+                    }
+
+                    if (move.MegaEvolve && megaRequested)
+                    {
+                        return "Can't move: you can only Mega Evolve once per battle.";
+                    }
+
+                    megaRequested |= move.MegaEvolve;
                     break;
 
                 case SwitchChoice sw when request.Kind == DecisionKind.Turn && request.TrappedSlots.Contains(sw.Slot):
@@ -1279,6 +1308,13 @@ public sealed partial class Battle
 
     private sealed record RechargeAction(Side Side, int Slot, BattlePokemon Actor) : BattleAction(Side, Slot, Actor);
 
+    private sealed record MegaEvolutionAction(Side Side, int Slot, BattlePokemon Actor) : BattleAction(Side, Slot, Actor);
+
+    /// <summary>Turn-queue brackets: switches (Showdown order 103), then Mega Evolution (104), then moves (200).</summary>
+    private const int SwitchBracket = 2;
+
+    private const int MegaBracket = 1;
+
     /// <summary>Engine-made choice for a Pokémon that must recharge; players never send it.</summary>
     private sealed record RechargeChoice(int Slot) : SlotChoice(Slot);
 
@@ -1286,6 +1322,7 @@ public sealed partial class Battle
     private static SlotChoice LockedChoice(Side side, BattlePokemon actor)
     {
         var slot = side.Active.ToList().IndexOf(actor);
-        return actor.MustRecharge ? new RechargeChoice(slot) : actor.ChargedChoice! with { Slot = slot };
+        // The repeated choice never Mega Evolves again: that happened on the turn it was chosen.
+        return actor.MustRecharge ? new RechargeChoice(slot) : actor.ChargedChoice! with { Slot = slot, MegaEvolve = false };
     }
 }

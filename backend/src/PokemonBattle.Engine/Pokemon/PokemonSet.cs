@@ -17,6 +17,10 @@ namespace PokemonBattle.Engine.Pokemon;
 /// Battle data of <paramref name="Item"/> (Fling, Natural Gift, Mega Stone binding, Plate type),
 /// which moves with the item in battle. Null gives the item only its id and <paramref name="PlateType"/>.
 /// </param>
+/// <param name="Mega">
+/// The Mega Evolution its held Mega Stone allows (Showdown's canMegaEvo); it is only available while
+/// the set holds <see cref="MegaForme.Item"/> and the stone is bound to the set's base species.
+/// </param>
 public sealed record PokemonSet(
     string Species,
     IReadOnlyList<PokemonType> Types,
@@ -32,7 +36,8 @@ public sealed record PokemonSet(
     string? BaseSpecies = null,
     bool CanEvolve = false,
     PokemonType? PlateType = null,
-    ItemDefinition? ItemData = null)
+    ItemDefinition? ItemData = null,
+    MegaForme? Mega = null)
 {
     public const int MaxMoves = 4;
 }

@@ -168,3 +168,9 @@ public sealed record ItemsSwapped(
 /// </summary>
 public sealed record ItemFrisked(SideId Side, int Slot, string Species, string Item, SideId FoeSide, int FoeSlot)
     : BattleEvent;
+
+/// <summary>
+/// The Pokémon Mega Evolved (Showdown's "-mega"): <paramref name="Species"/> is what it was before,
+/// <paramref name="Forme"/> the Mega forme it keeps for the rest of the battle.
+/// </summary>
+public sealed record MegaEvolved(SideId Side, int Slot, string Species, string Forme) : BattleEvent;
